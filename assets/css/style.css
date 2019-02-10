@@ -37,7 +37,7 @@ body {
     }
 .body {
     width: 100%;
-    background-image: url(hexellence.png);
+    background-image: url(assets/images/hexellence.png);
     padding: 50px 0 200px 0;
 }
 .body-container {
