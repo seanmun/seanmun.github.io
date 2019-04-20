@@ -1,52 +1,185 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>Document</title>
-    <link rel="stylesheet" type="text/css" href="assets/css/style.css">
-</head>
-<body>
-    
-    <div class="header">
-        <div class="header-container parent">
-            <div class="name">
-                Sean Munley
-            </div>
-            <div class="nav">
-                <a href="index.html">About</a> &nbsp; &nbsp;
-                <a href="portfolio.html">Portfolio</a> &nbsp; &nbsp;
-                <a href="contact.html">Contact</a>
-            </div>
-
-        </div>
-    </div>
-    <div class="body" style="background-image: url(assets/images/hexellence.png);">
-        <div class="body-container">
-            <div class="about">
-                <h1>About Me</h1>
-            </div>
-            <div class="content parent">
-                <div class="image">
-                        <img class="circle" src="assets/images/fullsizeoutput_f3d.jpeg" width="170" />
-                </div>
-                  <div class="copy">
-                       <p>
-                            Always wanted to get around to creating my own personal site from scratch, finally! I work at an advertising agency in Center City named, Digitas Health. It's one of the largest in the field of pharmaceutical advertising. My position there is Director, Marketing Operations. I focus primarily on CRM and Email Marketing—including strategy, design, development, execution and reporting. <br><br>
-                            A few years ago, I was having trouble with our internal dev team. A lot of errors were being made and budgets were getting blow up due to HTML dev delays. So I started teaching myself HTML and CSS and gradually took over the workload. A few years later, I'm now cranking out upwards of 100 emails per year. Lately, I've been really pushing the envelope with interactive emails.
-                      </p>
+   <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta http-equiv="X-UA-Compatible" content="ie=edge">
+      <title>Document</title>
+      <link rel="stylesheet" type="text/css" href="assets/css/style.css">
+      <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
+      <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+      <style>
+      </style>
+   </head>
+   <body style="background: black;">
+      <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+         <a class="navbar-brand" href="#">Sean Munley</a>
+         <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarText" aria-controls="navbarText" aria-expanded="false" aria-label="Toggle navigation">
+         <span class="navbar-toggler-icon"></span>
+         </button>
+         <div class="collapse navbar-collapse" id="navbarText">
+            <ul class="navbar-nav mr-auto">
+               <li class="nav-item active">
+                  <a class="nav-link" href="index.html">About <span class="sr-only">(current)</span></a>
+               </li>
+               <li class="nav-item">
+                  <a class="nav-link" href="assets/pdf/SeanMunley-resume.pdf">Resume</a>
+               </li>
+               <li class="nav-item">
+                  <a class="nav-link" href="#PORTFOLIO">Portfolio</a>
+               </li>
+               <li class="nav-item">
+                  <a class="nav-link" href="#CONTACT">Contact</a>
+               </li>
+            </ul>
+         </div>
+      </nav>
+      <div id="ABOUT" class="container body-container my-5" data-aos="fade-right">
+         <div class="row">
+            <div class="col-sm-12">
+               <div class="page-header">
+                  <div class="about">
+                     <h1>About Me</h1>
                   </div>
+               </div>
+               <div class="row">
+                  <div class="col col-lg-12">
+                     <div class="image">
+                        <img class="circle" src="assets/images/fullsizeoutput_f3d.jpeg" width="200" >
+                     </div>
+                  </div>
+                  <div class="col-lg-12">
+                     <p>
+                        Always wanted to get around to creating my own personal site from scratch, finally! I work at an advertising agency in Center City, Digitas Health. It's one of the largest in the field of pharmaceutical advertising. My position there is Director, Marketing Operations. I focus primarily on CRM and Email Marketing—including strategy, design, development, execution and reporting. <br><br>
+                     </p>
+                  </div>
+               </div>
             </div>
-            <div class="content">
-                <p>
-                        However, email development is very niche. There are so many restrictions and bugs from inbox/device rendering engines, it becomes extremely difficult to code. I use so many hacks I have a hard time performing "normal" html/css structure. I signed up for this class because I'm ready to take the next step. I'm ready to graduate from email development.                </p>
+            <!--Create Card taking up 4 Columns-->
+         </div>
+      </div>
+      <div class="container">
+         <div class="row">
+            <div class="col" id="scrollDown" data-aos="zoom-out">
+               <span style="font-family: 'Arial', 'Helvetica Neue', Helvetica, sans-serif;color:#ffffff;font-size: 22px;">
+               Scroll down
+               </span>
             </div>
-        </div>
-    </div>
-    <div class="footer">
-                    &copy;Copyright 2019
-    </div>
-
-</body>
+         </div>
+      </div>
+      <div id="PORTFOLIO" class="container body-container my-5" data-aos="flip-up">
+         <div class="row">
+            <div class="col-lg-12">
+               <div class="page-header">
+                  <div class="about">
+                     <h1>Portfolio</h1>
+                  </div>
+               </div>
+               <div class="row">
+                  <div class="col-lg-12">
+                     <div class="portfolio">
+                        <div class="flex-container full">
+                           <div data-aos="zoom-in" class="flex-item" style="background-image: url(assets/images/ThreeCourseTravel.png);background-position: top center; background-repeat: no-repeat;background-size:250px;">
+                              <div class="banner">
+                                 <a target="_blank" href="http://threecoursetravel.com" style="color:white;">
+                                 Three Course Travel
+                                 </a>
+                              </div>
+                           </div>
+                           <div data-aos="zoom-in" class="flex-item" style="background-image: url(assets/images/gem1.png);background-position: top center; background-repeat: no-repeat;background-size:250px;">
+                              <div class="banner">
+                                 <a target="_blank" href="https://seanmun.github.io/unit-4-game/" style="color:white;">
+                                    Crystal Game<
+                                       /a>
+                              </div>
+                           </div>
+                           <div data-aos="zoom-in" class="flex-item" style="background-image: url(https://media-cdn.tripadvisor.com/media/photo-s/16/5e/c0/a3/clickety-click-time-schedule.jpg);background-position: top center; background-repeat: no-repeat;background-size:250px;">
+                              <div class="banner">
+                                 <a target="_blank" href="https://seanmun.github.io/train-schedule/" style="color:white;">
+                                 Train Schedule
+                                 </a>
+                              </div>
+                           </div>
+                           <div data-aos="zoom-in" class="flex-item" style="background-image: url(assets/images/liri.png);background-position: top center; background-repeat: no-repeat;background-size:250px;">
+                              <div class="banner">
+                                 <a target="_blank" href="https://seanmun.github.io/train-schedule/" style="color:white;">
+                                 "LIRI..."
+                                 </a>
+                              </div>
+                           </div>
+                        </div>
+                     </div>
+                  </div>
+               </div>
+            </div>
+            <!--Create Card taking up 4 Columns-->
+         </div>
+      </div>
+      <div id="CONTACT" class="container body-container my-5" data-aos="flip-down">
+         <div class="row">
+            <div class="col-lg-12">
+               <div class="page-header">
+                  <div class="about">
+                     <h1>Contact</h1>
+                  </div>
+               </div>
+               <div class="row">
+                  <div class="col-lg-12">
+                     <div class="content">
+                        <form action="/my-handling-form-page" method="post">
+                           <div class="field">
+                              <label for="name">Name:</label>
+                              <input type="text" id="name" name="user_name" value="John Smith">
+                           </div>
+                           <div class="field">
+                              <label for="mail">E-mail:</label>
+                              <input type="email" id="mail" name="user_mail" value="example@gmail.com">
+                           </div>
+                           <div class="field">
+                              <label for="msg">Message:</label>
+                              <textarea id="msg" name="user_message"></textarea>
+                           </div>
+                        </form>
+                     </div>
+                     <div class="content">
+                        <button type="button" class="btn btn-success">Success</button>
+                     </div>
+                  </div>
+               </div>
+            </div>
+            <!--Create Card taking up 4 Columns-->
+         </div>
+      </div>
+      <div class="container">
+         <div class="row">
+            <div class="col-lg-12">
+               &nbsp;
+            </div>
+            <div class="col-lg-12">
+               &nbsp;
+            </div>
+            <div class="col-lg-12">
+               &nbsp;
+            </div>
+         </div>
+      </div>
+      <footer class="footer">
+         <div class="container">
+            <p class="text-muted"> &copy;Copyright 2019 </p>
+         </div>
+      </footer>
+      <!-- jQuery CDN -->
+      <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js"></script>
+      <!-- Bootstrap JavaScript CDN -->
+      <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
+      <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+      <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
+      <script>
+         AOS.init({
+           duration: 1200,
+         })
+         
+      </script>
+   </body>
 </html>
