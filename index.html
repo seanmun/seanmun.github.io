@@ -13,7 +13,7 @@
    <link rel="preconnect" href="https://fonts.gstatic.com">
    <link rel="preconnect" href="https://fonts.gstatic.com">
    <link href="https://fonts.googleapis.com/css2?family=Anton&display=swap" rel="stylesheet">
-       <style>
+   <style>
       html,
       body,
       canvas {
@@ -35,27 +35,19 @@
       }
 
       h1 {
-   color: white;
-   text-shadow:
-       3px 3px 0 #000,
-     -1px -1px 0 #000,  
-      1px -1px 0 #000,
-      -1px 1px 0 #000,
-       1px 1px 0 #000;
-       font-size: 50px;
-       font-family: 'Anton', sans-serif;
+         margin: 0;
+         color: white;
+         font-size: 50px;
+         font-family: 'Anton', sans-serif;
       }
+
       p {
-   color: white;
-   text-shadow:
-       3px 3px 0 #000,
-     -1px -1px 0 #000,  
-      1px -1px 0 #000,
-      -1px 1px 0 #000,
-       1px 1px 0 #000;
-       font-size: 25px;
-       font-family: 'Anton', sans-serif;
+         color: white;
+         margin: 0;
+         font-size: 25px;
+         font-family: 'Anton', sans-serif;
       }
+
       #frame {
          justify-content: center;
          align-items: center;
@@ -77,6 +69,9 @@
       #profilePic {
          border-radius: 100%;
          margin: 50px 50px 0 50px;
+         -webkit-box-shadow: 0 28px 16px -16px white;
+         -moz-box-shadow: 0 28px 16px -16px white;
+         box-shadow: 0 28px 16px -16px white;
       }
    </style>
 </head>
@@ -87,13 +82,16 @@
    <div id="frame">
       <div id="profileBox" style="width: 400px;text-align: center;;">
          <div>
-            <img src="assets/images/smunley2020a.png" id="profilePic" width="250">
+            <img src="assets/images/smunley2020a.png" id="profilePic" width="200">
          </div>
-         <div class="content" >
+         <div class="content">
             <h1>sean munley</h1>
             <p>i build email experiences</p>
+            <div style="text-align: center;;">
+               <a href="mailto:smunley13@gmail.com" target="_blank"><img src="assets/images/email.png" width="50"></a>
+            </div>
          </div>
-        
+
       </div>
    </div>
 </body>
