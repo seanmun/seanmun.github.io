@@ -3,7 +3,19 @@
 import React, { useState, useEffect } from 'react';
 import { 
     GithubIcon, LinkedinIcon, FileTextIcon, ZapIcon, TrophyIcon, CodesandboxIcon, BeefIcon, CloudIcon, BotIcon, CodeIcon, ShieldCheckIcon } from "lucide-react";
-interface PersonalWebsiteProps {
+
+    interface EventData {
+      cookieId: string;
+      timestamp: string;
+      eventType: 'pageview';
+      geolocation?: {
+        latitude: number;
+        longitude: number;
+      };
+    }
+    
+
+    interface PersonalWebsiteProps {
   galleryImages: string[]
 }
 import { useAccessibilitySettings } from '../hooks/useAccessibilitySettings';
@@ -114,44 +126,7 @@ const handleMaintenancePassword = () => {
     }
   ];
 
-  const trackEvent = async (eventType: 'pageview' | 'subscribe', email?: string) => {
-    try {
-      let eventData = {
-        cookieId,
-        timestamp: new Date().toISOString(),
-        eventType,
-        ...(email && { email })
-      }
-
-      try {
-        const position = await new Promise<GeolocationPosition>((resolve, reject) => {
-          navigator.geolocation.getCurrentPosition(resolve, reject, {
-            timeout: 5000,
-            maximumAge: 300000
-          })
-        })
-        
-        eventData = {
-          ...eventData,
-          geolocation: {
-            latitude: position.coords.latitude,
-            longitude: position.coords.longitude
-          }
-        }
-      } catch (error) {
-        console.log('Geolocation not available or denied')
-      }
-
-      await fetch('/api/track', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(eventData)
-      })
-    } catch (error) {
-      console.error('Error tracking event:', error)
-    }
-  }
-
+   
   const handlePasswordSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (password === 'Otis') {
@@ -173,22 +148,85 @@ const handleMaintenancePassword = () => {
   };
 
 
-  useEffect(() => {
-    setIsVisible(true);
-    setShuffledImages(shuffleArray([...galleryImages]));
-    
-    const interval = setInterval(() => {
-      setActiveSlide((prev) => (prev + 1) % galleryImages.length);
-    }, 5000);
+  // First useEffect for maintenance mode
+useEffect(() => {
+  const hasMaintenanceAccess = sessionStorage.getItem('maintenanceAccess') === 'true';
+  if (hasMaintenanceAccess) {
+    setIsMaintenanceMode(false);
+  }
+}, []);
 
-    return () => clearInterval(interval);
-  }, [galleryImages.length]);
+// Second useEffect for visitor ID
+useEffect(() => {
+  const existingId = localStorage.getItem('visitorId');
+  if (existingId) {
+    setCookieId(existingId);
+  } else {
+    const newId = Math.random().toString(36).substring(2);
+    localStorage.setItem('visitorId', newId);
+    setCookieId(newId);
+  }
+}, []);
 
-  useEffect(() => {
-    if (cookieId) {
-      trackEvent('pageview')
+// Third useEffect for gallery
+useEffect(() => {
+  setIsVisible(true);
+  setShuffledImages(shuffleArray([...galleryImages]));
+  
+  const interval = setInterval(() => {
+    setActiveSlide((prev) => (prev + 1) % galleryImages.length);
+  }, 5000);
+
+  return () => clearInterval(interval);
+}, [galleryImages, galleryImages.length]);
+
+// Fourth useEffect for tracking
+useEffect(() => {
+  const trackEvent = async () => {
+    try {
+      let eventData: EventData = {
+        cookieId,
+        timestamp: new Date().toISOString(),
+        eventType: 'pageview' as const
+      };
+
+      try {
+        const position = await new Promise<GeolocationPosition>((resolve, reject) => {
+          navigator.geolocation.getCurrentPosition(resolve, reject, {
+            timeout: 5000,
+            maximumAge: 300000
+          });
+        });
+        
+        eventData = {
+          ...eventData,
+          geolocation: {
+            latitude: position.coords.latitude,
+            longitude: position.coords.longitude
+          }
+        };
+      } catch {
+        console.log('Geolocation not available or denied');
+      }
+
+      await fetch('/api/track', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(eventData)
+      });
+    } catch (err) {
+      console.error('Error tracking event:', err);
     }
-  }, [cookieId]);
+  };
+
+  if (cookieId) {
+    const hasTracked = sessionStorage.getItem('hasTrackedPageview');
+    if (!hasTracked) {
+      trackEvent();
+      sessionStorage.setItem('hasTrackedPageview', 'true');
+    }
+  }
+}, [cookieId]);
 
   return (
     <div className="min-h-screen bg-white dark:bg-gray-900 transition-colors" style={{ 
@@ -542,7 +580,9 @@ const handleMaintenancePassword = () => {
           {/* Gallery Column */}
           <div>
             <h2 className="text-xl font-bold mb-4 dark:text-white">Mood</h2>
-            <div className="relative overflow-hidden rounded-lg">
+            <div className={`relative overflow-hidden rounded-lg transition-opacity duration-500 ${
+  isVisible ? 'opacity-100' : 'opacity-0'
+}`}>
               <div
                 className="flex transition-transform duration-1000 ease-in-out"
                 style={{ transform: `translateX(-${activeSlide * 100}%)` }}

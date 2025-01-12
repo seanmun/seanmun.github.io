@@ -23,7 +23,7 @@ export async function POST(request: Request) {
       const fileContent = await fs.readFile(filePath, 'utf8')
       events = JSON.parse(fileContent)
     } catch (error) {
-      // File doesn't exist yet, will create new
+      console.error('Error tracking event:', error)  // Add this line
     }
 
     events.push(data)
