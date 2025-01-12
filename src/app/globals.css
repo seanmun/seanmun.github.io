@@ -2,20 +2,147 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+/* Base text styles */
+p, h1, h2, h3, h4, h5, h6, span {
+  transition: line-height 0.2s ease;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/* Line height classes */
+body.line-height-normal p, 
+body.line-height-normal span {
+  line-height: 1.5;
 }
 
-body {
-  color: var(--foreground);
-  background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
+body.line-height-relaxed p,
+body.line-height-relaxed span {
+  line-height: 1.75;
+}
+
+body.line-height-loose p,
+body.line-height-loose span {
+  line-height: 2;
+}
+
+/* Dark mode base styles */
+.dark {
+  background-color: #111827;
+}
+
+/* Theme Colors */
+[data-theme='light'] {
+  background-color: white;
+}
+
+[data-theme='dark'] {
+  background-color: #111827;
+}
+
+/* Amber Theme */
+[data-theme='amber'] {
+  --bg-primary: #FFF4E6;      /* Light amber background */
+  --bg-secondary: #FFE4CC;    /* Cards background */
+  --text-primary: #4A3726;    /* Dark amber for main text */
+  --text-secondary: #855E42;  /* Medium amber for descriptions */
+  --icon-color: #D35400;      /* Burnt orange for icons */
+  --link-color: #CC4400;      /* Dark orange for links */
+  --link-hover: #A04000;      /* Darker orange for link hovers */
+}
+
+/* Amber mode styles */
+[data-theme='amber'] .min-h-screen {
+  background-color: var(--bg-primary) !important;
+}
+
+[data-theme='amber'] .bg-gray-50,
+[data-theme='amber'] .bg-gray-100,
+[data-theme='amber'] .bg-gray-200 {
+  background-color: var(--bg-secondary);
+}
+
+[data-theme='amber'] .hover\:bg-gray-100:hover {
+  background-color: #FFD7B3 !important; /* Slightly darker amber for hover */
+}
+
+[data-theme='amber'] .dark\:hover\:bg-gray-700:hover {
+  background-color: #FFD7B3 !important; /* Same color to maintain consistency */
+}
+
+[data-theme='amber'] .text-blue-600 {
+  color: var(--icon-color) !important;
+}
+
+[data-theme='amber'] .text-blue-600.hover\:text-blue-800 {
+  color: var(--link-color) !important;
+}
+
+[data-theme='amber'] .text-blue-600.hover\:text-blue-800:hover {
+  color: var(--link-hover) !important;
+}
+
+[data-theme='amber'] .text-gray-600 {
+  color: var(--text-secondary) !important;
+}
+
+[data-theme='amber'] .text-gray-700 {
+  color: var(--text-primary) !important;
+}
+
+/* Amber blob gradients */
+[data-theme='amber'] .amber-gradient-1 {
+  background: linear-gradient(to right, #C65D00, #B35000, #A34600) !important;
+}
+
+[data-theme='amber'] .amber-gradient-2 {
+  background: linear-gradient(to right, #B35000, #A34600, #933D00) !important;
+}
+
+[data-theme='amber'] .amber-bg {
+  background-color: var(--bg-primary) !important;
+}
+
+/* Button styles for amber mode */
+[data-theme='amber'] button.bg-blue-500,
+[data-theme='amber'] button.bg-blue-600,
+[data-theme='amber'] button.hover\:bg-blue-700 {
+  background-color: var(--link-color) !important;
+}
+
+[data-theme='amber'] button.hover\:bg-blue-700:hover {
+  background-color: var(--link-hover) !important;
+}
+
+/* For outlined or secondary buttons */
+[data-theme='amber'] button.text-blue-600,
+[data-theme='amber'] button.hover\:text-blue-800 {
+  color: var(--link-color) !important;
+}
+
+[data-theme='amber'] button.hover\:text-blue-800:hover {
+  color: var(--link-hover) !important;
+}
+
+/* For button focus states */
+[data-theme='amber'] button:focus-visible {
+  outline-color: var(--link-color) !important;
+}
+
+/* For disabled states */
+[data-theme='amber'] button:disabled {
+  background-color: var(--text-secondary) !important;
+  opacity: 0.7;
+}
+
+/* Animations */
+@keyframes blob {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  25% { transform: translate(20px, -20px) scale(1.1); }
+  50% { transform: translate(-20px, 20px) scale(0.9); }
+  75% { transform: translate(20px, 20px) scale(1.1); }
+}
+
+@keyframes blobShape {
+  0%, 100% { border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%; }
+  25% { border-radius: 30% 60% 70% 40% / 50% 60% 30% 60%; }
+  50% { border-radius: 40% 60% 40% 60% / 40% 50% 60% 50%; }
+  75% { border-radius: 60% 40% 60% 30% / 70% 30% 50% 40%; }
 }
