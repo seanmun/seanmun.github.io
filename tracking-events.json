@@ -39,5 +39,15 @@
       "latitude": 39.96411381417325,
       "longitude": -75.14246811674026
     }
+  },
+  {
+    "cookieId": "hfmsrbsgtd",
+    "timestamp": "2025-01-12T18:51:22.870Z",
+    "eventType": "pageview"
+  },
+  {
+    "cookieId": "hfmsrbsgtd",
+    "timestamp": "2025-01-12T18:54:42.849Z",
+    "eventType": "pageview"
   }
 ]

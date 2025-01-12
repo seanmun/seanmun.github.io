@@ -2,7 +2,8 @@
 
 import React, { useState, useEffect } from 'react';
 import { 
-    GithubIcon, LinkedinIcon, FileTextIcon, ZapIcon, TrophyIcon, CodesandboxIcon, BeefIcon, CloudIcon, BotIcon, CodeIcon, ShieldCheckIcon } from "lucide-react";
+    GithubIcon, LinkedinIcon, FileTextIcon, ZapIcon, TrophyIcon, CodesandboxIcon, 
+    BeefIcon, CloudIcon, BotIcon, CodeIcon, ShieldCheckIcon, XIcon } from "lucide-react";
 
     interface EventData {
       cookieId: string;
@@ -349,119 +350,201 @@ useEffect(() => {
 
 {/* Resume Modal */}
 {isResumeModalOpen && (
-  <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 overflow-y-auto">
-    <div className="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-2xl mx-4 my-8">
-      <h3 className="text-xl font-semibold mb-4 dark:text-white">Professional Experience</h3>
-      
-      <div className="space-y-6 text-gray-600 dark:text-gray-400">
-        {/* Career Summary */}
-        <section>
-          <h4 className="text-lg font-medium text-gray-800 dark:text-gray-200 mb-4">CAREER SUMMARY</h4>
-          
-          <div className="space-y-6">
-           {/* Digitas Health */}
+  <div className="fixed inset-0 bg-black bg-opacity-50 flex items-start justify-center z-50 p-4 overflow-y-auto">
+    <div className="relative bg-white dark:bg-gray-800 rounded-lg w-full max-w-2xl my-4 md:my-8">
+      {/* Sticky header with close button */}
+      <div className={`sticky top-0 rounded-t-lg flex justify-between items-center p-4 border-b
+        ${settings.theme === 'amber'
+          ? 'bg-amber-50 border-amber-100'
+          : 'bg-white border-gray-200 dark:bg-gray-800 dark:border-gray-700'
+        }`}>
+        <h3 className={`text-xl font-semibold
+          ${settings.theme === 'amber'
+            ? 'text-amber-900'
+            : 'text-gray-900 dark:text-white'
+          }`}>
+          Professional Experience
+        </h3>
+        <button
+          onClick={() => setResumeModalOpen(false)}
+          className={`p-2 rounded-full transition-colors
+            ${settings.theme === 'amber'
+              ? 'text-amber-600 hover:bg-amber-100'
+              : 'text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700'
+            }`}
+          aria-label="Close modal"
+        >
+          <XIcon className="w-6 h-6" />
+        </button>
+      </div>
+
+      {/* Scrollable content */}
+      <div className={`p-4 overflow-y-auto max-h-[60vh] md:max-h-[70vh]
+        ${settings.theme === 'amber'
+          ? 'bg-amber-50'
+          : 'bg-white dark:bg-gray-800'
+        }`}>
+        <div className="space-y-6">
+          {/* Career Summary */}
+          <section>
+            <h4 className={`text-lg font-medium mb-4
+              ${settings.theme === 'amber'
+                ? 'text-amber-900'
+                : 'text-gray-800 dark:text-gray-200'
+              }`}>
+              CAREER SUMMARY
+            </h4>
+            
+            <div className="space-y-6">
+              {/* Digitas Health */}
               <div>
                 <div className="flex justify-between items-start mb-2">
                   <div>
-                    <h5 className="font-medium text-gray-700 dark:text-gray-300">
+                    <h5 className="font-medium">
                       <a 
                         href="https://www.digitashealth.com/"
                         target="_blank"
                         rel="noopener noreferrer"
                         className={`hover:underline ${
-                          settings.theme === 'amber' 
-                            ? 'text-amber-600 hover:text-amber-700' 
-                            : 'text-blue-600 hover:text-blue-700'
+                          settings.theme === 'amber'
+                            ? 'text-amber-700 hover:text-amber-900'
+                            : 'text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300'
                         }`}
                       >
                         DIGITAS HEALTH
                       </a>
                     </h5>
-                    <p className="text-sm text-gray-500">Philadelphia, PA</p>
+                    <p className={`text-sm ${
+                      settings.theme === 'amber'
+                        ? 'text-amber-600'
+                        : 'text-gray-500 dark:text-gray-400'
+                    }`}>Philadelphia, PA</p>
                   </div>
-                  <span className="text-sm text-gray-500">2013 April – Present</span>
+                  <span className={`text-sm ${
+                    settings.theme === 'amber'
+                      ? 'text-amber-600'
+                      : 'text-gray-500 dark:text-gray-400'
+                  }`}>2013 April – Present</span>
                 </div>
-              <ul className="list-disc pl-5 space-y-1">
-                <li>Vice President/Director, CRM Innovation (Promotion, October 2019)</li>
-                <li>Director, Marketing Operations (Promotion, July 2015)</li>
-                <li>Manager, Marketing Operations</li>
-              </ul>
-            </div>
-
-            {/* Elsevier */}
-            <div>
-              <div className="flex justify-between items-start mb-2">
-                <div>
-                  <h5 className="font-medium text-gray-700 dark:text-gray-300">
-                    <a 
-                      href="https://www.elsevier.com"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className={`hover:underline ${
-                        settings.theme === 'amber' 
-                          ? 'text-amber-600 hover:text-amber-700' 
-                          : 'text-blue-600 hover:text-blue-700'
-                      }`}
-                    >
-                      ELSEVIER
-                    </a>
-                  </h5>
-                  <p className="text-sm text-gray-500">Philadelphia, PA</p>
-                </div>
-                <span className="text-sm text-gray-500">2008 – 2013 April</span>
+                <ul className={`list-disc pl-5 space-y-1 ${
+                  settings.theme === 'amber'
+                    ? 'text-amber-800'
+                    : 'text-gray-600 dark:text-gray-400'
+                }`}>
+                  <li>Vice President/Director, CRM Innovation (Promotion, October 2019)</li>
+                  <li>Director, Marketing Operations (Promotion, July 2015)</li>
+                  <li>Manager, Marketing Operations</li>
+                </ul>
               </div>
-              <ul className="list-disc pl-5 space-y-1">
-                <li>Customer Marketing Manager (Promotion, September 2012)</li>
-                <li>Manager, Customer Analytics (Promotion, August 2010)</li>
-                <li>Direct Marketing Analyst</li>
-              </ul>
+
+              {/* Elsevier */}
+              <div>
+                <div className="flex justify-between items-start mb-2">
+                  <div>
+                    <h5 className="font-medium">
+                      <a 
+                        href="https://www.elsevier.com"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className={`hover:underline ${
+                          settings.theme === 'amber'
+                            ? 'text-amber-700 hover:text-amber-900'
+                            : 'text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300'
+                        }`}
+                      >
+                        ELSEVIER
+                      </a>
+                    </h5>
+                    <p className={`text-sm ${
+                      settings.theme === 'amber'
+                        ? 'text-amber-600'
+                        : 'text-gray-500 dark:text-gray-400'
+                    }`}>Philadelphia, PA</p>
+                  </div>
+                  <span className={`text-sm ${
+                    settings.theme === 'amber'
+                      ? 'text-amber-600'
+                      : 'text-gray-500 dark:text-gray-400'
+                  }`}>2008 – 2013 April</span>
+                </div>
+                <ul className={`list-disc pl-5 space-y-1 ${
+                  settings.theme === 'amber'
+                    ? 'text-amber-800'
+                    : 'text-gray-600 dark:text-gray-400'
+                }`}>
+                  <li>Customer Marketing Manager (Promotion, September 2012)</li>
+                  <li>Manager, Customer Analytics (Promotion, August 2010)</li>
+                  <li>Direct Marketing Analyst</li>
+                </ul>
+              </div>
             </div>
-          </div>
-        </section>
+          </section>
 
-        {/* Education */}
-        <section>
-          <h4 className="text-lg font-medium text-gray-800 dark:text-gray-200 mb-4">EDUCATION</h4>
-          <div className="flex justify-between items-start">
-            <div>
-              <h5 className="font-medium text-gray-700 dark:text-gray-300">TEMPLE UNIVERSITY</h5>
-              <p className="text-sm text-gray-500">Philadelphia, PA</p>
-              <p>Bachelor of Business Administration</p>
-              <p>Major: Marketing</p>
+          {/* Education */}
+          <section>
+            <h4 className={`text-lg font-medium mb-4
+              ${settings.theme === 'amber'
+                ? 'text-amber-900'
+                : 'text-gray-800 dark:text-gray-200'
+              }`}>
+              EDUCATION
+            </h4>
+            <div className="flex justify-between items-start">
+              <div>
+                <h5 className={`font-medium ${
+                  settings.theme === 'amber'
+                    ? 'text-amber-800'
+                    : 'text-gray-700 dark:text-gray-300'
+                }`}>TEMPLE UNIVERSITY</h5>
+                <p className={`text-sm ${
+                  settings.theme === 'amber'
+                    ? 'text-amber-600'
+                    : 'text-gray-500 dark:text-gray-400'
+                }`}>Philadelphia, PA</p>
+                <p className={
+                  settings.theme === 'amber'
+                    ? 'text-amber-800'
+                    : 'text-gray-600 dark:text-gray-400'
+                }>Bachelor of Business Administration</p>
+                <p className={
+                  settings.theme === 'amber'
+                    ? 'text-amber-800'
+                    : 'text-gray-600 dark:text-gray-400'
+                }>Major: Marketing</p>
+              </div>
+              <span className={`text-sm ${
+                settings.theme === 'amber'
+                  ? 'text-amber-600'
+                  : 'text-gray-500 dark:text-gray-400'
+              }`}>2005 – 2008</span>
             </div>
-            <span className="text-sm text-gray-500">2005 – 2008</span>
-          </div>
-        </section>
+          </section>
 
-        {/* Request Full Resume */}
-        <div className="mt-8 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
-          <p className="text-sm mb-2">
-            For a detailed resume including full work history and responsibilities, please get in touch:
-          </p>
-          <a 
-            href="mailto:sean.munley@protonmail.com"
-            className={`text-sm ${
-              settings.theme === 'amber' 
-                ? 'text-amber-600 hover:text-amber-700' 
-                : 'text-blue-600 hover:text-blue-700'
-            } transition-colors`}
-          >
-            sean.munley@protonmail.com →
-          </a>
-        </div>
-      </div>
-
-      <div className="mt-6 flex justify-end">
-        <button
-          onClick={() => setResumeModalOpen(false)}
-          className={`px-4 py-2 ${
+          {/* Contact Section */}
+          <div className={`mt-8 p-4 rounded-lg ${
             settings.theme === 'amber'
-              ? 'bg-amber-600 hover:bg-amber-700'
-              : 'bg-blue-600 hover:bg-blue-700'
-          } text-white rounded transition-colors`}
-        >
-          Close
-        </button>
+              ? 'bg-amber-100'
+              : 'bg-gray-50 dark:bg-gray-700'
+          }`}>
+            <p className={`text-sm mb-2 ${
+              settings.theme === 'amber'
+                ? 'text-amber-800'
+                : 'text-gray-600 dark:text-gray-300'
+            }`}>
+              For a detailed resume including full work history and responsibilities, please get in touch:
+            </p>
+            <a 
+              href="mailto:sean.munley@protonmail.com"
+              className={`text-sm inline-flex items-center ${
+                settings.theme === 'amber'
+                  ? 'text-amber-700 hover:text-amber-900'
+                  : 'text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300'
+              } transition-colors`}
+            >
+              sean.munley@protonmail.com →
+            </a>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -469,23 +552,72 @@ useEffect(() => {
 
 {/* Certifications Modal */}
 {isCertsModalOpen && (
-  <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-    <div className="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-2xl mx-4">
-      <h3 className="text-xl font-semibold mb-4 dark:text-white">Certifications & Skills</h3>
-      
-      <div className="space-y-6 text-gray-600 dark:text-gray-400">
+  <div className="fixed inset-0 bg-black bg-opacity-50 flex items-start justify-center z-50 p-4 overflow-y-auto">
+    <div className="relative bg-white dark:bg-gray-800 rounded-lg w-full max-w-2xl my-4 md:my-8">
+      {/* Sticky header with close button */}
+      <div className={`sticky top-0 rounded-t-lg flex justify-between items-center p-4 border-b
+        ${settings.theme === 'amber'
+          ? 'bg-amber-50 border-amber-100'
+          : 'bg-white border-gray-200 dark:bg-gray-800 dark:border-gray-700'
+        }`}>
+        <h3 className={`text-xl font-semibold
+          ${settings.theme === 'amber'
+            ? 'text-amber-900'
+            : 'text-gray-900 dark:text-white'
+          }`}>
+          Certifications & Skills
+        </h3>
+        <button
+          onClick={() => setIsCertsModalOpen(false)}
+          className={`p-2 rounded-full transition-colors
+            ${settings.theme === 'amber'
+              ? 'text-amber-600 hover:bg-amber-100'
+              : 'text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700'
+            }`}
+          aria-label="Close modal"
+        >
+          <XIcon className="w-6 h-6" />
+        </button>
+      </div>
+
+      {/* Scrollable content */}
+      <div className={`p-4 space-y-6 overflow-y-auto max-h-[60vh] md:max-h-[70vh]
+        ${settings.theme === 'amber'
+          ? 'bg-amber-50'
+          : 'bg-white dark:bg-gray-800'
+        }`}>
         <div>
-          <h4 className="text-lg font-medium text-gray-800 dark:text-gray-200 mb-2">Certification</h4>
-          <p>University of Penn LPS Full Stack Coding Boot Camp <span className="text-gray-500">- July 2019</span></p>
+          <h4 className={`text-lg font-medium mb-2
+            ${settings.theme === 'amber'
+              ? 'text-amber-900'
+              : 'text-gray-800 dark:text-gray-200'
+            }`}>
+            Certification
+          </h4>
+          <p className={`${settings.theme === 'amber' ? 'text-amber-800' : 'text-gray-600 dark:text-gray-400'}`}>
+            University of Penn LPS Full Stack Coding Boot Camp <span className="text-gray-500 dark:text-gray-500">- July 2019</span>
+          </p>
         </div>
 
         <div>
-          <h4 className="text-lg font-medium text-gray-800 dark:text-gray-200 mb-2">Dev Proficiencies</h4>
+          <h4 className={`text-lg font-medium mb-2
+            ${settings.theme === 'amber'
+              ? 'text-amber-900'
+              : 'text-gray-800 dark:text-gray-200'
+            }`}>
+            Dev Proficiencies
+          </h4>
           <p className="flex flex-wrap gap-2">
             {['HTML', 'CSS', 'SQL', 'AMP', 'AMPscript', 'JavaScript', 'React', 'Node.js', 'TypeScript', 'Handlebars'
-
             ].map((skill) => (
-              <span key={skill} className="px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded text-sm">
+              <span 
+                key={skill} 
+                className={`px-2 py-1 rounded text-sm
+                  ${settings.theme === 'amber'
+                    ? 'bg-amber-100 text-amber-800'
+                    : 'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200'
+                  }`}
+              >
                 {skill}
               </span>
             ))}
@@ -493,13 +625,26 @@ useEffect(() => {
         </div>
 
         <div>
-          <h4 className="text-lg font-medium text-gray-800 dark:text-gray-200 mb-2">Marketing Tools</h4>
+          <h4 className={`text-lg font-medium mb-2
+            ${settings.theme === 'amber'
+              ? 'text-amber-900'
+              : 'text-gray-800 dark:text-gray-200'
+            }`}>
+            Marketing Tools
+          </h4>
           <p className="flex flex-wrap gap-2">
             {[
               'Shopify', 'Salesforce', 'SFMC', 'Data Cloud', 'Pardot', 
               'Veeva', 'Eloqua', 'Iterable', 'Marketo', 'Power BI'
             ].map((tool) => (
-              <span key={tool} className="px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded text-sm">
+              <span 
+                key={tool} 
+                className={`px-2 py-1 rounded text-sm
+                  ${settings.theme === 'amber'
+                    ? 'bg-amber-100 text-amber-800'
+                    : 'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200'
+                  }`}
+              >
                 {tool}
               </span>
             ))}
@@ -507,30 +652,30 @@ useEffect(() => {
         </div>
 
         <div>
-          <h4 className="text-lg font-medium text-gray-800 dark:text-gray-200 mb-2">Project Management Tools</h4>
+          <h4 className={`text-lg font-medium mb-2
+            ${settings.theme === 'amber'
+              ? 'text-amber-900'
+              : 'text-gray-800 dark:text-gray-200'
+            }`}>
+            Project Management Tools
+          </h4>
           <p className="flex flex-wrap gap-2">
             {[
               'JIRA', 'Notion', 'Monday.com', 'Workfront'
             ].map((tool) => (
-              <span key={tool} className="px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded text-sm">
+              <span 
+                key={tool} 
+                className={`px-2 py-1 rounded text-sm
+                  ${settings.theme === 'amber'
+                    ? 'bg-amber-100 text-amber-800'
+                    : 'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200'
+                  }`}
+              >
                 {tool}
               </span>
             ))}
           </p>
         </div>
-      </div>
-
-      <div className="mt-6 flex justify-end">
-        <button
-          onClick={() => setIsCertsModalOpen(false)}
-          className={`px-4 py-2 ${
-            settings.theme === 'amber'
-              ? 'bg-amber-600 hover:bg-amber-700'
-              : 'bg-blue-600 hover:bg-blue-700'
-          } text-white rounded transition-colors`}
-        >
-          Close
-        </button>
       </div>
     </div>
   </div>
@@ -689,45 +834,69 @@ useEffect(() => {
 
 {/* AI Development Modal */}
 {isAIModalOpen && (
-  <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 overflow-y-auto">
-    <div className="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-2xl mx-4 my-8">
-      <h3 className="text-xl font-semibold mb-4 dark:text-white">Embracing AI in Development</h3>
-      
-      <div className="text-gray-600 dark:text-gray-400 space-y-4">
-        <p>
-          While I&rsquo;m experienced in multiple programming languages, I&rsquo;ve embraced AI to accelerate development and innovation. This approach has transformed how I build solutions, allowing me to focus on creative problem-solving rather than getting caught up in framework complexities.
-        </p>
+  <div className="fixed inset-0 bg-black bg-opacity-50 flex items-start justify-center z-50 p-4 overflow-y-auto">
+  <div className="relative bg-white dark:bg-gray-800 rounded-lg w-full max-w-2xl my-4 md:my-8">
+    {/* Sticky header with close button */}
+    <div className={`sticky top-0 rounded-t-lg flex justify-between items-center p-4 border-b
+      ${settings.theme === 'amber'
+        ? 'bg-amber-50 border-amber-100'
+        : 'bg-white border-gray-200 dark:bg-gray-800 dark:border-gray-700'
+      }`}>
+      <h3 className={`text-xl font-semibold
+        ${settings.theme === 'amber'
+          ? 'text-amber-900'
+          : 'text-gray-900 dark:text-white'
+        }`}>
+        Embracing AI in Development
+      </h3>
+      <button
+        onClick={() => setIsAIModalOpen(false)}
+        className={`p-2 rounded-full transition-colors
+          ${settings.theme === 'amber'
+            ? 'text-amber-600 hover:bg-amber-100'
+            : 'text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700'
+          }`}
+        aria-label="Close modal"
+      >
+        <XIcon className="w-6 h-6" />
+      </button>
+    </div>
 
-        <div className="my-6 flex justify-center">
-          <Image
-            src="/profile/silencememe.jpg"
-            alt="Silence Meme"
-            width={400}
-            height={300}
-            className="rounded-lg"
-          />
+      {/* Scrollable content */}
+      {/* Scrollable content */}
+      <div className={`p-4 space-y-4 overflow-y-auto max-h-[60vh] md:max-h-[70vh]
+        ${settings.theme === 'amber'
+          ? 'bg-amber-50'
+          : 'bg-white dark:bg-gray-800'
+        }`}>
+        <div className={`space-y-4
+          ${settings.theme === 'amber'
+            ? 'text-amber-900'
+            : 'text-gray-600 dark:text-gray-400'
+          }`}>
+          {/* Content stays the same */}
+          <p>
+            While I&rsquo;m experienced in multiple programming languages, I&rsquo;ve embraced AI to accelerate development and innovation. This approach has transformed how I build solutions, allowing me to focus on creative problem-solving rather than getting caught up in framework complexities.
+          </p>
+
+          <div className="my-6 flex justify-center">
+            <Image
+              src="/profile/silencememe.jpg"
+              alt="Silence Meme"
+              width={400}
+              height={300}
+              className="rounded-lg max-w-full h-auto"
+            />
+          </div>
+
+          <p>
+            We&rsquo;re entering an era where the ability to conceptualize and direct AI tools is becoming as valuable as traditional coding skills. Success increasingly belongs to those who can effectively leverage these new technologies.
+          </p>
+
+          <p>
+            This site demonstrates this approach in action, built using various AI platforms including Claude, Venice, Grok, ChatGPT, and Gemini. I continuously explore and integrate new AI tools to enhance development capabilities.
+          </p>
         </div>
-
-        <p>
-          We&rsquo;re entering an era where the ability to conceptualize and direct AI tools is becoming as valuable as traditional coding skills. Success increasingly belongs to those who can effectively leverage these new technologies.
-        </p>
-
-        <p>
-          This site demonstrates this approach in action, built using various AI platforms including Claude, Venice, Grok, ChatGPT, and Gemini. I continuously explore and integrate new AI tools to enhance development capabilities.
-        </p>
-      </div>
-
-      <div className="mt-6 flex justify-end">
-        <button
-          onClick={() => setIsAIModalOpen(false)}
-          className={`px-4 py-2 ${
-            settings.theme === 'amber'
-              ? 'bg-amber-600 hover:bg-amber-700'
-              : 'bg-blue-600 hover:bg-blue-700'
-          } text-white rounded transition-colors`}
-        >
-          Close
-        </button>
       </div>
     </div>
   </div>
