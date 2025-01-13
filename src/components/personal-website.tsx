@@ -97,7 +97,7 @@ const handleMaintenancePassword = () => {
     },
     {
       title: "DraftDayTrades.com",
-      description: "An app I developed to organize a confidence pool for NFL and NBA drafts allows friends to make predictions with real-time result tracking.",
+      description: "Interactive draft prediction platform that turns NFL and NBA drafts into engaging pick-by-pick contests. Players make picks in real-time, earning points based on accuracy, while a live leaderboard tracks confidence pool rankings and results.",
       icon: <TrophyIcon className="w-12 h-12 text-blue-600" />,
       link: "#"
     },
@@ -121,7 +121,7 @@ const handleMaintenancePassword = () => {
     },
     {
       title: "Telegram Bot",
-      description: "Bot designed to respond to prompts from friends in our fantasy basketball Telgram group. Responds to queries about player salarys as well as looks for key words reply with memes. /forFun.",
+      description: "Fantasy Basketball Telegram Bot that enhances our group chat experience by providing real-time player salary data and responding to keywords with relevant memes. Built for fun to automate common queries and add entertainment value to our league discussions.",
       icon: <BotIcon className="w-12 h-12 text-blue-600" />,
       link: "#"
     }
