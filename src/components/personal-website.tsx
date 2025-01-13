@@ -130,7 +130,7 @@ const handleMaintenancePassword = () => {
    
   const handlePasswordSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (password === 'Otis') {
+    if (password === 'Ottis') {
       setIsModalOpen(false);
       setPassword('');
       setError('');
@@ -904,67 +904,119 @@ useEffect(() => {
 
 {/* Privacy Policy Modal */}
 {isPrivacyModalOpen && (
-  <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 overflow-y-auto">
-    <div className="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-2xl mx-4 my-8">
-      <h3 className="text-xl font-semibold mb-4 dark:text-white">Privacy Policy</h3>
-      
-      <div className="text-gray-600 dark:text-gray-400 space-y-4 text-sm">
-        <p>Last updated: January 11, 2025</p>
-
-        <section className="space-y-2">
-          <h4 className="text-lg font-medium text-gray-800 dark:text-gray-200">Overview</h4>
-          <p>
-            This privacy policy explains how seanmun.com collects and uses personal information when you visit this website.
-          </p>
-        </section>
-
-        <section className="space-y-2">
-          <h4 className="text-lg font-medium text-gray-800 dark:text-gray-200">Information Collected</h4>
-          <p>Collection and process for the following types of information:</p>
-          <ul className="list-disc pl-5 space-y-1">
-            <li>Accessibility preferences (stored locally on your device)</li>
-            <li>Basic analytics data (page view counts, traffic sources)</li>
-            <li>Email addresses (when voluntarily provided)</li>
-            <li>General usage statistics to improve user experience</li>
-          </ul>
-        </section>
-
-        <section className="space-y-2">
-          <h4 className="text-lg font-medium text-gray-800 dark:text-gray-200">How Your Information Is Used</h4>
-          <ul className="list-disc pl-5 space-y-1">
-            <li>To remember your accessibility preferences</li>
-            <li>To analyze website traffic and improve UX</li>
-            <li>To respond to inquiries and communication requests</li>
-            <li>To maintain and improve website functionality</li>
-          </ul>
-        </section>
-
-        <section className="space-y-2">
-          <h4 className="text-lg font-medium text-gray-800 dark:text-gray-200">Cookies</h4>
-          <p>
-            Cookies used to store your accessibility preferences and analyze website traffic. These cookies are necessary for the website to function properly and provide you with a better experience.
-          </p>
-        </section>
-
-        <section className="space-y-2">
-          <h4 className="text-lg font-medium text-gray-800 dark:text-gray-200">Experimental</h4>
-          <p>
-            This is all for experiments and getting used to playing with this sort of data.  
-          </p>
-        </section>
-      </div>
-
-      <div className="mt-6 flex justify-end">
+  <div className="fixed inset-0 bg-black bg-opacity-50 flex items-start justify-center z-50 p-4 overflow-y-auto">
+    <div className="relative bg-white dark:bg-gray-800 rounded-lg w-full max-w-2xl my-4 md:my-8">
+      {/* Sticky header with close button */}
+      <div className={`sticky top-0 rounded-t-lg flex justify-between items-center p-4 border-b
+        ${settings.theme === 'amber'
+          ? 'bg-amber-50 border-amber-100'
+          : 'bg-white border-gray-200 dark:bg-gray-800 dark:border-gray-700'
+        }`}>
+        <h3 className={`text-xl font-semibold
+          ${settings.theme === 'amber'
+            ? 'text-amber-900'
+            : 'text-gray-900 dark:text-white'
+          }`}>
+          Privacy Policy
+        </h3>
         <button
           onClick={() => setIsPrivacyModalOpen(false)}
-          className={`px-4 py-2 ${
-            settings.theme === 'amber'
-              ? 'bg-amber-600 hover:bg-amber-700'
-              : 'bg-blue-600 hover:bg-blue-700'
-          } text-white rounded transition-colors`}
+          className={`p-2 rounded-full transition-colors
+            ${settings.theme === 'amber'
+              ? 'text-amber-600 hover:bg-amber-100'
+              : 'text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700'
+            }`}
+          aria-label="Close modal"
         >
-          Close
+          <XIcon className="w-6 h-6" />
         </button>
+      </div>
+
+      {/* Scrollable content */}
+      <div className={`p-4 overflow-y-auto max-h-[60vh] md:max-h-[70vh]
+        ${settings.theme === 'amber'
+          ? 'bg-amber-50'
+          : 'bg-white dark:bg-gray-800'
+        }`}>
+        <div className={`text-sm space-y-4 ${
+          settings.theme === 'amber'
+            ? 'text-amber-900'
+            : 'text-gray-600 dark:text-gray-400'
+        }`}>
+          <p>Last updated: January 11, 2025</p>
+
+          <section className="space-y-2">
+            <h4 className={`text-lg font-medium
+              ${settings.theme === 'amber'
+                ? 'text-amber-900'
+                : 'text-gray-800 dark:text-gray-200'
+              }`}>
+              Overview
+            </h4>
+            <p>
+              This privacy policy explains how seanmun.com collects and uses personal information when you visit this website.
+            </p>
+          </section>
+
+          <section className="space-y-2">
+            <h4 className={`text-lg font-medium
+              ${settings.theme === 'amber'
+                ? 'text-amber-900'
+                : 'text-gray-800 dark:text-gray-200'
+              }`}>
+              Information Collected
+            </h4>
+            <p>Collection and process for the following types of information:</p>
+            <ul className="list-disc pl-5 space-y-1">
+              <li>Accessibility preferences (stored locally on your device)</li>
+              <li>Basic analytics data (page view counts, traffic sources)</li>
+              <li>Email addresses (when voluntarily provided)</li>
+              <li>General usage statistics to improve user experience</li>
+            </ul>
+          </section>
+
+          <section className="space-y-2">
+            <h4 className={`text-lg font-medium
+              ${settings.theme === 'amber'
+                ? 'text-amber-900'
+                : 'text-gray-800 dark:text-gray-200'
+              }`}>
+              How Your Information Is Used
+            </h4>
+            <ul className="list-disc pl-5 space-y-1">
+              <li>To remember your accessibility preferences</li>
+              <li>To analyze website traffic and improve UX</li>
+              <li>To respond to inquiries and communication requests</li>
+              <li>To maintain and improve website functionality</li>
+            </ul>
+          </section>
+
+          <section className="space-y-2">
+            <h4 className={`text-lg font-medium
+              ${settings.theme === 'amber'
+                ? 'text-amber-900'
+                : 'text-gray-800 dark:text-gray-200'
+              }`}>
+              Cookies
+            </h4>
+            <p>
+              Cookies used to store your accessibility preferences and analyze website traffic. These cookies are necessary for the website to function properly and provide you with a better experience.
+            </p>
+          </section>
+
+          <section className="space-y-2">
+            <h4 className={`text-lg font-medium
+              ${settings.theme === 'amber'
+                ? 'text-amber-900'
+                : 'text-gray-800 dark:text-gray-200'
+              }`}>
+              Experimental
+            </h4>
+            <p>
+              This is all for experiments and getting used to playing with this sort of data.  
+            </p>
+          </section>
+        </div>
       </div>
     </div>
   </div>

@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Settings2Icon, SunIcon, MoonIcon, FlameIcon, TypeIcon, AlignVerticalJustifyCenter, InfoIcon } from "lucide-react";
+import { Settings2Icon, SunIcon, MoonIcon, FlameIcon, TypeIcon, AlignVerticalJustifyCenter, InfoIcon, XIcon } from "lucide-react";
 import { useAccessibilitySettings } from '../hooks/useAccessibilitySettings';
 
 export function AccessibilityMenu() {
@@ -122,47 +122,91 @@ export function AccessibilityMenu() {
   </button>
 </label>
 
-{/* Info Modal */}
+{/* Info Modal for Amber Mode */}
 {isInfoModalOpen && (
-  <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-    <div className="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-lg mx-4">
-      <h3 className="text-lg font-semibold mb-4 dark:text-white">Amber Mode Concept</h3>
-      <div className="text-sm text-gray-600 dark:text-gray-400 space-y-3">
-        <p>Amber mode is designed to reduce exposure to blue light, which has been shown to disrupt circadian rhythms and affect sleep quality.</p>
-        <p>Scientific research indicates that blue light suppresses the production of melatonin, our sleep hormone, more than any other wavelength. By using amber tones, we can minimize this effect while maintaining readability.</p>
-        <p>When to use Amber mode:</p>
-        <ul className="list-disc pl-5 space-y-1">
-          <li>During evening hours</li>
-          <li>When working in low-light conditions</li>
-          <li>To reduce eye strain during long reading sessions</li>
-        </ul>
-        <p>Inspired by  
+  <div className="fixed inset-0 bg-black bg-opacity-50 flex items-start justify-center z-50 p-4 overflow-y-auto">
+    <div className="relative bg-white dark:bg-gray-800 rounded-lg w-full max-w-2xl my-4 md:my-8">
+      {/* Sticky header with close button */}
+      <div className={`sticky top-0 rounded-t-lg flex justify-between items-center p-4 border-b
+        ${settings.theme === 'amber'
+          ? 'bg-amber-50 border-amber-100'
+          : 'bg-white border-gray-200 dark:bg-gray-800 dark:border-gray-700'
+        }`}>
+        <h3 className={`text-xl font-semibold
+          ${settings.theme === 'amber'
+            ? 'text-amber-900'
+            : 'text-gray-900 dark:text-white'
+          }`}>
+          About Amber Mode
+        </h3>
+        <button
+          onClick={() => setIsInfoModalOpen(false)}
+          className={`p-2 rounded-full transition-colors
+            ${settings.theme === 'amber'
+              ? 'text-amber-600 hover:bg-amber-100'
+              : 'text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700'
+            }`}
+          aria-label="Close modal"
+        >
+          <XIcon className="w-6 h-6" />
+        </button>
+      </div>
+
+      {/* Scrollable content */}
+      <div className={`p-4 overflow-y-auto max-h-[60vh] md:max-h-[70vh]
+        ${settings.theme === 'amber'
+          ? 'bg-amber-50'
+          : 'bg-white dark:bg-gray-800'
+        }`}>
+        <div className={`text-sm space-y-3 ${
+          settings.theme === 'amber'
+            ? 'text-amber-900'
+            : 'text-gray-600 dark:text-gray-400'
+        }`}>
+          <p>Amber mode is designed to reduce exposure to blue light, which has been shown to disrupt circadian rhythms and affect sleep quality.</p>
+          
+          <p>Scientific research indicates that blue light suppresses the production of melatonin, our sleep hormone, more than any other wavelength. By using amber tones, we can minimize this effect while maintaining readability.</p>
+          
+          <p className="font-medium">When to use Amber mode:</p>
+          <ul className="list-disc pl-5 space-y-1">
+            <li>During evening hours</li>
+            <li>When working in low-light conditions</li>
+            <li>To reduce eye strain during long reading sessions</li>
+          </ul>
+          
+          <p className="flex items-center gap-2">
+            Inspired by
             <a 
               href="https://daylightcomputer.com/" 
               target='_blank'
               rel="noopener noreferrer"
-              aria-label="Visit Sean's GitHub Profile"
-              className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
-            > Daylight Computer Co.
+              className={`inline-flex items-center ${
+                settings.theme === 'amber'
+                  ? 'text-amber-700 hover:text-amber-900'
+                  : 'text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300'
+              } transition-colors`}
+            >
+              Daylight Computer Co. →
             </a>
-            </p>
-      </div>
-      <div className="mt-6 flex justify-end">
-              <button
-          onClick={() => setIsInfoModalOpen(false)}
-          className={`px-4 py-2 ${
-            settings.theme === 'amber' 
-              ? 'bg-amber-600 hover:bg-amber-700' 
-              : 'bg-blue-600 hover:bg-blue-700'
-          } text-white rounded`}
-        >
-          Got it
-        </button>
+          </p>
+        </div>
+
+        <div className="mt-6 flex justify-end">
+          <button
+            onClick={() => setIsInfoModalOpen(false)}
+            className={`px-4 py-2 rounded transition-colors ${
+              settings.theme === 'amber'
+                ? 'bg-amber-600 hover:bg-amber-700 text-white'
+                : 'bg-blue-600 hover:bg-blue-700 text-white dark:bg-blue-500 dark:hover:bg-blue-600'
+            }`}
+          >
+            Got it
+          </button>
+        </div>
       </div>
     </div>
   </div>
 )}
-
 
   <div className="flex gap-2" role="radiogroup" aria-labelledby="theme-label">
     <button
