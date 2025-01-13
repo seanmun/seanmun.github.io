@@ -130,7 +130,7 @@ const handleMaintenancePassword = () => {
    
   const handlePasswordSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (password === 'Ottis') {
+    if (password === process.env.NEXT_PUBLIC_PROJECTS_PASSWORD) {
       setIsModalOpen(false);
       setPassword('');
       setError('');

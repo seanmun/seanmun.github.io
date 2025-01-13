@@ -12,7 +12,7 @@ export const MaintenanceOverlay = ({ onPasswordSuccess }: MaintenanceOverlayProp
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (password === 'Ottis') {
+    if (password === process.env.NEXT_PUBLIC_PROJECTS_PASSWORD) {
       onPasswordSuccess();
       setPassword('');
       setError('');
