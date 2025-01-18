@@ -98,7 +98,7 @@ const handleMaintenancePassword = () => {
     },
     {
       title: "Telegram Bot",
-      description: "@Sam_Hinkie_bot is a Telegram bot that serves as both a league information hub and interactive companion for my fantasy basketball league, responding to commands with detailed league rules and settings while also providing Sam Hinkie's famous quotes when mentioned.",
+      description: "@Sam_Hinkie_bot is a Telegram bot that serves as a league information hub and interactive companion for my fantasy basketball league, responding to commands and prompts while providing timeless quotes from the great Sam Hinkie. Built with Python and deployed on Railway, this bot interfaces with Telegram's API to handle commands, respond to mentions, and provide interactive responses to league members.",
       icon: <BotIcon className="w-12 h-12 text-blue-600" />,
       link: "https://github.com/seanmun/HinkieBot",
       requiresPassword: false
@@ -777,7 +777,7 @@ useEffect(() => {
 
           {/* Playlist Column */}
           <div>
-            <h2 className="text-xl font-bold mb-4 dark:text-white">Vibes</h2>
+            <h2 className="text-xl font-bold mb-4 dark:text-white">Vibe</h2>
             <div className="aspect-w-16 aspect-h-9">
               <iframe
                 src="https://open.spotify.com/embed/album/4A9NpSjSaA2cJss3ksEFVE?utm_source=generator&theme=0"
