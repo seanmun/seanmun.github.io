@@ -98,7 +98,7 @@ const handleMaintenancePassword = () => {
     },
     {
       title: "Telegram Bot",
-      description: "@Sam_Hinkie_bot is a Telegram bot that serves as a league information hub and interactive companion for my fantasy basketball league. Built with Python and deployed on Railway, this bot interfaces with Telegram's API to handle commands, respond to mentions, and provide interactive responses to league members.",
+      description: "@Sam_Hinkie_bot serves as a league information hub and interactive companion for my fantasy basketball league. Built with Python and deployed on Railway, this bot interfaces with Telegram's API to handle commands, mentions, and provide responses to league members.",
       icon: <BotIcon className="w-12 h-12 text-blue-600" />,
       link: "https://github.com/seanmun/HinkieBot",
       requiresPassword: false
@@ -618,7 +618,7 @@ useEffect(() => {
             Dev Proficiencies
           </h4>
           <p className="flex flex-wrap gap-2">
-            {['HTML', 'CSS', 'SQL', 'AMP', 'AMPscript', 'JavaScript', 'React', 'Node.js', 'TypeScript', 'Handlebars'
+            {['HTML', 'CSS', 'SQL', 'AMP', 'AMPscript', 'JavaScript', 'React', 'Node.js', 'TypeScript', 'Handlebars', 'Python'
             ].map((skill) => (
               <span 
                 key={skill} 
