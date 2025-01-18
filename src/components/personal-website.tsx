@@ -93,37 +93,43 @@ const handleMaintenancePassword = () => {
       title: "Kinetic.email",
       description: "This project is a comprehensive portfolio showcasing my specialized kinetic email designs for CRM programs, tailored for various clients, audiences, and initiatives.",
       icon: <ZapIcon className="w-12 h-12 text-blue-600" />,
-      link: "#"
+      link: "#",
+      requiresPassword: true
+    },
+    {
+      title: "Telegram Bot",
+      description: "@Sam_Hinkie_bot is a Telegram bot that serves as both a league information hub and interactive companion for my fantasy basketball league, responding to commands with detailed league rules and settings while also providing Sam Hinkie's famous quotes when mentioned.",
+      icon: <BotIcon className="w-12 h-12 text-blue-600" />,
+      link: "https://github.com/seanmun/HinkieBot",
+      requiresPassword: false
     },
     {
       title: "DraftDayTrades.com",
       description: "Interactive draft prediction platform that turns NFL and NBA drafts into engaging pick-by-pick contests. Players make picks in real-time, earning points based on accuracy, while a live leaderboard tracks confidence pool rankings and results.",
       icon: <TrophyIcon className="w-12 h-12 text-blue-600" />,
-      link: "#"
-    },
-    {
-      title: "OrdinalFrame",
-      description: "A Raspberry Pi-powered digital art frame that dynamically displays Bitcoin Ordinals, turning blockchain inscriptions into ever-evolving wall decor.",
-      icon: <CodesandboxIcon className="w-12 h-12 text-blue-600" />,
-      link: "#"
+      link: "https://draftdaytrades.com/",
+      requiresPassword: false
     },
     {
       title: "1 Pixel Health",
       description: "Explore 300,000 years of human dietary evolution through an interactive horizontal scroll where each pixel represents one year, showcasing the transition from natural diets to modern preservative-laden and seed oil-rich foods.",
       icon: <BeefIcon className="w-12 h-12 text-blue-600" />,
-      link: "#"
+      link: "#",
+      requiresPassword: true
+    },
+    {
+      title: "OrdinalFrame",
+      description: "A Raspberry Pi-powered digital art frame that dynamically displays Bitcoin Ordinals, turning blockchain inscriptions into ever-evolving wall decor.",
+      icon: <CodesandboxIcon className="w-12 h-12 text-blue-600" />,
+      link: "#",
+      requiresPassword: true
     },
     {
       title: "Salesforce Munley Cloud (SFMC)",
       description: "SFMC playground I've pieced together to share the treasure trove of tips and tools I've unearthed over the years in the Salesforce Marketing Cloud universe.",
       icon: <CloudIcon className="w-12 h-12 text-blue-600" />,
-      link: "#"
-    },
-    {
-      title: "Telegram Bot",
-      description: "Fantasy Basketball Telegram Bot that enhances our group chat experience by providing real-time player salary data and responding to keywords with relevant memes. Built for fun to automate common queries and add entertainment value to our league discussions.",
-      icon: <BotIcon className="w-12 h-12 text-blue-600" />,
-      link: "#"
+      link: "#",
+      requiresPassword: true
     }
   ];
 
@@ -140,12 +146,16 @@ const handleMaintenancePassword = () => {
     }
   };
 
-  const handleProjectClick = (link: string, e: React.MouseEvent) => {
+  const handleProjectClick = (e: React.MouseEvent, link: string, requiresPassword: boolean) => {
     e.preventDefault();
-    setActiveLink(link);
-    setIsModalOpen(true);
-    setError('');
-    setPassword('');
+    if (requiresPassword) {
+      setActiveLink(link);
+      setIsModalOpen(true);
+      setError('');
+      setPassword('');
+    } else {
+      window.open(link, '_blank');
+    }
   };
 
 
@@ -704,8 +714,8 @@ useEffect(() => {
                     <h3 className="text-lg font-semibold mb-2 dark:text-white">{project.title}</h3>
                     <p className="text-gray-600 dark:text-gray-400 text-sm mb-2">{project.description}</p>
                     
-                      <a href={project.link}
-                      onClick={(e) => handleProjectClick(project.link, e)}
+                    <a href={project.link}
+                      onClick={(e) => handleProjectClick(e, project.link, project.requiresPassword)}
                       className="text-blue-600 hover:text-blue-800 transition-colors text-sm"
                     >
                       View Project →

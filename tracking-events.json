@@ -78,5 +78,14 @@
       "latitude": 39.96410178592516,
       "longitude": -75.14245277961095
     }
+  },
+  {
+    "cookieId": "pf1rsa9alt",
+    "timestamp": "2025-01-18T00:36:40.758Z",
+    "eventType": "pageview",
+    "geolocation": {
+      "latitude": 39.9646896,
+      "longitude": -75.1428518
+    }
   }
 ]
