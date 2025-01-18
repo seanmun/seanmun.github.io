@@ -98,7 +98,7 @@ const handleMaintenancePassword = () => {
     },
     {
       title: "Telegram Bot",
-      description: "@Sam_Hinkie_bot is a Telegram bot that serves as a league information hub and interactive companion for my fantasy basketball league, responding to commands and prompts while providing timeless quotes from the great Sam Hinkie. Built with Python and deployed on Railway, this bot interfaces with Telegram's API to handle commands, respond to mentions, and provide interactive responses to league members.",
+      description: "@Sam_Hinkie_bot is a Telegram bot that serves as a league information hub and interactive companion for my fantasy basketball league. Built with Python and deployed on Railway, this bot interfaces with Telegram's API to handle commands, respond to mentions, and provide interactive responses to league members.",
       icon: <BotIcon className="w-12 h-12 text-blue-600" />,
       link: "https://github.com/seanmun/HinkieBot",
       requiresPassword: false
