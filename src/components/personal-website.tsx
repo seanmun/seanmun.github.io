@@ -114,8 +114,8 @@ const handleMaintenancePassword = () => {
       title: "1 Pixel Health",
       description: "Explore 300,000 years of human dietary evolution through an interactive horizontal scroll where each pixel represents one year, showcasing the transition from natural diets to modern preservative-laden and seed oil-rich foods.",
       icon: <BeefIcon className="w-12 h-12 text-blue-600" />,
-      link: "#",
-      requiresPassword: true
+      link: "https://seanmun.com/1-pixel-health/",
+      requiresPassword: false
     },
     {
       title: "OrdinalFrame",
