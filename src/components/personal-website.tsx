@@ -112,6 +112,7 @@ const handleMaintenancePassword = () => {
       description: "This project is a comprehensive portfolio showcasing my specialized kinetic email designs for CRM programs, tailored for various clients, audiences, and initiatives.",
       icon: <Zap className="w-12 h-12 text-blue-600" />,
       link: "#",
+      ariaLabel: "View Kinetic.email website",
       requiresPassword: true
     },
     {
@@ -119,6 +120,7 @@ const handleMaintenancePassword = () => {
       description: "@Sam_Hinkie_bot serves as a league information hub and interactive companion for my fantasy basketball league. Built with Python and deployed on Railway, this bot interfaces with Telegram's API to handle commands, mentions, and provide responses to league members.",
       icon: <Bot className="w-12 h-12 text-blue-600" />,
       link: "https://github.com/seanmun/HinkieBot",
+      ariaLabel: "View Telegram bot repo",
       requiresPassword: false
     },
     {
@@ -126,6 +128,7 @@ const handleMaintenancePassword = () => {
       description: "Interactive draft prediction platform that turns NFL and NBA drafts into engaging pick-by-pick contests. Players make picks in real-time, earning points based on accuracy, while a live leaderboard tracks confidence pool rankings and results.",
       icon: <Trophy className="w-12 h-12 text-blue-600" />,
       link: "https://draftdaytrades.com/",
+      ariaLabel: "View Draft Day Trads website",
       requiresPassword: false
     },
     {
@@ -133,6 +136,7 @@ const handleMaintenancePassword = () => {
       description: "Explore 300,000 years of human dietary evolution through an interactive horizontal scroll where each pixel represents one year, showcasing the transition from natural diets to modern preservative-laden and seed oil-rich foods.",
       icon: <Beef className="w-12 h-12 text-blue-600" />,
       link: "https://seanmun.com/1-pixel-health/",
+      ariaLabel: "View 1 pixel health project page",
       requiresPassword: false
     },
     {
@@ -140,6 +144,7 @@ const handleMaintenancePassword = () => {
       description: "A Raspberry Pi-powered digital art frame that dynamically displays Bitcoin Ordinals, turning blockchain inscriptions into ever-evolving wall decor.",
       icon: <Box className="w-12 h-12 text-blue-600" />,
       link: "#",
+      ariaLabel: "View Ordinal Frame project page",
       requiresPassword: true
     },
     {
@@ -147,6 +152,7 @@ const handleMaintenancePassword = () => {
       description: "SFMC playground I've pieced together to share the treasure trove of tips and tools I've unearthed over the years in the Salesforce Marketing Cloud universe.",
       icon: <Cloud className="w-12 h-12 text-blue-600" />,
       link: "#",
+      ariaLabel: "View SFMC project page",
       requiresPassword: true
     }
   ];
@@ -417,6 +423,7 @@ useEffect(() => {
                     <a href={project.link}
                       onClick={(e) => handleProjectClick(e, project.link, project.requiresPassword)}
                       className="text-blue-600 hover:text-blue-800 transition-colors text-sm"
+                      aria-label={project.ariaLabel}
                     >
                       View Project →
                     </a>
@@ -481,6 +488,7 @@ useEffect(() => {
             <h2 className="text-xl font-bold mb-4 dark:text-white">Vibe</h2>
             <div className="aspect-w-16 aspect-h-9">
               <iframe
+                title="Spotify playlist"
                 src="https://open.spotify.com/embed/album/4A9NpSjSaA2cJss3ksEFVE?utm_source=generator&theme=0"
                 width="100%"
                 height="477"
@@ -527,6 +535,7 @@ useEffect(() => {
         <a 
           href="https://github.com/seanmun" 
           target="_blank" 
+          aria-label="Visit Sean's GitHub Profile"
           className="text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 transition-colors"
         >
           <Github className="w-4 h-4" />
@@ -534,6 +543,7 @@ useEffect(() => {
         <a 
           href="https://www.linkedin.com/in/sean-munley/" 
           target="_blank" 
+          aria-label="Visit Sean's LinkedIn"
           className="text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 transition-colors"
         >
           <Linkedin className="w-4 h-4" />
