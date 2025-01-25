@@ -287,8 +287,8 @@ useEffect(() => {
       </h1>
         {/* Add current position and employer */}
 
-      <p className="text-base leading-relaxed text-gray-700 dark:text-gray-400 mb-4 max-w-xl">
-        <span className="text-gray-600 dark:text-gray-300 font-medium">
+      <p className="text-base leading-relaxed text-gray-700 dark:text-gray-300 mb-4 max-w-xl">
+        <span className="text-gray-600 dark:text-gray-200 font-medium">
           CRM strategist, developer, and marketer
         </span>{' '}
         with over a decade of experience delivering innovative solutions to improve marketing performance. I specialize in crafting data-driven strategies, building interactive email experiences, and optimizing enterprise CRM systems. Whether it&#39;s developing AMP-powered emails, designing patient journey strategies, or implementing scalable frameworks, I turn complex challenges into impactful results.
@@ -302,7 +302,7 @@ useEffect(() => {
               target='_blank'
               rel="noopener noreferrer"
               aria-label="Visit Sean's GitHub Profile"
-              className="text-gray-600 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400 transition-colors"
+              className="text-gray-600 hover:text-blue-600 dark:text-gray-300 dark:hover:text-blue-400 transition-colors"
             >
               <GithubIcon className="w-5 h-5" />
             </a>
@@ -317,7 +317,7 @@ useEffect(() => {
               target='_blank'
               rel="noopener noreferrer"
               aria-label="Connect with Sean on LinkedIn"
-              className="text-gray-600 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400 transition-colors"
+              className="text-gray-600 hover:text-blue-600 dark:text-gray-300 dark:hover:text-blue-400 transition-colors"
             >
               <LinkedinIcon className="w-5 h-5" />
             </a>
@@ -331,7 +331,7 @@ useEffect(() => {
             <button 
               onClick={() => setIsCertsModalOpen(true)}
               aria-label="View Certifications and Skills"
-              className="text-gray-600 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400 transition-colors"
+              className="text-gray-600 hover:text-blue-600 dark:text-gray-300 dark:hover:text-blue-400 transition-colors"
             >
               <ShieldCheckIcon className="w-5 h-5" />
             </button>
@@ -344,7 +344,7 @@ useEffect(() => {
             <button 
               onClick={() => setResumeModalOpen(true)}
               aria-label="View Resume Summary"
-              className="text-gray-600 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400 transition-colors"
+              className="text-gray-600 hover:text-blue-600 dark:text-gray-300 dark:hover:text-blue-400 transition-colors"
             >
               <FileTextIcon className="w-5 h-5" />
             </button>
@@ -380,7 +380,7 @@ useEffect(() => {
           className={`p-2 rounded-full transition-colors
             ${settings.theme === 'amber'
               ? 'text-amber-600 hover:bg-amber-100'
-              : 'text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700'
+              : 'text-gray-500 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700'
             }`}
           aria-label="Close modal"
         >
@@ -427,19 +427,19 @@ useEffect(() => {
                     <p className={`text-sm ${
                       settings.theme === 'amber'
                         ? 'text-amber-600'
-                        : 'text-gray-500 dark:text-gray-400'
+                        : 'text-gray-500 dark:text-gray-300'
                     }`}>Philadelphia, PA</p>
                   </div>
                   <span className={`text-sm ${
                     settings.theme === 'amber'
                       ? 'text-amber-600'
-                      : 'text-gray-500 dark:text-gray-400'
+                      : 'text-gray-500 dark:text-gray-300'
                   }`}>2013 April – Present</span>
                 </div>
                 <ul className={`list-disc pl-5 space-y-1 ${
                   settings.theme === 'amber'
                     ? 'text-amber-800'
-                    : 'text-gray-600 dark:text-gray-400'
+                    : 'text-gray-600 dark:text-gray-300'
                 }`}>
                   <li>Vice President/Director, CRM Innovation (Promotion, October 2019)</li>
                   <li>Director, Marketing Operations (Promotion, July 2015)</li>
@@ -468,19 +468,19 @@ useEffect(() => {
                     <p className={`text-sm ${
                       settings.theme === 'amber'
                         ? 'text-amber-600'
-                        : 'text-gray-500 dark:text-gray-400'
+                        : 'text-gray-500 dark:text-gray-300'
                     }`}>Philadelphia, PA</p>
                   </div>
                   <span className={`text-sm ${
                     settings.theme === 'amber'
                       ? 'text-amber-600'
-                      : 'text-gray-500 dark:text-gray-400'
+                      : 'text-gray-500 dark:text-gray-300'
                   }`}>2008 – 2013 April</span>
                 </div>
                 <ul className={`list-disc pl-5 space-y-1 ${
                   settings.theme === 'amber'
                     ? 'text-amber-800'
-                    : 'text-gray-600 dark:text-gray-400'
+                    : 'text-gray-600 dark:text-gray-300'
                 }`}>
                   <li>Customer Marketing Manager (Promotion, September 2012)</li>
                   <li>Manager, Customer Analytics (Promotion, August 2010)</li>
@@ -504,28 +504,28 @@ useEffect(() => {
                 <h5 className={`font-medium ${
                   settings.theme === 'amber'
                     ? 'text-amber-800'
-                    : 'text-gray-700 dark:text-gray-300'
+                    : 'text-gray-700 dark:text-gray-200'
                 }`}>TEMPLE UNIVERSITY</h5>
                 <p className={`text-sm ${
                   settings.theme === 'amber'
                     ? 'text-amber-600'
-                    : 'text-gray-500 dark:text-gray-400'
+                    : 'text-gray-500 dark:text-gray-300'
                 }`}>Philadelphia, PA</p>
                 <p className={
                   settings.theme === 'amber'
                     ? 'text-amber-800'
-                    : 'text-gray-600 dark:text-gray-400'
+                    : 'text-gray-600 dark:text-gray-300'
                 }>Bachelor of Business Administration</p>
                 <p className={
                   settings.theme === 'amber'
                     ? 'text-amber-800'
-                    : 'text-gray-600 dark:text-gray-400'
+                    : 'text-gray-600 dark:text-gray-300'
                 }>Major: Marketing</p>
               </div>
               <span className={`text-sm ${
                 settings.theme === 'amber'
                   ? 'text-amber-600'
-                  : 'text-gray-500 dark:text-gray-400'
+                  : 'text-gray-500 dark:text-gray-300'
               }`}>2005 – 2008</span>
             </div>
           </section>
@@ -539,7 +539,7 @@ useEffect(() => {
             <p className={`text-sm mb-2 ${
               settings.theme === 'amber'
                 ? 'text-amber-800'
-                : 'text-gray-600 dark:text-gray-300'
+                : 'text-gray-600 dark:text-gray-200'
             }`}>
               For a detailed resume including full work history and responsibilities, please get in touch:
             </p>
@@ -582,7 +582,7 @@ useEffect(() => {
           className={`p-2 rounded-full transition-colors
             ${settings.theme === 'amber'
               ? 'text-amber-600 hover:bg-amber-100'
-              : 'text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700'
+              : 'text-gray-500 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700'
             }`}
           aria-label="Close modal"
         >
@@ -604,7 +604,7 @@ useEffect(() => {
             }`}>
             Certification
           </h4>
-          <p className={`${settings.theme === 'amber' ? 'text-amber-800' : 'text-gray-600 dark:text-gray-400'}`}>
+          <p className={`${settings.theme === 'amber' ? 'text-amber-800' : 'text-gray-600 dark:text-gray-300'}`}>
             University of Penn LPS Full Stack Coding Boot Camp <span className="text-gray-500 dark:text-gray-500">- July 2019</span>
           </p>
         </div>
@@ -712,7 +712,7 @@ useEffect(() => {
                   </div>
                   <div className="flex-1">
                     <h3 className="text-lg font-semibold mb-2 dark:text-white">{project.title}</h3>
-                    <p className="text-gray-600 dark:text-gray-400 text-sm mb-2">{project.description}</p>
+                    <p className="text-gray-600 dark:text-gray-300 text-sm mb-2">{project.description}</p>
                     
                     <a href={project.link}
                       onClick={(e) => handleProjectClick(e, project.link, project.requiresPassword)}
@@ -795,7 +795,7 @@ useEffect(() => {
       <footer className="border-t border-gray-100 dark:border-gray-800 py-6 mt-8">
   <div className="max-w-4xl mx-auto px-4">
     <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-      <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+      <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300">
         <span>&copy; 2025 seanmun.com</span>
         <span className="px-2">•</span>
         <span className="flex items-center gap-1">
@@ -803,7 +803,7 @@ useEffect(() => {
           <div className="relative group">
             <button
               onClick={() => setIsAIModalOpen(true)}
-              className="text-gray-600 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400 transition-colors"
+              className="text-gray-600 hover:text-blue-600 dark:text-gray-300 dark:hover:text-blue-400 transition-colors"
               aria-label="Learn about the tech stack"
             >
               <CodeIcon className="w-4 h-4" />
@@ -818,7 +818,7 @@ useEffect(() => {
       <div className="flex flex-wrap items-center gap-4">
         <button
           onClick={() => setIsPrivacyModalOpen(true)}
-          className="text-sm text-gray-600 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400 transition-colors"
+          className="text-sm text-gray-600 hover:text-blue-600 dark:text-gray-300 dark:hover:text-blue-400 transition-colors"
         >
           Privacy Policy
         </button>
@@ -864,7 +864,7 @@ useEffect(() => {
         className={`p-2 rounded-full transition-colors
           ${settings.theme === 'amber'
             ? 'text-amber-600 hover:bg-amber-100'
-            : 'text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700'
+            : 'text-gray-500 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700'
           }`}
         aria-label="Close modal"
       >
@@ -882,7 +882,7 @@ useEffect(() => {
         <div className={`space-y-4
           ${settings.theme === 'amber'
             ? 'text-amber-900'
-            : 'text-gray-600 dark:text-gray-400'
+            : 'text-gray-600 dark:text-gray-300'
           }`}>
           {/* Content stays the same */}
           <p>
@@ -934,7 +934,7 @@ useEffect(() => {
           className={`p-2 rounded-full transition-colors
             ${settings.theme === 'amber'
               ? 'text-amber-600 hover:bg-amber-100'
-              : 'text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700'
+              : 'text-gray-500 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700'
             }`}
           aria-label="Close modal"
         >
@@ -951,7 +951,7 @@ useEffect(() => {
         <div className={`text-sm space-y-4 ${
           settings.theme === 'amber'
             ? 'text-amber-900'
-            : 'text-gray-600 dark:text-gray-400'
+            : 'text-gray-600 dark:text-gray-300'
         }`}>
           <p>Last updated: January 11, 2025</p>
 
@@ -1073,7 +1073,7 @@ useEffect(() => {
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(false)}
-                  className="px-4 py-2 text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200"
+                  className="px-4 py-2 text-gray-600 hover:text-gray-800 dark:text-gray-300 dark:hover:text-gray-200"
                 >
                   Cancel
                 </button>

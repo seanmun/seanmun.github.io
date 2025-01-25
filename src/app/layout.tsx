@@ -4,7 +4,7 @@ import './globals.css'
 export const metadata: Metadata = {
   title: 'Sean Munley | CRM Strategist',
   description: 'Digital marketing strategist and developer, specializing in CRM and marketing performance optimization through improvements to devops, data management, testing, and reporting insights.',
-
+  metadataBase: new URL('https://seanmun.com'),
   openGraph: {
     title: 'Sean Munley | CRM Strategist',
     description: 'Digital marketing strategist and developer, specializing in CRM and marketing performance optimization',

@@ -63,9 +63,9 @@ export function useAccessibilitySettings() {
       
       // Font size
       document.documentElement.style.fontSize = {
-        small: '14px',
+        small: '15px',
         medium: '16px',
-        large: '18px'
+        large: '19px'
       }[settings.fontSize];
 
       // Line height classes - add and remove from body

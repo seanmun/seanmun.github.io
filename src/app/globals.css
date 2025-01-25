@@ -39,13 +39,13 @@ body.line-height-loose span {
 
 /* Amber Theme */
 [data-theme='amber'] {
-  --bg-primary: #FFF4E6;      /* Light amber background */
-  --bg-secondary: #FFE4CC;    /* Cards background */
-  --text-primary: #4A3726;    /* Dark amber for main text */
-  --text-secondary: #855E42;  /* Medium amber for descriptions */
-  --icon-color: #D35400;      /* Burnt orange for icons */
+  --bg-primary: #fec984;      /* Light amber background */
+  --bg-secondary: #fddcbf;    /* Cards background */
+  --text-primary: #361900;    /* Dark amber for main text */
+  --text-secondary: #482a15;  /* Medium amber for descriptions */
+  --icon-color: #e46611;      /* Burnt orange for icons */
   --link-color: #CC4400;      /* Dark orange for links */
-  --link-hover: #A04000;      /* Darker orange for link hovers */
+  --link-hover: #783101;      /* Darker orange for link hovers */
 }
 
 /* Amber mode styles */
@@ -93,7 +93,7 @@ body.line-height-loose span {
 }
 
 [data-theme='amber'] .amber-gradient-2 {
-  background: linear-gradient(to right, #B35000, #A34600, #933D00) !important;
+  background: linear-gradient(to right, #B35000, #863c04, #471e00) !important;
 }
 
 [data-theme='amber'] .amber-bg {
