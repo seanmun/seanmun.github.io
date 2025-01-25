@@ -1,9 +1,8 @@
 'use client';
-
 import React, { useState, useEffect } from 'react';
 import { 
-    GithubIcon, LinkedinIcon, FileTextIcon, ZapIcon, TrophyIcon, CodesandboxIcon, 
-    BeefIcon, CloudIcon, BotIcon, CodeIcon, ShieldCheckIcon, XIcon } from "lucide-react";
+    Github, Linkedin, FileText, Zap, Trophy, Box, 
+    Beef, Cloud, Bot, Code, ShieldCheck, X } from "lucide-react";
 
     interface EventData {
       cookieId: string;
@@ -19,9 +18,28 @@ import {
     interface PersonalWebsiteProps {
   galleryImages: string[]
 }
+
 import { useAccessibilitySettings } from '../hooks/useAccessibilitySettings';
 import { maintenanceConfig } from '../config/maintenance';
-import { MaintenanceOverlay } from './MaintenanceOverlay';
+import dynamic from 'next/dynamic'
+
+// Overlay Modules
+const MaintenanceOverlay = dynamic(
+  () => import('./MaintenanceOverlay').then(mod => mod.MaintenanceOverlay), 
+  { ssr: false }
+)
+const ResumeModal = dynamic(() => 
+  import('./modals/ResumeModal').then(mod => mod.ResumeModal), 
+  { ssr: false }
+)
+const CertsModal = dynamic(() => 
+  import('./modals/CertsModal').then(mod => mod.CertsModal), 
+  { ssr: false }
+)
+const AIModal = dynamic(() => 
+  import('./modals/AIModal').then(mod => mod.AIModal), 
+  { ssr: false }
+)
 
 import Image from 'next/image';
 import { AccessibilityMenu } from './AccessibilityMenu';
@@ -92,42 +110,42 @@ const handleMaintenancePassword = () => {
     {
       title: "Kinetic.email",
       description: "This project is a comprehensive portfolio showcasing my specialized kinetic email designs for CRM programs, tailored for various clients, audiences, and initiatives.",
-      icon: <ZapIcon className="w-12 h-12 text-blue-600" />,
+      icon: <Zap className="w-12 h-12 text-blue-600" />,
       link: "#",
       requiresPassword: true
     },
     {
       title: "Telegram Bot",
       description: "@Sam_Hinkie_bot serves as a league information hub and interactive companion for my fantasy basketball league. Built with Python and deployed on Railway, this bot interfaces with Telegram's API to handle commands, mentions, and provide responses to league members.",
-      icon: <BotIcon className="w-12 h-12 text-blue-600" />,
+      icon: <Bot className="w-12 h-12 text-blue-600" />,
       link: "https://github.com/seanmun/HinkieBot",
       requiresPassword: false
     },
     {
       title: "DraftDayTrades.com",
       description: "Interactive draft prediction platform that turns NFL and NBA drafts into engaging pick-by-pick contests. Players make picks in real-time, earning points based on accuracy, while a live leaderboard tracks confidence pool rankings and results.",
-      icon: <TrophyIcon className="w-12 h-12 text-blue-600" />,
+      icon: <Trophy className="w-12 h-12 text-blue-600" />,
       link: "https://draftdaytrades.com/",
       requiresPassword: false
     },
     {
       title: "1 Pixel Health",
       description: "Explore 300,000 years of human dietary evolution through an interactive horizontal scroll where each pixel represents one year, showcasing the transition from natural diets to modern preservative-laden and seed oil-rich foods.",
-      icon: <BeefIcon className="w-12 h-12 text-blue-600" />,
+      icon: <Beef className="w-12 h-12 text-blue-600" />,
       link: "https://seanmun.com/1-pixel-health/",
       requiresPassword: false
     },
     {
       title: "OrdinalFrame",
       description: "A Raspberry Pi-powered digital art frame that dynamically displays Bitcoin Ordinals, turning blockchain inscriptions into ever-evolving wall decor.",
-      icon: <CodesandboxIcon className="w-12 h-12 text-blue-600" />,
+      icon: <Box className="w-12 h-12 text-blue-600" />,
       link: "#",
       requiresPassword: true
     },
     {
       title: "Salesforce Munley Cloud (SFMC)",
       description: "SFMC playground I've pieced together to share the treasure trove of tips and tools I've unearthed over the years in the Salesforce Marketing Cloud universe.",
-      icon: <CloudIcon className="w-12 h-12 text-blue-600" />,
+      icon: <Cloud className="w-12 h-12 text-blue-600" />,
       link: "#",
       requiresPassword: true
     }
@@ -270,14 +288,15 @@ useEffect(() => {
   <div 
     className="relative w-full h-full overflow-hidden bg-white dark:bg-gray-800 amber-bg"
     style={{ animation: 'blobShape 20s infinite', borderRadius: '60% 40% 30% 70% / 60% 30% 70% 40%' }}
-  >
-    <Image
+      >
+        <Image
       src="/profile/smunley2019.png"
       alt="Profile"
       width={160}
       height={160}
       className="w-full h-full object-cover"
       priority
+      quality={75}
     />
   </div>
 </div>
@@ -304,7 +323,7 @@ useEffect(() => {
               aria-label="Visit Sean's GitHub Profile"
               className="text-gray-600 hover:text-blue-600 dark:text-gray-300 dark:hover:text-blue-400 transition-colors"
             >
-              <GithubIcon className="w-5 h-5" />
+              <Github className="w-5 h-5" />
             </a>
             <div className="absolute -bottom-8 left-1/2 transform -translate-x-1/2 px-2 py-1 bg-gray-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200">
               GitHub
@@ -319,7 +338,7 @@ useEffect(() => {
               aria-label="Connect with Sean on LinkedIn"
               className="text-gray-600 hover:text-blue-600 dark:text-gray-300 dark:hover:text-blue-400 transition-colors"
             >
-              <LinkedinIcon className="w-5 h-5" />
+              <Linkedin className="w-5 h-5" />
             </a>
             <div className="absolute -bottom-8 left-1/2 transform -translate-x-1/2 px-2 py-1 bg-gray-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200">
               LinkedIn
@@ -333,7 +352,7 @@ useEffect(() => {
               aria-label="View Certifications and Skills"
               className="text-gray-600 hover:text-blue-600 dark:text-gray-300 dark:hover:text-blue-400 transition-colors"
             >
-              <ShieldCheckIcon className="w-5 h-5" />
+              <ShieldCheck className="w-5 h-5" />
             </button>
             <div className="absolute -bottom-8 left-1/2 transform -translate-x-1/2 px-2 py-1 bg-gray-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200">
               Certs
@@ -346,7 +365,7 @@ useEffect(() => {
               aria-label="View Resume Summary"
               className="text-gray-600 hover:text-blue-600 dark:text-gray-300 dark:hover:text-blue-400 transition-colors"
             >
-              <FileTextIcon className="w-5 h-5" />
+              <FileText className="w-5 h-5" />
             </button>
             <div className="absolute -bottom-8 left-1/2 transform -translate-x-1/2 px-2 py-1 bg-gray-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200">
               Resume
@@ -359,337 +378,18 @@ useEffect(() => {
 </div>
 
 {/* Resume Modal */}
-{isResumeModalOpen && (
-  <div className="fixed inset-0 bg-black bg-opacity-50 flex items-start justify-center z-50 p-4 overflow-y-auto">
-    <div className="relative bg-white dark:bg-gray-800 rounded-lg w-full max-w-2xl my-4 md:my-8">
-      {/* Sticky header with close button */}
-      <div className={`sticky top-0 rounded-t-lg flex justify-between items-center p-4 border-b
-        ${settings.theme === 'amber'
-          ? 'bg-amber-50 border-amber-100'
-          : 'bg-white border-gray-200 dark:bg-gray-800 dark:border-gray-700'
-        }`}>
-        <h3 className={`text-xl font-semibold
-          ${settings.theme === 'amber'
-            ? 'text-amber-900'
-            : 'text-gray-900 dark:text-white'
-          }`}>
-          Professional Experience
-        </h3>
-        <button
-          onClick={() => setResumeModalOpen(false)}
-          className={`p-2 rounded-full transition-colors
-            ${settings.theme === 'amber'
-              ? 'text-amber-600 hover:bg-amber-100'
-              : 'text-gray-500 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700'
-            }`}
-          aria-label="Close modal"
-        >
-          <XIcon className="w-6 h-6" />
-        </button>
-      </div>
-
-      {/* Scrollable content */}
-      <div className={`p-4 overflow-y-auto max-h-[60vh] md:max-h-[70vh]
-        ${settings.theme === 'amber'
-          ? 'bg-amber-50'
-          : 'bg-white dark:bg-gray-800'
-        }`}>
-        <div className="space-y-6">
-          {/* Career Summary */}
-          <section>
-            <h4 className={`text-lg font-medium mb-4
-              ${settings.theme === 'amber'
-                ? 'text-amber-900'
-                : 'text-gray-800 dark:text-gray-200'
-              }`}>
-              CAREER SUMMARY
-            </h4>
-            
-            <div className="space-y-6">
-              {/* Digitas Health */}
-              <div>
-                <div className="flex justify-between items-start mb-2">
-                  <div>
-                    <h5 className="font-medium">
-                      <a 
-                        href="https://www.digitashealth.com/"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className={`hover:underline ${
-                          settings.theme === 'amber'
-                            ? 'text-amber-700 hover:text-amber-900'
-                            : 'text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300'
-                        }`}
-                      >
-                        DIGITAS HEALTH
-                      </a>
-                    </h5>
-                    <p className={`text-sm ${
-                      settings.theme === 'amber'
-                        ? 'text-amber-600'
-                        : 'text-gray-500 dark:text-gray-300'
-                    }`}>Philadelphia, PA</p>
-                  </div>
-                  <span className={`text-sm ${
-                    settings.theme === 'amber'
-                      ? 'text-amber-600'
-                      : 'text-gray-500 dark:text-gray-300'
-                  }`}>2013 April – Present</span>
-                </div>
-                <ul className={`list-disc pl-5 space-y-1 ${
-                  settings.theme === 'amber'
-                    ? 'text-amber-800'
-                    : 'text-gray-600 dark:text-gray-300'
-                }`}>
-                  <li>Vice President/Director, CRM Innovation (Promotion, October 2019)</li>
-                  <li>Director, Marketing Operations (Promotion, July 2015)</li>
-                  <li>Manager, Marketing Operations</li>
-                </ul>
-              </div>
-
-              {/* Elsevier */}
-              <div>
-                <div className="flex justify-between items-start mb-2">
-                  <div>
-                    <h5 className="font-medium">
-                      <a 
-                        href="https://www.elsevier.com"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className={`hover:underline ${
-                          settings.theme === 'amber'
-                            ? 'text-amber-700 hover:text-amber-900'
-                            : 'text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300'
-                        }`}
-                      >
-                        ELSEVIER
-                      </a>
-                    </h5>
-                    <p className={`text-sm ${
-                      settings.theme === 'amber'
-                        ? 'text-amber-600'
-                        : 'text-gray-500 dark:text-gray-300'
-                    }`}>Philadelphia, PA</p>
-                  </div>
-                  <span className={`text-sm ${
-                    settings.theme === 'amber'
-                      ? 'text-amber-600'
-                      : 'text-gray-500 dark:text-gray-300'
-                  }`}>2008 – 2013 April</span>
-                </div>
-                <ul className={`list-disc pl-5 space-y-1 ${
-                  settings.theme === 'amber'
-                    ? 'text-amber-800'
-                    : 'text-gray-600 dark:text-gray-300'
-                }`}>
-                  <li>Customer Marketing Manager (Promotion, September 2012)</li>
-                  <li>Manager, Customer Analytics (Promotion, August 2010)</li>
-                  <li>Direct Marketing Analyst</li>
-                </ul>
-              </div>
-            </div>
-          </section>
-
-          {/* Education */}
-          <section>
-            <h4 className={`text-lg font-medium mb-4
-              ${settings.theme === 'amber'
-                ? 'text-amber-900'
-                : 'text-gray-800 dark:text-gray-200'
-              }`}>
-              EDUCATION
-            </h4>
-            <div className="flex justify-between items-start">
-              <div>
-                <h5 className={`font-medium ${
-                  settings.theme === 'amber'
-                    ? 'text-amber-800'
-                    : 'text-gray-700 dark:text-gray-200'
-                }`}>TEMPLE UNIVERSITY</h5>
-                <p className={`text-sm ${
-                  settings.theme === 'amber'
-                    ? 'text-amber-600'
-                    : 'text-gray-500 dark:text-gray-300'
-                }`}>Philadelphia, PA</p>
-                <p className={
-                  settings.theme === 'amber'
-                    ? 'text-amber-800'
-                    : 'text-gray-600 dark:text-gray-300'
-                }>Bachelor of Business Administration</p>
-                <p className={
-                  settings.theme === 'amber'
-                    ? 'text-amber-800'
-                    : 'text-gray-600 dark:text-gray-300'
-                }>Major: Marketing</p>
-              </div>
-              <span className={`text-sm ${
-                settings.theme === 'amber'
-                  ? 'text-amber-600'
-                  : 'text-gray-500 dark:text-gray-300'
-              }`}>2005 – 2008</span>
-            </div>
-          </section>
-
-          {/* Contact Section */}
-          <div className={`mt-8 p-4 rounded-lg ${
-            settings.theme === 'amber'
-              ? 'bg-amber-100'
-              : 'bg-gray-50 dark:bg-gray-700'
-          }`}>
-            <p className={`text-sm mb-2 ${
-              settings.theme === 'amber'
-                ? 'text-amber-800'
-                : 'text-gray-600 dark:text-gray-200'
-            }`}>
-              For a detailed resume including full work history and responsibilities, please get in touch:
-            </p>
-            <a 
-              href="mailto:sean.munley@protonmail.com"
-              className={`text-sm inline-flex items-center ${
-                settings.theme === 'amber'
-                  ? 'text-amber-700 hover:text-amber-900'
-                  : 'text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300'
-              } transition-colors`}
-            >
-              sean.munley@protonmail.com →
-            </a>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-)}
+<ResumeModal 
+  isOpen={isResumeModalOpen} 
+  onClose={() => setResumeModalOpen(false)} 
+  settings={settings} 
+/>
 
 {/* Certifications Modal */}
-{isCertsModalOpen && (
-  <div className="fixed inset-0 bg-black bg-opacity-50 flex items-start justify-center z-50 p-4 overflow-y-auto">
-    <div className="relative bg-white dark:bg-gray-800 rounded-lg w-full max-w-2xl my-4 md:my-8">
-      {/* Sticky header with close button */}
-      <div className={`sticky top-0 rounded-t-lg flex justify-between items-center p-4 border-b
-        ${settings.theme === 'amber'
-          ? 'bg-amber-50 border-amber-100'
-          : 'bg-white border-gray-200 dark:bg-gray-800 dark:border-gray-700'
-        }`}>
-        <h3 className={`text-xl font-semibold
-          ${settings.theme === 'amber'
-            ? 'text-amber-900'
-            : 'text-gray-900 dark:text-white'
-          }`}>
-          Certifications & Skills
-        </h3>
-        <button
-          onClick={() => setIsCertsModalOpen(false)}
-          className={`p-2 rounded-full transition-colors
-            ${settings.theme === 'amber'
-              ? 'text-amber-600 hover:bg-amber-100'
-              : 'text-gray-500 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700'
-            }`}
-          aria-label="Close modal"
-        >
-          <XIcon className="w-6 h-6" />
-        </button>
-      </div>
-
-      {/* Scrollable content */}
-      <div className={`p-4 space-y-6 overflow-y-auto max-h-[60vh] md:max-h-[70vh]
-        ${settings.theme === 'amber'
-          ? 'bg-amber-50'
-          : 'bg-white dark:bg-gray-800'
-        }`}>
-        <div>
-          <h4 className={`text-lg font-medium mb-2
-            ${settings.theme === 'amber'
-              ? 'text-amber-900'
-              : 'text-gray-800 dark:text-gray-200'
-            }`}>
-            Certification
-          </h4>
-          <p className={`${settings.theme === 'amber' ? 'text-amber-800' : 'text-gray-600 dark:text-gray-300'}`}>
-            University of Penn LPS Full Stack Coding Boot Camp <span className="text-gray-500 dark:text-gray-500">- July 2019</span>
-          </p>
-        </div>
-
-        <div>
-          <h4 className={`text-lg font-medium mb-2
-            ${settings.theme === 'amber'
-              ? 'text-amber-900'
-              : 'text-gray-800 dark:text-gray-200'
-            }`}>
-            Dev Proficiencies
-          </h4>
-          <p className="flex flex-wrap gap-2">
-            {['HTML', 'CSS', 'SQL', 'AMP', 'AMPscript', 'JavaScript', 'React', 'Node.js', 'TypeScript', 'Handlebars', 'Python'
-            ].map((skill) => (
-              <span 
-                key={skill} 
-                className={`px-2 py-1 rounded text-sm
-                  ${settings.theme === 'amber'
-                    ? 'bg-amber-100 text-amber-800'
-                    : 'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200'
-                  }`}
-              >
-                {skill}
-              </span>
-            ))}
-          </p>
-        </div>
-
-        <div>
-          <h4 className={`text-lg font-medium mb-2
-            ${settings.theme === 'amber'
-              ? 'text-amber-900'
-              : 'text-gray-800 dark:text-gray-200'
-            }`}>
-            Marketing Tools
-          </h4>
-          <p className="flex flex-wrap gap-2">
-            {[
-              'Shopify', 'Salesforce', 'SFMC', 'Data Cloud', 'Pardot', 
-              'Veeva', 'Eloqua', 'Iterable', 'Marketo', 'Power BI'
-            ].map((tool) => (
-              <span 
-                key={tool} 
-                className={`px-2 py-1 rounded text-sm
-                  ${settings.theme === 'amber'
-                    ? 'bg-amber-100 text-amber-800'
-                    : 'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200'
-                  }`}
-              >
-                {tool}
-              </span>
-            ))}
-          </p>
-        </div>
-
-        <div>
-          <h4 className={`text-lg font-medium mb-2
-            ${settings.theme === 'amber'
-              ? 'text-amber-900'
-              : 'text-gray-800 dark:text-gray-200'
-            }`}>
-            Project Management Tools
-          </h4>
-          <p className="flex flex-wrap gap-2">
-            {[
-              'JIRA', 'Notion', 'Monday.com', 'Workfront'
-            ].map((tool) => (
-              <span 
-                key={tool} 
-                className={`px-2 py-1 rounded text-sm
-                  ${settings.theme === 'amber'
-                    ? 'bg-amber-100 text-amber-800'
-                    : 'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200'
-                  }`}
-              >
-                {tool}
-              </span>
-            ))}
-          </p>
-        </div>
-      </div>
-    </div>
-  </div>
-)}
+<CertsModal 
+  isOpen={isCertsModalOpen} 
+  onClose={() => setIsCertsModalOpen(false)} 
+  settings={settings} 
+/>
 
  {/* Wrap all content that should be behind maintenance overlay */}
 <div className="relative">
@@ -766,6 +466,7 @@ useEffect(() => {
                 alt={`Slide ${index + 1}`}
                 width={800}  // Set appropriate size
                 height={800}
+                quality={75}
                 className="max-w-full max-h-full object-contain transform transition-transform duration-300 group-hover:scale-105"
                 />
                 </div>
@@ -783,6 +484,7 @@ useEffect(() => {
                 src="https://open.spotify.com/embed/album/4A9NpSjSaA2cJss3ksEFVE?utm_source=generator&theme=0"
                 width="100%"
                 height="477"
+                loading="lazy"
                 frameBorder="0"
                 allow="encrypted-media"
                 className="rounded-lg"
@@ -806,7 +508,7 @@ useEffect(() => {
               className="text-gray-600 hover:text-blue-600 dark:text-gray-300 dark:hover:text-blue-400 transition-colors"
               aria-label="Learn about the tech stack"
             >
-              <CodeIcon className="w-4 h-4" />
+              <Code className="w-4 h-4" />
             </button>
             <div className="absolute -bottom-8 left-1/2 transform -translate-x-1/2 px-2 py-1 bg-gray-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap">
               Build Details
@@ -827,14 +529,14 @@ useEffect(() => {
           target="_blank" 
           className="text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 transition-colors"
         >
-          <GithubIcon className="w-4 h-4" />
+          <Github className="w-4 h-4" />
         </a>
         <a 
           href="https://www.linkedin.com/in/sean-munley/" 
           target="_blank" 
           className="text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 transition-colors"
         >
-          <LinkedinIcon className="w-4 h-4" />
+          <Linkedin className="w-4 h-4" />
         </a>
       </div>
     </div>
@@ -842,75 +544,11 @@ useEffect(() => {
 </footer>
 </div>
 
-{/* AI Development Modal */}
-{isAIModalOpen && (
-  <div className="fixed inset-0 bg-black bg-opacity-50 flex items-start justify-center z-50 p-4 overflow-y-auto">
-  <div className="relative bg-white dark:bg-gray-800 rounded-lg w-full max-w-2xl my-4 md:my-8">
-    {/* Sticky header with close button */}
-    <div className={`sticky top-0 rounded-t-lg flex justify-between items-center p-4 border-b
-      ${settings.theme === 'amber'
-        ? 'bg-amber-50 border-amber-100'
-        : 'bg-white border-gray-200 dark:bg-gray-800 dark:border-gray-700'
-      }`}>
-      <h3 className={`text-xl font-semibold
-        ${settings.theme === 'amber'
-          ? 'text-amber-900'
-          : 'text-gray-900 dark:text-white'
-        }`}>
-        Embracing AI in Development
-      </h3>
-      <button
-        onClick={() => setIsAIModalOpen(false)}
-        className={`p-2 rounded-full transition-colors
-          ${settings.theme === 'amber'
-            ? 'text-amber-600 hover:bg-amber-100'
-            : 'text-gray-500 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700'
-          }`}
-        aria-label="Close modal"
-      >
-        <XIcon className="w-6 h-6" />
-      </button>
-    </div>
-
-      {/* Scrollable content */}
-      {/* Scrollable content */}
-      <div className={`p-4 space-y-4 overflow-y-auto max-h-[60vh] md:max-h-[70vh]
-        ${settings.theme === 'amber'
-          ? 'bg-amber-50'
-          : 'bg-white dark:bg-gray-800'
-        }`}>
-        <div className={`space-y-4
-          ${settings.theme === 'amber'
-            ? 'text-amber-900'
-            : 'text-gray-600 dark:text-gray-300'
-          }`}>
-          {/* Content stays the same */}
-          <p>
-            While I&rsquo;m experienced in multiple programming languages, I&rsquo;ve embraced AI to accelerate development and innovation. This approach has transformed how I build solutions, allowing me to focus on creative problem-solving rather than getting caught up in framework complexities.
-          </p>
-
-          <div className="my-6 flex justify-center">
-            <Image
-              src="/profile/silencememe.jpg"
-              alt="Silence Meme"
-              width={400}
-              height={300}
-              className="rounded-lg max-w-full h-auto"
-            />
-          </div>
-
-          <p>
-            We&rsquo;re entering an era where the ability to conceptualize and direct AI tools is becoming as valuable as traditional coding skills. Success increasingly belongs to those who can effectively leverage these new technologies.
-          </p>
-
-          <p>
-            This site demonstrates this approach in action, built using various AI platforms including Claude, Venice, Grok, ChatGPT, and Gemini. I continuously explore and integrate new AI tools to enhance development capabilities.
-          </p>
-        </div>
-      </div>
-    </div>
-  </div>
-)}
+<AIModal 
+  isOpen={isAIModalOpen} 
+  onClose={() => setIsAIModalOpen(false)} 
+  settings={settings} 
+/>
 
 {/* Privacy Policy Modal */}
 {isPrivacyModalOpen && (
@@ -938,7 +576,7 @@ useEffect(() => {
             }`}
           aria-label="Close modal"
         >
-          <XIcon className="w-6 h-6" />
+          <X className="w-6 h-6" />
         </button>
       </div>
 
@@ -1048,6 +686,7 @@ useEffect(() => {
         alt="Fullscreen view"
         width={600}  // Changed to 600
         height={600}  // Changed to 600
+        quality={75}
         className="max-w-full max-h-full object-contain"
         />
         </div>
