@@ -377,6 +377,19 @@ useEffect(() => {
               Resume
             </div>
           </div>
+
+          <div className="relative group">
+            <button 
+              onClick={() => setIsAIModalOpen(true)}
+              aria-label="View Build Details"
+              className="text-gray-600 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400 transition-colors"
+            >
+              <Code className="w-5 h-5" />
+            </button>
+            <div className="absolute -bottom-8 left-1/2 transform -translate-x-1/2 px-2 py-1 bg-gray-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+              Build Details
+            </div>
+          </div>
         </div>
       </nav>
     </div>
