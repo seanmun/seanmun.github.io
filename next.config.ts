@@ -3,9 +3,10 @@ const nextConfig = {
   output: 'export',
   images: {
     unoptimized: true,
-    formats: ['image/avif', 'image/webp'],
-    minimumCacheTTL: 60,
   },
+  env: {
+    MONGODB_URI: process.env.MONGODB_URI,
+  }
 }
 
 module.exports = nextConfig

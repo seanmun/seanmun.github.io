@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server'
-import fs from 'fs/promises'
-import path from 'path'
+import { getMongoClient } from '@/lib/mongodb'
 
 interface TrackingEvent {
   cookieId: string;
@@ -9,25 +8,17 @@ interface TrackingEvent {
     latitude: number;
     longitude: number;
   };
-  eventType: 'pageview' | 'subscribe';
-  email?: string;
+  eventType: 'pageview';
 }
 
 export async function POST(request: Request) {
   try {
     const data: TrackingEvent = await request.json()
-    const filePath = path.join(process.cwd(), 'tracking-events.json')
+    const client = await getMongoClient()
+    const db = client.db('website-analytics')
+    const collection = db.collection('pageviews')
     
-    let events = []
-    try {
-      const fileContent = await fs.readFile(filePath, 'utf8')
-      events = JSON.parse(fileContent)
-    } catch (error) {
-      console.error('Error tracking event:', error)  // Add this line
-    }
-
-    events.push(data)
-    await fs.writeFile(filePath, JSON.stringify(events, null, 2))
+    await collection.insertOne(data)
 
     return NextResponse.json({ success: true })
   } catch (error) {
