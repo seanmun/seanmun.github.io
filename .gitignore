@@ -24,6 +24,11 @@
 .DS_Store
 *.pem
 CONTEXT.md
+firebase-credentials.json
+!package.json
+!package-lock.json
+!tsconfig.json
+*.json
 
 # debug
 npm-debug.log*
@@ -35,6 +40,7 @@ yarn-error.log*
 .env*
 .env
 .env*.local
+.env.local
 
 # vercel
 .vercel

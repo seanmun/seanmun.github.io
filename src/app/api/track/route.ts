@@ -1,28 +1,29 @@
-import { NextResponse } from 'next/server'
-import { getMongoClient } from '@/lib/mongodb'
-
-interface TrackingEvent {
-  cookieId: string;
-  timestamp: string;
-  geolocation?: {
-    latitude: number;
-    longitude: number;
-  };
-  eventType: 'pageview';
-}
+import { NextResponse } from 'next/server';
+import { db } from '@/lib/firebase-admin';
 
 export async function POST(request: Request) {
   try {
-    const data: TrackingEvent = await request.json()
-    const client = await getMongoClient()
-    const db = client.db('website-analytics')
-    const collection = db.collection('pageviews')
+    const data = await request.json();
     
-    await collection.insertOne(data)
+    console.log('Received tracking data:', data);
+    
+    // Add to Firestore
+    const docRef = await db.collection('pageviews').add({
+      cookieId: data.cookieId,
+      timestamp: new Date(data.timestamp),
+      eventType: data.eventType,
+      geolocation: data.geolocation || null,
+      createdAt: new Date()
+    });
 
-    return NextResponse.json({ success: true })
+    console.log('Document written with ID: ', docRef.id);
+    
+    return NextResponse.json({ success: true, docId: docRef.id });
   } catch (error) {
-    console.error('Tracking error:', error)
-    return NextResponse.json({ error: 'Failed to track event' }, { status: 500 })
+    console.error('Error tracking event:', error);
+    return NextResponse.json(
+      { error: 'Internal server error', details: error instanceof Error ? error.message : 'Unknown error' },
+      { status: 500 }
+    );
   }
 }
