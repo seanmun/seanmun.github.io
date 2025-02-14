@@ -1,14 +1,14 @@
-import PersonalWebsite from '@/components/personal-website'
-import { readdirSync } from 'fs'
-import { join } from 'path'
+import PersonalWebsite from '@/components/personal-website';
 
-export default function Home() {
-  // Read all files from the public/images folder
-  const imagesDirectory = join(process.cwd(), 'public/images')
-  const imageFiles = readdirSync(imagesDirectory)
-  
-  // Create full paths for images
-  const imagePaths = imageFiles.map(file => `/images/${file}`)
+export default function HomePage() {
+  // These are the images you want to display in the gallery
+  const galleryImages = [
+    '/gallery/image1.jpg',
+    '/gallery/image2.jpg',
+    // ... add your gallery images here
+  ];
 
-  return <PersonalWebsite galleryImages={imagePaths} />
+  return (
+    <PersonalWebsite galleryImages={galleryImages} />
+  );
 }

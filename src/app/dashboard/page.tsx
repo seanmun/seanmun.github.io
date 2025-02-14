@@ -1,6 +1,6 @@
 import { Suspense } from 'react';
-import DashboardView from '../../components/DashboardView';
-import PasswordProtected from '../../components/PasswordProtected';
+import DashboardView from '@/components/DashboardView';
+import PasswordProtected from '@/components/PasswordProtected';
 
 export const dynamic = 'force-static';
 export const revalidate = false;
