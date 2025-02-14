@@ -4,9 +4,8 @@ const nextConfig = {
   images: {
     unoptimized: true,
   },
-  env: {
-    MONGODB_URI: process.env.MONGODB_URI,
-  }
+  // Since GitHub Pages serves from a subdirectory
+  basePath: '',
 }
 
 module.exports = nextConfig
