@@ -4,7 +4,6 @@ const nextConfig = {
   images: {
     unoptimized: true,
   },
-  // Since GitHub Pages serves from a subdirectory
   basePath: '',
 }
 
