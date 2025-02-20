@@ -28,13 +28,6 @@ jobs:
       - name: Install dependencies
         run: npm ci
         
-      - name: Debug - List Project Root
-        run: |
-          echo "Current directory contents:"
-          ls -la
-          echo "Package.json content:"
-          cat package.json
-          
       - name: Build
         env:
           NEXT_PUBLIC_PROJECTS_PASSWORD: ${{ secrets.NEXT_PUBLIC_PROJECTS_PASSWORD }}
@@ -47,30 +40,14 @@ jobs:
           FIREBASE_PRIVATE_KEY: ${{ secrets.FIREBASE_PRIVATE_KEY }}
         run: npm run build
 
-      - name: Debug - Check Build Output
-        run: |
-          echo "Checking if 'out' directory exists:"
-          ls -la
-          echo "Contents of 'out' directory (if it exists):"
-          ls -la out || echo "out directory not found"
-          echo "Current working directory:"
-          pwd
-          
-      - name: Configure Pages
+      - name: Setup Pages
         uses: actions/configure-pages@v4
-        
+
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: out
-          
-      - name: Debug - Post Upload
-        run: |
-          echo "Checking workspace after upload:"
-          ls -la
-          echo "Environment variables (safe ones only):"
-          env | grep -v -i "secret\|key\|password\|token"
+          name: "github-pages"
+          path: "./out"
           
       - name: Deploy to GitHub Pages
-        id: deployment
         uses: actions/deploy-pages@v3
