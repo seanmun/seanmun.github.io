@@ -1,21 +1,12 @@
 'use client';
 import React, { useState, useEffect } from 'react';
+import { trackEvent, TrackEvent } from '@/lib/track-utils';
 import { 
     Github, Linkedin, FileText, Zap, Trophy, Box, 
     Beef, Cloud, Bot, Code, ShieldCheck, X } from "lucide-react";
 
-    interface EventData {
-      cookieId: string;
-      timestamp: string;
-      eventType: 'pageview';
-      geolocation?: {
-        latitude: number;
-        longitude: number;
-      };
-    }
-    
 
-    interface PersonalWebsiteProps {
+  interface PersonalWebsiteProps {
   galleryImages: string[]
 }
 
@@ -215,14 +206,13 @@ useEffect(() => {
   return () => clearInterval(interval);
 }, [galleryImages, galleryImages.length]);
 
-// Fourth useEffect for tracking
 useEffect(() => {
-  const trackEvent = async () => {
+  const trackPageview = async () => {
     try {
-      let eventData: EventData = {
+      const eventData: TrackEvent = {
         cookieId,
-        timestamp: new Date().toISOString(),
-        eventType: 'pageview' as const
+        timestamp: new Date(),
+        eventType: 'pageview'
       };
 
       try {
@@ -233,22 +223,15 @@ useEffect(() => {
           });
         });
         
-        eventData = {
-          ...eventData,
-          geolocation: {
-            latitude: position.coords.latitude,
-            longitude: position.coords.longitude
-          }
+        eventData.geolocation = {
+          latitude: position.coords.latitude,
+          longitude: position.coords.longitude
         };
       } catch {
         console.log('Geolocation not available or denied');
       }
 
-      await fetch('/api/track', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(eventData)
-      });
+      await trackEvent(eventData);
     } catch (err) {
       console.error('Error tracking event:', err);
     }
@@ -257,7 +240,7 @@ useEffect(() => {
   if (cookieId) {
     const hasTracked = sessionStorage.getItem('hasTrackedPageview');
     if (!hasTracked) {
-      trackEvent();
+      trackPageview();
       sessionStorage.setItem('hasTrackedPageview', 'true');
     }
   }
