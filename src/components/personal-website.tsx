@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { trackEvent, TrackEvent } from '@/lib/track-utils';
 import { 
     Github, Linkedin, FileText, Zap, Trophy, Box, 
-    Beef, Cloud, Bot, Code, ShieldCheck, X } from "lucide-react";
+    Beef, Cloud, Bot, Code, ShieldCheck, X, Medal } from "lucide-react";
 
 
   interface PersonalWebsiteProps {
@@ -108,7 +108,7 @@ const handleMaintenancePassword = () => {
     },
     {
       title: "Telegram Bot",
-      description: "@Sam_Hinkie_bot serves as a league information hub and interactive companion for my fantasy basketball league. Built with Python and deployed on Railway, this bot interfaces with Telegram's API to handle commands, mentions, and provide responses to league members.",
+      description: "The @Sam_Hinkie_bot serves as a league information hub and interactive companion for my fantasy basketball league. Built with Python and deployed on Railway, this bot interfaces with Telegram's API to handle commands, mentions, and provide responses to league members.",
       icon: <Bot className="w-12 h-12 text-blue-600" />,
       link: "https://github.com/seanmun/HinkieBot",
       ariaLabel: "View Telegram bot repo",
@@ -119,7 +119,15 @@ const handleMaintenancePassword = () => {
       description: "Interactive draft prediction platform that turns NFL and NBA drafts into engaging pick-by-pick contests. Players make picks in real-time, earning points based on accuracy, while a live leaderboard tracks confidence pool rankings and results.",
       icon: <Trophy className="w-12 h-12 text-blue-600" />,
       link: "https://draftdaytrades.com/",
-      ariaLabel: "View Draft Day Trads website",
+      ariaLabel: "View Draft Day Trades website",
+      requiresPassword: false
+    },
+    {
+      title: "RumbleRaffle.com",
+      description: "RumbleRaffle.com lets friends create Royal Rumble gambling leagues, randomly assign entrant numbers, and track eliminations in real-time. Built with Next.js, Express.js, and TypeScript, it features automated number distribution and a live event tracker, deployed via Vercel..",
+      icon: <Medal className="w-12 h-12 text-blue-600" />,
+      link: "https://www.rumbleraffle.com/",
+      ariaLabel: "View Rumble Raffle website",
       requiresPassword: false
     },
     {
@@ -139,7 +147,7 @@ const handleMaintenancePassword = () => {
       requiresPassword: true
     },
     {
-      title: "Salesforce Munley Cloud (SFMC)",
+      title: "Salesforce One",
       description: "SFMC playground I've pieced together to share the treasure trove of tips and tools I've unearthed over the years in the Salesforce Marketing Cloud universe.",
       icon: <Cloud className="w-12 h-12 text-blue-600" />,
       link: "#",
@@ -597,7 +605,7 @@ useEffect(() => {
             ? 'text-amber-900'
             : 'text-gray-600 dark:text-gray-300'
         }`}>
-          <p>Last updated: January 11, 2025</p>
+          <p>Last updated: January 13, 2025</p>
 
           <section className="space-y-2">
             <h4 className={`text-lg font-medium
