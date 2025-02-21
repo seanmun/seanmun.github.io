@@ -55,15 +55,22 @@ export const AIModal = ({ isOpen, onClose, settings }: AIModalProps) => {
            </p>
 
            <div className="my-6 flex justify-center">
-             <Image
-               src="/profile/silencememe.jpg"
-               alt="Silence Meme"
-               width={400}
-               height={300}
-               quality={75}
-               className="rounded-lg max-w-full h-auto"
-             />
-           </div>
+            <Image
+              src="/profile/silencememe.jpg"
+              alt="Silence Meme"
+              width={400}
+              height={300}
+              quality={75}
+              className="rounded-lg max-w-full h-auto"
+              priority  // Add this to prioritize loading
+              onError={(e) => {
+                // Add fallback if image fails to load
+                const target = e.target as HTMLImageElement;
+                target.onerror = null; // Prevent infinite loop
+                target.src = '/profile/placeholder.jpg'; // Optional: provide a fallback image
+              }}
+            />
+          </div>
 
            <p>
              We&rsquo;re entering an era where the ability to conceptualize and direct AI tools is becoming as valuable as traditional coding skills. Success increasingly belongs to those who can effectively leverage these new technologies.
