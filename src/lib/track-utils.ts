@@ -1,7 +1,4 @@
 // src/lib/track-utils.ts
-import { db } from '@/lib/firebase';
-import { collection, addDoc } from 'firebase/firestore';
-
 export type TrackEvent = {
   cookieId: string;
   timestamp: Date;
@@ -14,12 +11,13 @@ export type TrackEvent = {
 
 export async function trackEvent(event: TrackEvent) {
   try {
-    const pageviewsRef = collection(db, 'pageviews');
-    await addDoc(pageviewsRef, {
-      ...event,
-      createdAt: new Date()
+    const response = await fetch('/api/track', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(event)
     });
-    return { success: true };
+    const data = await response.json();
+    return { success: data.success };
   } catch (error) {
     console.error('Error tracking event:', error);
     return { success: false, error };
