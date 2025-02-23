@@ -1,4 +1,6 @@
 // src/app/api/track/route.ts
+// BACKUP FILE - Currently using direct Firebase client approach instead of API route
+// If client-side tracking fails, we can revert to using this API route
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/firebase-admin';
 import { CollectionReference, DocumentData } from 'firebase-admin/firestore';
