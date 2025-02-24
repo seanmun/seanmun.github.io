@@ -27,13 +27,13 @@ CONTEXT.md
 firebase-credentials.json
 
 # json files - exceptions must come before the general rule
+*.json
 !package.json
 !package-lock.json
 !tsconfig.json
 !public/maps/*.json
 !public/maps/us-states.json
 !public/maps/world.json
-*.json
 
 # debug
 npm-debug.log*
