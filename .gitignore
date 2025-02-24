@@ -25,10 +25,14 @@
 *.pem
 CONTEXT.md
 firebase-credentials.json
+
+# json files - exceptions must come before the general rule
 !package.json
 !package-lock.json
 !tsconfig.json
 !public/maps/*.json
+!public/maps/us-states.json
+!public/maps/world.json
 *.json
 
 # debug
@@ -49,4 +53,3 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
-
