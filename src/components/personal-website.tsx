@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { trackEvent, TrackEvent } from '@/lib/track-utils';
 import { 
     Github, Linkedin, FileText, Zap, Trophy, Box, 
-    Beef, Cloud, Bot, Code, ShieldCheck, X, Medal } from "lucide-react";
+    Beef, Cloud, Bot, Code, ShieldCheck, X, Medal, Activity } from "lucide-react";
 
 
   interface PersonalWebsiteProps {
@@ -107,12 +107,28 @@ const handleMaintenancePassword = () => {
       requiresPassword: true
     },
     {
-      title: "Telegram Bot",
+      title: "OrdinalFrame",
+      description: "A Raspberry Pi-powered digital art frame that dynamically displays Bitcoin Ordinals, turning blockchain inscriptions into ever-evolving wall decor.",
+      icon: <Box className="w-12 h-12 text-blue-600" />,
+      link: "#",
+      ariaLabel: "View Ordinal Frame project page",
+      requiresPassword: true
+    },
+    {
+      title: "Fantasy League Bot",
       description: "The @Sam_Hinkie_bot serves as a league information hub and interactive companion for my fantasy basketball league. Built with Python and deployed on Railway, this bot interfaces with Telegram's API to handle commands, mentions, and provide responses to league members.",
       icon: <Bot className="w-12 h-12 text-blue-600" />,
       link: "https://github.com/seanmun/HinkieBot",
       ariaLabel: "View Telegram bot repo",
       requiresPassword: false
+    },
+    {
+      title: "A.l.bert Bot",
+      description: "A.l.bert is your AI-powered personal data assistant, inspired by Albert Einstein. Log your sleep, diet, activity, mood, and physical features in a simple Telgram chat, while A.l.bert  analyzes trends to help you optimize your health. Designed for privacy and customization, this open-source bot lets you self-host and fork the code, so your data stays yours—no third-party apps required.",
+      icon: <Activity className="w-12 h-12 text-blue-600" />,
+      link: "https://github.com/seanmun",
+      ariaLabel: "View Telegram bot repo",
+      requiresPassword: true
     },
     {
       title: "DraftDayTrades.com",
@@ -137,14 +153,6 @@ const handleMaintenancePassword = () => {
       link: "https://seanmun.com/1-pixel-health/",
       ariaLabel: "View 1 pixel health project page",
       requiresPassword: false
-    },
-    {
-      title: "OrdinalFrame",
-      description: "A Raspberry Pi-powered digital art frame that dynamically displays Bitcoin Ordinals, turning blockchain inscriptions into ever-evolving wall decor.",
-      icon: <Box className="w-12 h-12 text-blue-600" />,
-      link: "#",
-      ariaLabel: "View Ordinal Frame project page",
-      requiresPassword: true
     },
     {
       title: "Salesforce One",
