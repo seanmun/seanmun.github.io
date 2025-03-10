@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { Settings2Icon, SunIcon, MoonIcon, FlameIcon, TypeIcon, AlignVerticalJustifyCenter, InfoIcon, XIcon } from "lucide-react";
 import { useAccessibilitySettings } from '../hooks/useAccessibilitySettings';
+import Image from 'next/image';
 
 export function AccessibilityMenu() {
   const [isOpen, setIsOpen] = useState(false);
@@ -153,28 +154,99 @@ export function AccessibilityMenu() {
       </div>
 
       {/* Scrollable content */}
-      <div className={`p-4 overflow-y-auto max-h-[60vh] md:max-h-[70vh]
+      <div className={`p-4 overflow-y-auto max-h-[70vh] md:max-h-[80vh]
         ${settings.theme === 'amber'
           ? 'bg-amber-50'
           : 'bg-white dark:bg-gray-800'
         }`}>
-        <div className={`text-sm space-y-3 ${
+        <div className={`text-sm space-y-4 ${
           settings.theme === 'amber'
             ? 'text-amber-900'
             : 'text-gray-600 dark:text-gray-400'
         }`}>
-          <p>Amber mode is designed to reduce exposure to blue light, which has been shown to disrupt circadian rhythms and affect sleep quality.</p>
+          <p className="font-medium text-base">The Science Behind Amber Mode</p>
           
-          <p>Scientific research indicates that blue light suppresses the production of melatonin, our sleep hormone, more than any other wavelength. By using amber tones, we can minimize this effect while maintaining readability.</p>
+          <p>Amber mode significantly reduces blue light exposure from your screen. Scientific studies have demonstrated that blue light (especially in the 450-490nm range) suppresses melatonin production by up to 200% more than other light wavelengths.</p>
+          
+          <div className="my-6 space-y-6">
+            <p className="font-medium text-base">Light Spectrum Analysis</p>
+            
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {/* Blue Light Spectrum (Light Mode) */}
+              <div className="space-y-2">
+                <div className="relative aspect-w-16 aspect-h-9 h-40 rounded-lg overflow-hidden">
+                  <Image 
+                    src="/Accessibility/Light.jpg" 
+                    alt="Light mode spectrum showing high blue light emission" 
+                    width={300}
+                    height={169}
+                    className="object-cover"
+                    priority
+                    quality={85}
+                  />
+                </div>
+                <p className="text-xs text-center font-medium">
+                  Light Mode: High blue light emission
+                </p>
+              </div>
+              
+              {/* Dark Mode Spectrum */}
+              <div className="space-y-2">
+                <div className="relative aspect-w-16 aspect-h-9 h-40 rounded-lg overflow-hidden">
+                  <Image 
+                    src="/Accessibility/Dark.jpg" 
+                    alt="Dark mode spectrum showing reduced but still present blue light" 
+                    width={300}
+                    height={169}
+                    className="object-cover"
+                    priority
+                    quality={85}
+                  />
+                </div>
+                <p className="text-xs text-center font-medium">
+                  Dark Mode: Reduced but still present blue light
+                </p>
+              </div>
+              
+              {/* Amber Mode Spectrum */}
+              <div className="space-y-2">
+                <div className="relative aspect-w-16 aspect-h-9 h-40 rounded-lg overflow-hidden">
+                  <Image 
+                    src="/Accessibility/Amber.jpg" 
+                    alt="Amber mode spectrum showing minimal blue light emission" 
+                    width={300}
+                    height={169}
+                    className="object-cover"
+                    priority
+                    quality={85}
+                  />
+                </div>
+                <p className="text-xs text-center font-medium">
+                  Amber Mode: Minimal blue light emission
+                </p>
+              </div>
+            </div>
+          </div>
+          
+          <div className="bg-amber-100 dark:bg-amber-900/20 p-3 rounded-lg my-4">
+            <p className="font-medium">Health benefits of reducing blue light exposure:</p>
+            <ul className="list-disc pl-5 space-y-1 mt-2">
+              <li>Better sleep quality and faster onset of sleep</li>
+              <li>Reduced eye strain during nighttime reading</li>
+              <li>Supports natural circadian rhythm maintenance</li>
+              <li>May help prevent digital eye strain headaches</li>
+            </ul>
+          </div>
           
           <p className="font-medium">When to use Amber mode:</p>
           <ul className="list-disc pl-5 space-y-1">
-            <li>During evening hours</li>
-            <li>When working in low-light conditions</li>
-            <li>To reduce eye strain during long reading sessions</li>
+            <li>1-2 hours before bedtime</li>
+            <li>When working in low-light environments</li>
+            <li>During extended reading or screen sessions</li>
+            <li>If you experience eye fatigue or headaches from screen use</li>
           </ul>
           
-          <p className="flex items-center gap-2">
+          <p className="flex items-center gap-2 mt-4">
             Inspired by
             <a 
               href="https://daylightcomputer.com/" 
@@ -200,7 +272,7 @@ export function AccessibilityMenu() {
                 : 'bg-blue-600 hover:bg-blue-700 text-white dark:bg-blue-500 dark:hover:bg-blue-600'
             }`}
           >
-            Got it
+            Try Amber Mode
           </button>
         </div>
       </div>

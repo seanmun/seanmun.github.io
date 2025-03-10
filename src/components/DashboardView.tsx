@@ -27,7 +27,7 @@ export default function DashboardView() {
     async function fetchData() {
       try {
         const sevenDaysAgo = new Date();
-        sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+        sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 30);
 
         const pageviewsRef = collection(db, 'pageviews');
         const q = query(
