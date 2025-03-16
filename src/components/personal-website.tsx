@@ -100,7 +100,7 @@ const handleMaintenancePassword = () => {
   const projects = [
     {
       title: "Kinetic.email",
-      description: "This project is a comprehensive portfolio showcasing my specialized kinetic email designs for CRM programs, tailored for various clients, audiences, and initiatives.",
+      description: "An open source resource hub and showcase for interactive kinetic HTML emails that push the boundaries of traditional email design. This site serves as both an educational tool for email developers and a playground for innovation, demonstrating real-world use cases, implementation techniques, and cutting-edge concepts.",
       icon: <Zap className="w-12 h-12 text-blue-600" />,
       link: "#",
       ariaLabel: "View Kinetic.email website",
