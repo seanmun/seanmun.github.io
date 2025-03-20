@@ -104,7 +104,7 @@ const handleMaintenancePassword = () => {
       icon: <Zap className="w-12 h-12 text-blue-600" />,
       link: "#",
       ariaLabel: "View Kinetic.email website",
-      requiresPassword: true
+      requiresPassword: false
     },
     {
       title: "OrdinalFrame",
