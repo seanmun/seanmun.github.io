@@ -102,7 +102,7 @@ const handleMaintenancePassword = () => {
       title: "Kinetic.email",
       description: "An open source resource hub and showcase for interactive kinetic HTML emails that push the boundaries of traditional email design. This site serves as both an educational tool for email developers and a playground for innovation, demonstrating real-world use cases, implementation techniques, and cutting-edge concepts.",
       icon: <Zap className="w-12 h-12 text-blue-600" />,
-      link: "#",
+      link: "https://www.kinetic.email/",
       ariaLabel: "View Kinetic.email website",
       requiresPassword: false
     },
