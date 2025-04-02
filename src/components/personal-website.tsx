@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { trackEvent, TrackEvent } from '@/lib/track-utils';
 import { 
     Github, Linkedin, FileText, Zap, Trophy, Box, 
-    Beef, Cloud, Bot, Code, ShieldCheck, X, Medal, Activity } from "lucide-react";
+    Beef, Cloud, Bot, Code, ShieldCheck, X, Medal, Activity, Sun } from "lucide-react";
 
 
   interface PersonalWebsiteProps {
@@ -105,6 +105,14 @@ const handleMaintenancePassword = () => {
       link: "https://www.kinetic.email/",
       ariaLabel: "View Kinetic.email website",
       requiresPassword: false
+    },
+    {
+      title: "Amber Mode",
+      description: "Amber Mode is a custom screen theme I designed to reduce blue light exposure and support healthy circadian rhythms. By shifting to warm amber tones, it helps minimize melatonin disruption during evening use while maintaining readability and visual comfort.",
+      icon: <Sun className="w-12 h-12 text-blue-600" />,
+      link: "https://www.kinetic.email/",
+      ariaLabel: "Amber Mode modal",
+      requiresPassword: true
     },
     {
       title: "OrdinalFrame",
