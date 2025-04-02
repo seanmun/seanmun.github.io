@@ -13,6 +13,7 @@ import {
 import { useAccessibilitySettings } from '../hooks/useAccessibilitySettings';
 import { maintenanceConfig } from '../config/maintenance';
 import dynamic from 'next/dynamic'
+import { AmberModal } from './modals/AmberModal'; // Adjust path if needed
 
 // Overlay Modules
 const MaintenanceOverlay = dynamic(
@@ -110,9 +111,10 @@ const handleMaintenancePassword = () => {
       title: "Amber Mode",
       description: "Amber Mode is a custom screen theme I designed to reduce blue light exposure and support healthy circadian rhythms. By shifting to warm amber tones, it helps minimize melatonin disruption during evening use while maintaining readability and visual comfort.",
       icon: <Sun className="w-12 h-12 text-blue-600" />,
-      link: "https://www.kinetic.email/",
+      link: "", // optional, since no redirect
       ariaLabel: "Amber Mode modal",
-      requiresPassword: true
+      requiresPassword: false, 
+      triggerAmberModal: true  
     },
     {
       title: "OrdinalFrame",
@@ -185,18 +187,27 @@ const handleMaintenancePassword = () => {
     }
   };
 
-  const handleProjectClick = (e: React.MouseEvent, link: string, requiresPassword: boolean) => {
+  const handleProjectClick = (
+    e: React.MouseEvent,
+    project: typeof projects[number]
+  ) => {
     e.preventDefault();
-    if (requiresPassword) {
-      setActiveLink(link);
+  
+    if (project.requiresPassword) {
+      setActiveLink(project.link || '');
       setIsModalOpen(true);
       setError('');
       setPassword('');
+    } else if (project.triggerAmberModal) {
+      setAmberModalOpen(true); // ✅ Now this runs without password
     } else {
-      window.open(link, '_blank');
+      window.open(project.link, '_blank');
     }
   };
+  
+  
 
+  const [isAmberModalOpen, setAmberModalOpen] = useState(false);
 
   // First useEffect for maintenance mode
 useEffect(() => {
@@ -403,6 +414,13 @@ useEffect(() => {
   </div>
 </div>
 
+{/* Amber Mode Modal */}
+<AmberModal 
+  isOpen={isAmberModalOpen} 
+  onClose={() => setAmberModalOpen(false)} 
+/>
+
+
 {/* Resume Modal */}
 <ResumeModal 
   isOpen={isResumeModalOpen} 
@@ -440,13 +458,15 @@ useEffect(() => {
                     <h3 className="text-lg font-semibold mb-2 dark:text-white">{project.title}</h3>
                     <p className="text-gray-600 dark:text-gray-300 text-sm mb-2">{project.description}</p>
                     
-                    <a href={project.link}
-                      onClick={(e) => handleProjectClick(e, project.link, project.requiresPassword)}
+                    <a
+                      href={project.link}
+                      onClick={(e) => handleProjectClick(e, project)}  // ✅ Pass the full project object
                       className="text-blue-600 hover:text-blue-800 transition-colors text-sm"
                       aria-label={project.ariaLabel}
                     >
                       View Project →
                     </a>
+
                   </div>
                 </div>
               </div>
