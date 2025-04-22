@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { trackEvent, TrackEvent } from '@/lib/track-utils';
 import { 
     Github, Linkedin, FileText, Zap, Trophy, Box, 
-    Beef, Cloud, Bot, Code, ShieldCheck, X, Medal, Activity, Sun } from "lucide-react";
+    Beef, Bot, Code, ShieldCheck, X, Medal, Activity, Sun } from "lucide-react";
 
 
   interface PersonalWebsiteProps {
@@ -164,15 +164,7 @@ const handleMaintenancePassword = () => {
       ariaLabel: "View Telegram bot repo",
       requiresPassword: true
     }
-    // ,
-    // {
-    //   title: "Salesforce One",
-    //   description: "SFMC playground I've pieced together to share the treasure trove of tips and tools I've unearthed over the years in the Salesforce Marketing Cloud universe.",
-    //   icon: <Cloud className="w-12 h-12 text-blue-600" />,
-    //   link: "#",
-    //   ariaLabel: "View SFMC project page",
-    //   requiresPassword: true
-    // }
+
   ];
 
    
