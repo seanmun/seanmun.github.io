@@ -133,16 +133,8 @@ const handleMaintenancePassword = () => {
       requiresPassword: false
     },
     {
-      title: "A.l.bert Bot",
-      description: "A.l.bert is your AI-powered personal data assistant, inspired by Albert Einstein. Log your sleep, diet, activity, mood, and physical features in a simple Telgram chat, while A.l.bert  analyzes trends to help you optimize your health. Designed for privacy and customization, this open-source bot lets you self-host and fork the code, so your data stays yours—no third-party apps required.",
-      icon: <Activity className="w-12 h-12 text-blue-600" />,
-      link: "https://github.com/seanmun",
-      ariaLabel: "View Telegram bot repo",
-      requiresPassword: true
-    },
-    {
       title: "DraftDayTrades.com",
-      description: "Interactive draft prediction platform that turns NFL and NBA drafts into engaging pick-by-pick contests. Players make picks in real-time, earning points based on accuracy, while a live leaderboard tracks confidence pool rankings and results.",
+      description: "Draft Day Trades is a web application that lets sports fans create and join confidence-based draft prediction pools, where users select which players will be drafted at each position and assign strategic confidence points to their picks. Built with React, Next.js, TypeScript, and Firebase, the platform features real-time leaderboards and scoring during draft night, creating a competitive and engaging experience for friends to enjoy major sporting drafts together.",
       icon: <Trophy className="w-12 h-12 text-blue-600" />,
       link: "https://draftdaytrades.com/",
       ariaLabel: "View Draft Day Trades website",
@@ -165,13 +157,22 @@ const handleMaintenancePassword = () => {
       requiresPassword: false
     },
     {
-      title: "Salesforce One",
-      description: "SFMC playground I've pieced together to share the treasure trove of tips and tools I've unearthed over the years in the Salesforce Marketing Cloud universe.",
-      icon: <Cloud className="w-12 h-12 text-blue-600" />,
-      link: "#",
-      ariaLabel: "View SFMC project page",
+      title: "A.l.bert Bot",
+      description: "A.l.bert is your AI-powered personal data assistant, inspired by Albert Einstein. Log your sleep, diet, activity, mood, and physical features in a simple Telgram chat, while A.l.bert  analyzes trends to help you optimize your health. Designed for privacy and customization, this open-source bot lets you self-host and fork the code, so your data stays yours—no third-party apps required.",
+      icon: <Activity className="w-12 h-12 text-blue-600" />,
+      link: "https://github.com/seanmun",
+      ariaLabel: "View Telegram bot repo",
       requiresPassword: true
     }
+    // ,
+    // {
+    //   title: "Salesforce One",
+    //   description: "SFMC playground I've pieced together to share the treasure trove of tips and tools I've unearthed over the years in the Salesforce Marketing Cloud universe.",
+    //   icon: <Cloud className="w-12 h-12 text-blue-600" />,
+    //   link: "#",
+    //   ariaLabel: "View SFMC project page",
+    //   requiresPassword: true
+    // }
   ];
 
    
@@ -529,7 +530,7 @@ useEffect(() => {
             <div className="aspect-w-16 aspect-h-9">
               <iframe
                 title="Spotify playlist"
-                src="https://open.spotify.com/embed/album/4A9NpSjSaA2cJss3ksEFVE?utm_source=generator&theme=0"
+                src="https://open.spotify.com/embed/album/1amdsOYtz60qOm5EiWq8Qb?utm_source=generator&theme=0"
                 width="100%"
                 height="477"
                 loading="lazy"
@@ -549,19 +550,7 @@ useEffect(() => {
         <span>&copy; 2025 seanmun.com</span>
         <span className="px-2">•</span>
         <span className="flex items-center gap-1">
-          Designed and built by Sean Munley  {' '}
-          <div className="relative group">
-            <button
-              onClick={() => setIsAIModalOpen(true)}
-              className="text-gray-600 hover:text-blue-600 dark:text-gray-300 dark:hover:text-blue-400 transition-colors"
-              aria-label="Learn about the tech stack"
-            >
-              <Code className="w-4 h-4" />
-            </button>
-            <div className="absolute -bottom-8 left-1/2 transform -translate-x-1/2 px-2 py-1 bg-gray-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap">
-              Build Details
-            </div>
-          </div>
+          Designed and built by Sean Munley
         </span>
       </div>
       
