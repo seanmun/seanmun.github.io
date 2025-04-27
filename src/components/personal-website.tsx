@@ -133,6 +133,14 @@ const handleMaintenancePassword = () => {
       requiresPassword: false
     },
     {
+      title: "TrustThePick.com",
+      description: "Trust The Pick is a secure NBA-style lottery simulator for fantasy sports leagues that uses a multi-verification system to ensure fairness and transparency. It recreates the excitement of the official NBA draft lottery with animated ball drawings, while giving league commissioners confidence through downloadable combination assignments and verifiable results.",
+      icon: <Trophy className="w-12 h-12 text-blue-600" />,
+      link: "https://trustthepick.com/",
+      ariaLabel: "View Trust The Pick website",
+      requiresPassword: false
+    },
+    {
       title: "DraftDayTrades.com",
       description: "Draft Day Trades is a web application that lets sports fans create and join confidence-based draft prediction pools, where users select which players will be drafted at each position and assign strategic confidence points to their picks. Built with React, Next.js, TypeScript, and Firebase, the platform features real-time leaderboards and scoring during draft night, creating a competitive and engaging experience for friends to enjoy major sporting drafts together.",
       icon: <Trophy className="w-12 h-12 text-blue-600" />,
