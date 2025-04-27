@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { trackEvent, TrackEvent } from '@/lib/track-utils';
 import { 
     Github, Linkedin, FileText, Zap, Trophy, Box, 
-    Beef, Bot, Code, ShieldCheck, X, Medal, Activity, Sun } from "lucide-react";
+    Beef, Bot, Code, ShieldCheck, X, Medal, Activity, Sun, Key } from "lucide-react";
 
 
   interface PersonalWebsiteProps {
@@ -135,7 +135,7 @@ const handleMaintenancePassword = () => {
     {
       title: "TrustThePick.com",
       description: "Trust The Pick is a secure NBA-style lottery simulator for fantasy sports leagues that uses a multi-verification system to ensure fairness and transparency. It recreates the excitement of the official NBA draft lottery with animated ball drawings, while giving league commissioners confidence through downloadable combination assignments and verifiable results.",
-      icon: <Trophy className="w-12 h-12 text-blue-600" />,
+      icon: <Key className="w-12 h-12 text-blue-600" />,
       link: "https://trustthepick.com/",
       ariaLabel: "View Trust The Pick website",
       requiresPassword: false
