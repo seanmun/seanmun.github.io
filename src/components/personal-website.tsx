@@ -117,22 +117,6 @@ const handleMaintenancePassword = () => {
       triggerAmberModal: true  
     },
     {
-      title: "OrdinalFrame",
-      description: "A Raspberry Pi-powered digital art frame that dynamically displays Bitcoin Ordinals, turning blockchain inscriptions into ever-evolving wall decor.",
-      icon: <Box className="w-12 h-12 text-blue-600" />,
-      link: "#",
-      ariaLabel: "View Ordinal Frame project page",
-      requiresPassword: true
-    },
-    {
-      title: "Fantasy League Bot",
-      description: "The @Sam_Hinkie_bot serves as a league information hub and interactive companion for my fantasy basketball league. Built with Python and deployed on Railway, this bot interfaces with Telegram's API to handle commands, mentions, and provide responses to league members.",
-      icon: <Bot className="w-12 h-12 text-blue-600" />,
-      link: "https://github.com/seanmun/HinkieBot",
-      ariaLabel: "View Telegram bot repo",
-      requiresPassword: false
-    },
-    {
       title: "TrustThePick.com",
       description: "Trust The Pick is a secure NBA-style lottery simulator for fantasy sports leagues that uses a multi-verification system to ensure fairness and transparency. It recreates the excitement of the official NBA draft lottery with animated ball drawings, while giving league commissioners confidence through downloadable combination assignments and verifiable results.",
       icon: <Key className="w-12 h-12 text-blue-600" />,
@@ -162,6 +146,22 @@ const handleMaintenancePassword = () => {
       icon: <Beef className="w-12 h-12 text-blue-600" />,
       link: "https://www.human-diet.com/",
       ariaLabel: "View 1 pixel health project page",
+      requiresPassword: false
+    },
+    {
+      title: "OrdinalFrame",
+      description: "A Raspberry Pi-powered digital art frame that dynamically displays Bitcoin Ordinals, turning blockchain inscriptions into ever-evolving wall decor.",
+      icon: <Box className="w-12 h-12 text-blue-600" />,
+      link: "#",
+      ariaLabel: "View Ordinal Frame project page",
+      requiresPassword: true
+    },
+    {
+      title: "Fantasy League Bot",
+      description: "The @Sam_Hinkie_bot serves as a league information hub and interactive companion for my fantasy basketball league. Built with Python and deployed on Railway, this bot interfaces with Telegram's API to handle commands, mentions, and provide responses to league members.",
+      icon: <Bot className="w-12 h-12 text-blue-600" />,
+      link: "https://github.com/seanmun/HinkieBot",
+      ariaLabel: "View Telegram bot repo",
       requiresPassword: false
     },
     {
