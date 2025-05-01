@@ -165,8 +165,8 @@ const handleMaintenancePassword = () => {
       requiresPassword: false
     },
     {
-      title: "A.l.bert Bot",
-      description: "A.l.bert is your AI-powered personal data assistant, inspired by Albert Einstein. Log your sleep, diet, activity, mood, and physical features in a simple Telgram chat, while A.l.bert  analyzes trends to help you optimize your health. Designed for privacy and customization, this open-source bot lets you self-host and fork the code, so your data stays yours—no third-party apps required.",
+      title: "A.I.bert Bot",
+      description: "A.I.bert is a AI-powered personal data assistant. Used to log sleep, diet, activity, mood, and physical features in a simple Telgram chat, while A.l.bert analyzes trends to help optimize my health and routines.",
       icon: <Activity className="w-12 h-12 text-blue-600" />,
       link: "https://github.com/seanmun",
       ariaLabel: "View Telegram bot repo",
