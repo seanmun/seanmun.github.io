@@ -157,10 +157,10 @@ const handleMaintenancePassword = () => {
       requiresPassword: false
     },
     {
-      title: "1 Pixel Health",
+      title: "Human-Diet.com",
       description: "Explore 300,000 years of human dietary evolution through an interactive horizontal scroll where each pixel represents one year, showcasing the transition from natural diets to modern preservative-laden and seed oil-rich foods.",
       icon: <Beef className="w-12 h-12 text-blue-600" />,
-      link: "https://seanmun.com/1-pixel-health/",
+      link: "https://www.human-diet.com/",
       ariaLabel: "View 1 pixel health project page",
       requiresPassword: false
     },
