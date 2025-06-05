@@ -9,7 +9,7 @@ import {
   interface PersonalWebsiteProps {
   galleryImages: string[]
 }
-
+import { OrdinalFrameModal } from './modals/OrdinalFrameModal';
 import { useAccessibilitySettings } from '../hooks/useAccessibilitySettings';
 import { maintenanceConfig } from '../config/maintenance';
 import dynamic from 'next/dynamic'
@@ -60,6 +60,7 @@ const PersonalWebsite = ({ galleryImages }: PersonalWebsiteProps) => {
   const [isCertsModalOpen, setIsCertsModalOpen] = useState(false);
   const [isResumeModalOpen, setResumeModalOpen] = useState(false);
   const [isMaintenanceMode, setIsMaintenanceMode] = useState(maintenanceConfig.isEnabled);
+const [isOrdinalFrameModalOpen, setIsOrdinalFrameModalOpen] = useState(false);
 
 
   // Add this effect to check session storage
@@ -133,6 +134,15 @@ const handleMaintenancePassword = () => {
       requiresPassword: false
     },
     {
+      title: "OrdinalFrame",
+      description: "A Raspberry Pi-powered digital art frame that dynamically displays Bitcoin Ordinals, turning blockchain inscriptions into ever-evolving wall decor.",
+      icon: <Box className="w-12 h-12 text-blue-600" />,
+      link: "#",
+      ariaLabel: "View Ordinal Frame project details",
+      requiresPassword: false, // Changed from true to false
+      triggerOrdinalFrameModal: true // Add this new property
+    },
+    {
       title: "RumbleRaffle.com",
       description: "RumbleRaffle.com lets friends create Royal Rumble gambling leagues, randomly assign entrant numbers, and track eliminations in real-time. Built with Next.js, Express.js, and TypeScript, it features automated number distribution and a live event tracker, deployed via Vercel..",
       icon: <Medal className="w-12 h-12 text-blue-600" />,
@@ -147,14 +157,6 @@ const handleMaintenancePassword = () => {
       link: "https://www.human-diet.com/",
       ariaLabel: "View 1 pixel health project page",
       requiresPassword: false
-    },
-    {
-      title: "OrdinalFrame",
-      description: "A Raspberry Pi-powered digital art frame that dynamically displays Bitcoin Ordinals, turning blockchain inscriptions into ever-evolving wall decor.",
-      icon: <Box className="w-12 h-12 text-blue-600" />,
-      link: "#",
-      ariaLabel: "View Ordinal Frame project page",
-      requiresPassword: true
     },
     {
       title: "Fantasy League Bot",
@@ -189,22 +191,24 @@ const handleMaintenancePassword = () => {
   };
 
   const handleProjectClick = (
-    e: React.MouseEvent,
-    project: typeof projects[number]
-  ) => {
-    e.preventDefault();
-  
-    if (project.requiresPassword) {
-      setActiveLink(project.link || '');
-      setIsModalOpen(true);
-      setError('');
-      setPassword('');
-    } else if (project.triggerAmberModal) {
-      setAmberModalOpen(true); // ✅ Now this runs without password
-    } else {
-      window.open(project.link, '_blank');
-    }
-  };
+  e: React.MouseEvent,
+  project: typeof projects[number]
+) => {
+  e.preventDefault();
+
+  if (project.requiresPassword) {
+    setActiveLink(project.link || '');
+    setIsModalOpen(true);
+    setError('');
+    setPassword('');
+  } else if (project.triggerAmberModal) {
+    setAmberModalOpen(true);
+  } else if (project.triggerOrdinalFrameModal) {
+    setIsOrdinalFrameModalOpen(true); // Add this condition
+  } else {
+    window.open(project.link, '_blank');
+  }
+};
   
   
 
@@ -421,6 +425,11 @@ useEffect(() => {
   onClose={() => setAmberModalOpen(false)} 
 />
 
+<OrdinalFrameModal 
+  isOpen={isOrdinalFrameModalOpen} 
+  onClose={() => setIsOrdinalFrameModalOpen(false)} 
+  settings={settings} 
+/>
 
 {/* Resume Modal */}
 <ResumeModal 
