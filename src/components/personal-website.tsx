@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { trackEvent, TrackEvent } from '@/lib/track-utils';
 import { 
     Github, Linkedin, FileText, Zap, Trophy, Box, 
-    Beef, Bot, Code, ShieldCheck, X, Medal, Activity, Sun, Key } from "lucide-react";
+    Beef, Bot, Code, ShieldCheck, X, Medal, Activity, Sun, Key, Banknote } from "lucide-react";
 
 
   interface PersonalWebsiteProps {
@@ -135,7 +135,7 @@ const handleMaintenancePassword = () => {
     },
     {
       title: "OrdinalFrame",
-      description: "A Raspberry Pi-powered digital art frame that dynamically displays Bitcoin Ordinals, turning blockchain inscriptions into ever-evolving wall decor.",
+      description: "Bitcoin Ordinals deserve better than a browser tab. OrdinalFrame turns a Raspberry Pi and Waveshare touchscreen into a living art display that hangs on your wall. It runs custom Python + React code to pull your Ordinals straight from the blockchain — no screenshots, no compromises. ALl wrapped up in a custom gold frame.",
       icon: <Box className="w-12 h-12 text-blue-600" />,
       link: "#",
       ariaLabel: "View Ordinal Frame project details",
@@ -170,6 +170,14 @@ const handleMaintenancePassword = () => {
       title: "A.I.bert Bot",
       description: "A.I.bert is a AI-powered personal data assistant. Used to log sleep, diet, activity, mood, and physical features in a simple Telgram chat, while A.l.bert analyzes trends to help optimize my health and routines.",
       icon: <Activity className="w-12 h-12 text-blue-600" />,
+      link: "https://github.com/seanmun",
+      ariaLabel: "View Telegram bot repo",
+      requiresPassword: true
+    },
+    {
+      title: "Cross-Chain Portfolio Tracker",
+      description: "A privacy-first, real-time dashboard for tracking crypto holdings across Ethereum, Bitcoin, Pulsechain, Base, Solana, and more. Users simply enter their wallet addresses—no sign-in or wallet connection required. The app pulls token balances, NFTs, and Ordinals, then calculates total USD value using decentralized price feeds like Uniswap, 0x, and PulseX.",
+      icon: <Banknote className="w-12 h-12 text-blue-600" />,
       link: "https://github.com/seanmun",
       ariaLabel: "View Telegram bot repo",
       requiresPassword: true

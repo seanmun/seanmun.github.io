@@ -94,6 +94,24 @@ export const OrdinalFrameModal = ({ isOpen, onClose, settings }: OrdinalFrameMod
               </div>
             </div>
 
+             {/* Optional third image */}
+              <div className="flex justify-center">
+                <Image
+                  src="/projects/ordinalframe-back.jpg"
+                  alt="OrdinalFrame displaying Bitcoin Ordinals"
+                  width={400}
+                  height={300}
+                  quality={75}
+                  className="rounded-lg max-w-full h-auto"
+                  priority
+                  onError={(e) => {
+                    // Hide image if it fails to load
+                    const target = e.target as HTMLImageElement;
+                    target.style.display = 'none';
+                  }}
+                />
+              </div>
+
             <div className="space-y-3">
               <h4 className={`text-lg font-medium
                 ${settings.theme === 'amber'
