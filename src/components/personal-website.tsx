@@ -547,9 +547,9 @@ useEffect(() => {
             <div className="aspect-w-16 aspect-h-9">
               <iframe
                 title="Spotify playlist"
-                src="https://open.spotify.com/embed/album/1amdsOYtz60qOm5EiWq8Qb?utm_source=generator&theme=0"
+                src="https://open.spotify.com/embed/album/4fcZBukqygltK48rGGzylj?utm_source=generator&theme=0"
                 width="100%"
-                height="477"
+                height="425"
                 loading="lazy"
                 frameBorder="0"
                 allow="encrypted-media"
