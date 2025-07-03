@@ -1,7 +1,7 @@
 // src/app/page.tsx
 import fs from 'fs';
 import path from 'path';
-import PersonalWebsite from '@/components/personal-website';
+import ClientWrapper from '@/components/ClientWrapper';
 
 export default function HomePage() {
   // Read images directory and get all image files
@@ -13,6 +13,6 @@ export default function HomePage() {
     .map(file => `/images/${file}`);
 
   return (
-    <PersonalWebsite galleryImages={galleryImages} />
+    <ClientWrapper galleryImages={galleryImages} />
   );
 }
