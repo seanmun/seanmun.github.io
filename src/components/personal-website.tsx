@@ -1,19 +1,42 @@
 'use client';
 import React, { useState, useEffect } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { trackEvent, TrackEvent } from '@/lib/track-utils';
 import { 
     Github, Linkedin, FileText, Zap, Trophy, Box, 
-    Beef, Bot, Code, ShieldCheck, X, Medal, Activity, Sun, Key, Banknote } from "lucide-react";
+    Beef, Bot, ShieldCheck, X, Medal, Activity, Sun, Key, Banknote 
+} from "lucide-react";
+import { projects } from '@/data/projects';
 
-
-  interface PersonalWebsiteProps {
+interface PersonalWebsiteProps {
   galleryImages: string[]
 }
+
 import { OrdinalFrameModal } from './modals/OrdinalFrameModal';
 import { useAccessibilitySettings } from '../hooks/useAccessibilitySettings';
 import { maintenanceConfig } from '../config/maintenance';
 import dynamic from 'next/dynamic'
-import { AmberModal } from './modals/AmberModal'; // Adjust path if needed
+import { AmberModal } from './modals/AmberModal';
+
+// Icon mapping object
+const iconMap = {
+  Zap,
+  Trophy, 
+  Box,
+  Beef,
+  Bot,
+  Activity,
+  Sun,
+  Key,
+  Banknote,
+  Medal
+};
+
+// Helper function to render icons
+const renderIcon = (iconName: string) => {
+  const IconComponent = iconMap[iconName as keyof typeof iconMap];
+  return IconComponent ? <IconComponent className="w-12 h-12 text-blue-600" /> : null;
+};
 
 // Overlay Modules
 const MaintenanceOverlay = dynamic(
@@ -35,6 +58,7 @@ const AIModal = dynamic(() =>
 
 import Image from 'next/image';
 import { AccessibilityMenu } from './AccessibilityMenu';
+
 const shuffleArray = (array: string[]) => {
   let currentIndex = array.length, randomIndex;
   while (currentIndex != 0) {
@@ -46,6 +70,9 @@ const shuffleArray = (array: string[]) => {
 };
 
 const PersonalWebsite = ({ galleryImages }: PersonalWebsiteProps) => {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  
   const [activeSlide, setActiveSlide] = useState(0);
   const [isVisible, setIsVisible] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -60,26 +87,63 @@ const PersonalWebsite = ({ galleryImages }: PersonalWebsiteProps) => {
   const [isCertsModalOpen, setIsCertsModalOpen] = useState(false);
   const [isResumeModalOpen, setResumeModalOpen] = useState(false);
   const [isMaintenanceMode, setIsMaintenanceMode] = useState(maintenanceConfig.isEnabled);
-const [isOrdinalFrameModalOpen, setIsOrdinalFrameModalOpen] = useState(false);
+  const [isOrdinalFrameModalOpen, setIsOrdinalFrameModalOpen] = useState(false);
+  const [isAmberModalOpen, setAmberModalOpen] = useState(false);
 
+  // Helper function to update URL
+  const updateURL = (section: string | null) => {
+    const url = new URL(window.location.href);
+    if (section) {
+      url.searchParams.set('section', section);
+    } else {
+      url.searchParams.delete('section');
+    }
+    router.push(url.pathname + url.search, { scroll: false });
+  };
 
-  // Add this effect to check session storage
-useEffect(() => {
-  const hasMaintenanceAccess = sessionStorage.getItem('maintenanceAccess') === 'true';
-  if (hasMaintenanceAccess) {
-    setIsMaintenanceMode(false);
-  }
-}, []);
-
-// Add this handler function
-const handleMaintenancePassword = () => {
-  setIsMaintenanceMode(false);
-  sessionStorage.setItem('maintenanceAccess', 'true');
-};
-
-
+  // Handle URL parameters on page load
   useEffect(() => {
-    // Move localStorage logic to useEffect
+    const section = searchParams.get('section');
+    if (section) {
+      switch (section) {
+        case 'resume':
+          setResumeModalOpen(true);
+          break;
+        case 'skills':
+          setIsCertsModalOpen(true);
+          break;
+        case 'ai':
+          setIsAIModalOpen(true);
+          break;
+        case 'privacy':
+          setIsPrivacyModalOpen(true);
+          break;
+        case 'amber':
+          setAmberModalOpen(true);
+          break;
+        case 'ordinal':
+          setIsOrdinalFrameModalOpen(true);
+          break;
+      }
+    }
+  }, [searchParams]);
+
+  // First useEffect for maintenance mode
+  useEffect(() => {
+    const hasMaintenanceAccess = sessionStorage.getItem('maintenanceAccess') === 'true';
+    if (hasMaintenanceAccess) {
+      setIsMaintenanceMode(false);
+    }
+  }, []);
+
+  // Add this handler function
+  const handleMaintenancePassword = () => {
+    setIsMaintenanceMode(false);
+    sessionStorage.setItem('maintenanceAccess', 'true');
+  };
+
+  // Second useEffect for visitor ID
+  useEffect(() => {
     const existingId = localStorage.getItem('visitorId');
     if (existingId) {
       setCookieId(existingId);
@@ -88,7 +152,7 @@ const handleMaintenancePassword = () => {
       localStorage.setItem('visitorId', newId);
       setCookieId(newId);
     }
-  }, []); // Empty dependency array means this runs once on mount
+  }, []);
 
   const handleImageClick = (imageSrc: string) => {
     setFullscreenImage(imageSrc);
@@ -98,94 +162,60 @@ const handleMaintenancePassword = () => {
     setFullscreenImage(null);
   };
 
-    const { settings } = useAccessibilitySettings();  // Add this line
-  const projects = [
-    {
-      title: "Kinetic.email",
-      description: "An open source resource hub and showcase for interactive kinetic HTML emails that push the boundaries of traditional email design. This site serves as both an educational tool for email developers and a playground for innovation, demonstrating real-world use cases, implementation techniques, and cutting-edge concepts.",
-      icon: <Zap className="w-12 h-12 text-blue-600" />,
-      link: "https://www.kinetic.email/",
-      ariaLabel: "View Kinetic.email website",
-      requiresPassword: false
-    },
-    {
-      title: "Amber Mode",
-      description: "Amber Mode is a custom screen theme I designed to reduce blue light exposure and support healthy circadian rhythms. By shifting to warm amber tones, it helps minimize melatonin disruption during evening use while maintaining readability and visual comfort.",
-      icon: <Sun className="w-12 h-12 text-blue-600" />,
-      link: "", // optional, since no redirect
-      ariaLabel: "Amber Mode modal",
-      requiresPassword: false, 
-      triggerAmberModal: true  
-    },
-    {
-      title: "TrustThePick.com",
-      description: "Trust The Pick is a secure NBA-style lottery simulator for fantasy sports leagues that uses a multi-verification system to ensure fairness and transparency. It recreates the excitement of the official NBA draft lottery with animated ball drawings, while giving league commissioners confidence through downloadable combination assignments and verifiable results.",
-      icon: <Key className="w-12 h-12 text-blue-600" />,
-      link: "https://trustthepick.com/",
-      ariaLabel: "View Trust The Pick website",
-      requiresPassword: false
-    },
-    {
-      title: "DraftDayTrades.com",
-      description: "Draft Day Trades is a web application that lets sports fans create and join confidence-based draft prediction pools, where users select which players will be drafted at each position and assign strategic confidence points to their picks. Built with React, Next.js, TypeScript, and Firebase, the platform features real-time leaderboards and scoring during draft night, creating a competitive and engaging experience for friends to enjoy major sporting drafts together.",
-      icon: <Trophy className="w-12 h-12 text-blue-600" />,
-      link: "https://draftdaytrades.com/",
-      ariaLabel: "View Draft Day Trades website",
-      requiresPassword: false
-    },
-    {
-      title: "OrdinalFrame",
-      description: "Bitcoin Ordinals deserve better than a browser tab. OrdinalFrame turns a Raspberry Pi and Waveshare touchscreen into a living art display that hangs on your wall. It runs custom Python + React code to pull your Ordinals straight from the blockchain — no screenshots, no compromises. ALl wrapped up in a custom gold frame.",
-      icon: <Box className="w-12 h-12 text-blue-600" />,
-      link: "#",
-      ariaLabel: "View Ordinal Frame project details",
-      requiresPassword: false, // Changed from true to false
-      triggerOrdinalFrameModal: true // Add this new property
-    },
-    {
-      title: "RumbleRaffle.com",
-      description: "RumbleRaffle.com lets friends create Royal Rumble gambling leagues, randomly assign entrant numbers, and track eliminations in real-time. Built with Next.js, Express.js, and TypeScript, it features automated number distribution and a live event tracker, deployed via Vercel..",
-      icon: <Medal className="w-12 h-12 text-blue-600" />,
-      link: "https://www.rumbleraffle.com/",
-      ariaLabel: "View Rumble Raffle website",
-      requiresPassword: false
-    },
-    {
-      title: "Human-Diet.com",
-      description: "Explore 300,000 years of human dietary evolution through an interactive horizontal scroll where each pixel represents one year, showcasing the transition from natural diets to modern preservative-laden and seed oil-rich foods.",
-      icon: <Beef className="w-12 h-12 text-blue-600" />,
-      link: "https://www.human-diet.com/",
-      ariaLabel: "View 1 pixel health project page",
-      requiresPassword: false
-    },
-    {
-      title: "Fantasy League Bot",
-      description: "The @Sam_Hinkie_bot serves as a league information hub and interactive companion for my fantasy basketball league. Built with Python and deployed on Railway, this bot interfaces with Telegram's API to handle commands, mentions, and provide responses to league members.",
-      icon: <Bot className="w-12 h-12 text-blue-600" />,
-      link: "https://github.com/seanmun/HinkieBot",
-      ariaLabel: "View Telegram bot repo",
-      requiresPassword: false
-    },
-    {
-      title: "A.I.bert Bot",
-      description: "A.I.bert is a AI-powered personal data assistant. Used to log sleep, diet, activity, mood, and physical features in a simple Telgram chat, while A.l.bert analyzes trends to help optimize my health and routines.",
-      icon: <Activity className="w-12 h-12 text-blue-600" />,
-      link: "https://github.com/seanmun",
-      ariaLabel: "View Telegram bot repo",
-      requiresPassword: true
-    },
-    {
-      title: "Cross-Chain Portfolio Tracker",
-      description: "A privacy-first, real-time dashboard for tracking crypto holdings across Ethereum, Bitcoin, Pulsechain, Base, Solana, and more. Users simply enter their wallet addresses—no sign-in or wallet connection required. The app pulls token balances, NFTs, and Ordinals, then calculates total USD value using decentralized price feeds like Uniswap, 0x, and PulseX.",
-      icon: <Banknote className="w-12 h-12 text-blue-600" />,
-      link: "https://github.com/seanmun",
-      ariaLabel: "View Telegram bot repo",
-      requiresPassword: true
+  const { settings } = useAccessibilitySettings();
+
+  // Third useEffect for gallery
+  useEffect(() => {
+    setIsVisible(true);
+    setShuffledImages(shuffleArray([...galleryImages]));
+    
+    const interval = setInterval(() => {
+      setActiveSlide((prev) => (prev + 1) % galleryImages.length);
+    }, 5000);
+
+    return () => clearInterval(interval);
+  }, [galleryImages, galleryImages.length]);
+
+  useEffect(() => {
+    const trackPageview = async () => {
+      try {
+        const eventData: TrackEvent = {
+          cookieId,
+          timestamp: new Date(),
+          eventType: 'pageview'
+        };
+
+        try {
+          const position = await new Promise<GeolocationPosition>((resolve, reject) => {
+            navigator.geolocation.getCurrentPosition(resolve, reject, {
+              timeout: 5000,
+              maximumAge: 300000
+            });
+          });
+          
+          eventData.geolocation = {
+            latitude: position.coords.latitude,
+            longitude: position.coords.longitude
+          };
+        } catch {
+          console.log('Geolocation not available or denied');
+        }
+
+        await trackEvent(eventData);
+      } catch (err) {
+        console.error('Error tracking event:', err);
+      }
+    };
+
+    if (cookieId) {
+      const hasTracked = sessionStorage.getItem('hasTrackedPageview');
+      if (!hasTracked) {
+        trackPageview();
+        sessionStorage.setItem('hasTrackedPageview', 'true');
+      }
     }
+  }, [cookieId]);
 
-  ];
-
-   
   const handlePasswordSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (password === process.env.NEXT_PUBLIC_PROJECTS_PASSWORD) {
@@ -199,100 +229,26 @@ const handleMaintenancePassword = () => {
   };
 
   const handleProjectClick = (
-  e: React.MouseEvent,
-  project: typeof projects[number]
-) => {
-  e.preventDefault();
+    e: React.MouseEvent,
+    project: typeof projects[number]
+  ) => {
+    e.preventDefault();
 
-  if (project.requiresPassword) {
-    setActiveLink(project.link || '');
-    setIsModalOpen(true);
-    setError('');
-    setPassword('');
-  } else if (project.triggerAmberModal) {
-    setAmberModalOpen(true);
-  } else if (project.triggerOrdinalFrameModal) {
-    setIsOrdinalFrameModalOpen(true); // Add this condition
-  } else {
-    window.open(project.link, '_blank');
-  }
-};
-  
-  
-
-  const [isAmberModalOpen, setAmberModalOpen] = useState(false);
-
-  // First useEffect for maintenance mode
-useEffect(() => {
-  const hasMaintenanceAccess = sessionStorage.getItem('maintenanceAccess') === 'true';
-  if (hasMaintenanceAccess) {
-    setIsMaintenanceMode(false);
-  }
-}, []);
-
-// Second useEffect for visitor ID
-useEffect(() => {
-  const existingId = localStorage.getItem('visitorId');
-  if (existingId) {
-    setCookieId(existingId);
-  } else {
-    const newId = Math.random().toString(36).substring(2);
-    localStorage.setItem('visitorId', newId);
-    setCookieId(newId);
-  }
-}, []);
-
-// Third useEffect for gallery
-useEffect(() => {
-  setIsVisible(true);
-  setShuffledImages(shuffleArray([...galleryImages]));
-  
-  const interval = setInterval(() => {
-    setActiveSlide((prev) => (prev + 1) % galleryImages.length);
-  }, 5000);
-
-  return () => clearInterval(interval);
-}, [galleryImages, galleryImages.length]);
-
-useEffect(() => {
-  const trackPageview = async () => {
-    try {
-      const eventData: TrackEvent = {
-        cookieId,
-        timestamp: new Date(),
-        eventType: 'pageview'
-      };
-
-      try {
-        const position = await new Promise<GeolocationPosition>((resolve, reject) => {
-          navigator.geolocation.getCurrentPosition(resolve, reject, {
-            timeout: 5000,
-            maximumAge: 300000
-          });
-        });
-        
-        eventData.geolocation = {
-          latitude: position.coords.latitude,
-          longitude: position.coords.longitude
-        };
-      } catch {
-        console.log('Geolocation not available or denied');
-      }
-
-      await trackEvent(eventData);
-    } catch (err) {
-      console.error('Error tracking event:', err);
+    if (project.requiresPassword) {
+      setActiveLink(project.link || '');
+      setIsModalOpen(true);
+      setError('');
+      setPassword('');
+    } else if (project.triggerAmberModal) {
+      setAmberModalOpen(true);
+      updateURL('amber');
+    } else if (project.triggerOrdinalFrameModal) {
+      setIsOrdinalFrameModalOpen(true);
+      updateURL('ordinal');
+    } else {
+      window.open(project.link, '_blank');
     }
   };
-
-  if (cookieId) {
-    const hasTracked = sessionStorage.getItem('hasTrackedPageview');
-    if (!hasTracked) {
-      trackPageview();
-      sessionStorage.setItem('hasTrackedPageview', 'true');
-    }
-  }
-}, [cookieId]);
 
   return (
     <div className="min-h-screen bg-white dark:bg-gray-900 transition-colors" style={{ 
@@ -349,76 +305,74 @@ useEffect(() => {
         </span>{' '}
         with over a decade of experience delivering innovative solutions to improve marketing performance. I specialize in crafting data-driven strategies, building interactive email experiences, and optimizing enterprise CRM systems. With a focus on automation and AI-driven personalization, I leverage technology to create scalable, high-impact marketing solutions that drive engagement and results. Beyond my work, I enjoy building apps and bots as a hobby—sometimes to entertain myself, sometimes to amuse my friends.
       </p>
-      <nav aria-label="Social links">
-        <div className="flex gap-4">
-          {/* Social links remain the same but with improved aria-labels */}
-          <div className="relative group">
-            <a 
-              href="https://github.com/seanmun" 
-              target='_blank'
-              rel="noopener noreferrer"
-              aria-label="Visit Sean's GitHub Profile"
-              className="text-gray-600 hover:text-blue-600 dark:text-gray-300 dark:hover:text-blue-400 transition-colors"
-            >
-              <Github className="w-5 h-5" />
-            </a>
-            <div className="absolute -bottom-8 left-1/2 transform -translate-x-1/2 px-2 py-1 bg-gray-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-              GitHub
-            </div>
-          </div>
-          
-          <div className="relative group">
-            <a 
-              href="https://www.linkedin.com/in/sean-munley/" 
-              target='_blank'
-              rel="noopener noreferrer"
-              aria-label="Connect with Sean on LinkedIn"
-              className="text-gray-600 hover:text-blue-600 dark:text-gray-300 dark:hover:text-blue-400 transition-colors"
-            >
-              <Linkedin className="w-5 h-5" />
-            </a>
-            <div className="absolute -bottom-8 left-1/2 transform -translate-x-1/2 px-2 py-1 bg-gray-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-              LinkedIn
-            </div>
-          </div>
 
-           {/* Add Certifications Button */}
-          <div className="relative group">
-            <button 
-              onClick={() => setIsCertsModalOpen(true)}
-              aria-label="View Certifications and Skills"
-              className="text-gray-600 hover:text-blue-600 dark:text-gray-300 dark:hover:text-blue-400 transition-colors"
-            >
-              <ShieldCheck className="w-5 h-5" />
-            </button>
-            <div className="absolute -bottom-8 left-1/2 transform -translate-x-1/2 px-2 py-1 bg-gray-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-              Certs
-            </div>
-          </div>
+      {/* Navigation Icons */}
+      <nav className="flex gap-4 items-center">
+        <div className="flex gap-2">
+          <a
+            href="https://github.com/seanmun"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+            aria-label="GitHub Profile"
+          >
+            <Github className="w-5 h-5 text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200" />
+          </a>
+          <a
+            href="https://www.linkedin.com/in/seanmunley/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+            aria-label="LinkedIn Profile"
+          >
+            <Linkedin className="w-5 h-5 text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200" />
+          </a>
           
-          <div className="relative group">
-            <button 
-              onClick={() => setResumeModalOpen(true)}
-              aria-label="View Resume Summary"
-              className="text-gray-600 hover:text-blue-600 dark:text-gray-300 dark:hover:text-blue-400 transition-colors"
+          <div className="group relative">
+            <button
+              onClick={() => {
+                setResumeModalOpen(true);
+                updateURL('resume');
+              }}
+              className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+              aria-label="View Resume"
             >
-              <FileText className="w-5 h-5" />
+              <FileText className="w-5 h-5 text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200" />
             </button>
             <div className="absolute -bottom-8 left-1/2 transform -translate-x-1/2 px-2 py-1 bg-gray-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200">
               Resume
             </div>
           </div>
 
-          <div className="relative group">
-            <button 
-              onClick={() => setIsAIModalOpen(true)}
-              aria-label="View Build Details"
-              className="text-gray-600 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400 transition-colors"
+          <div className="group relative">
+            <button
+              onClick={() => {
+                setIsCertsModalOpen(true);
+                updateURL('skills');
+              }}
+              className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+              aria-label="View Certifications"
             >
-              <Code className="w-5 h-5" />
+              <ShieldCheck className="w-5 h-5 text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200" />
             </button>
             <div className="absolute -bottom-8 left-1/2 transform -translate-x-1/2 px-2 py-1 bg-gray-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-              Build Details
+              Skills
+            </div>
+          </div>
+
+          <div className="group relative">
+            <button
+              onClick={() => {
+                setIsAIModalOpen(true);
+                updateURL('ai');
+              }}
+              className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+              aria-label="View AI Integration Details"
+            >
+              <Bot className="w-5 h-5 text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200" />
+            </button>
+            <div className="absolute -bottom-8 left-1/2 transform -translate-x-1/2 px-2 py-1 bg-gray-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+              AI Philosophy
             </div>
           </div>
         </div>
@@ -430,79 +384,88 @@ useEffect(() => {
 {/* Amber Mode Modal */}
 <AmberModal 
   isOpen={isAmberModalOpen} 
-  onClose={() => setAmberModalOpen(false)} 
+  onClose={() => {
+    setAmberModalOpen(false);
+    updateURL(null);
+  }} 
 />
 
 <OrdinalFrameModal 
   isOpen={isOrdinalFrameModalOpen} 
-  onClose={() => setIsOrdinalFrameModalOpen(false)} 
+  onClose={() => {
+    setIsOrdinalFrameModalOpen(false);
+    updateURL(null);
+  }} 
   settings={settings} 
 />
 
 {/* Resume Modal */}
 <ResumeModal 
   isOpen={isResumeModalOpen} 
-  onClose={() => setResumeModalOpen(false)} 
+  onClose={() => {
+    setResumeModalOpen(false);
+    updateURL(null);
+  }} 
   settings={settings} 
 />
 
 {/* Certifications Modal */}
 <CertsModal 
   isOpen={isCertsModalOpen} 
-  onClose={() => setIsCertsModalOpen(false)} 
+  onClose={() => {
+    setIsCertsModalOpen(false);
+    updateURL(null);
+  }} 
   settings={settings} 
 />
 
- {/* Wrap all content that should be behind maintenance overlay */}
-<div className="relative">
-      {isMaintenanceMode && maintenanceConfig.isEnabled && (
-        <MaintenanceOverlay onPasswordSuccess={handleMaintenancePassword} />
-      )}
+        {/* Wrap all content that should be behind maintenance overlay */}
+        <div className="relative">
+          {isMaintenanceMode && maintenanceConfig.isEnabled && (
+            <MaintenanceOverlay onPasswordSuccess={handleMaintenancePassword} />
+          )}
 
-        {/* Projects Section - Two Columns */}
-        <div className="mb-8">
-          <h2 className="text-xl font-bold mb-4 dark:text-white">Projects</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {projects.map((project, index) => (
-              <div
-                key={index}
-                className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-              >
-                <div className="flex gap-4 items-start">
-                  <div className="flex-shrink-0">
-                    {project.icon}
-                  </div>
-                  <div className="flex-1">
-                    <h3 className="text-lg font-semibold mb-2 dark:text-white">{project.title}</h3>
-                    <p className="text-gray-600 dark:text-gray-300 text-sm mb-2">{project.description}</p>
-                    
-                    <a
-                      href={project.link}
-                      onClick={(e) => handleProjectClick(e, project)}  // ✅ Pass the full project object
-                      className="text-blue-600 hover:text-blue-800 transition-colors text-sm"
-                      aria-label={project.ariaLabel}
-                    >
-                      View Project →
-                    </a>
+          {/* Projects Section - Two Columns */}
+          <div className="mb-8">
+            <h2 className="text-xl font-bold mb-4 dark:text-white">Projects</h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {projects.map((project, index) => (
+                <div
+                  key={index}
+                  className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                >
+                  <div className="flex gap-4 items-start">
+                    <div className="flex-shrink-0">
+                      {renderIcon(project.iconName)}
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="text-lg font-semibold mb-2 dark:text-white">{project.title}</h3>
+                      <p className="text-gray-600 dark:text-gray-300 text-sm mb-2">{project.description}</p>
+                      
+                      <a
+                        href={project.link}
+                        onClick={(e) => handleProjectClick(e, project)}
+                        className="text-blue-600 hover:text-blue-800 transition-colors text-sm"
+                        aria-label={project.ariaLabel}
+                      >
+                        View Project →
+                      </a>
 
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
-        </div>
 
-    
-
-        {/* Mood and Vibes sections remain the same */}
         {/* Two Column Layout for Gallery and Playlist */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4" style={{minHeight: "0"}}>
           {/* Gallery Column */}
           <div>
             <h2 className="text-xl font-bold mb-4 dark:text-white">Mood</h2>
             <div className={`relative overflow-hidden rounded-lg transition-opacity duration-500 ${
-  isVisible ? 'opacity-100' : 'opacity-0'
-}`}>
+              isVisible ? 'opacity-100' : 'opacity-0'
+            }`}>
               <div
                 className="flex transition-transform duration-1000 ease-in-out"
                 style={{ transform: `translateX(-${activeSlide * 100}%)` }}
@@ -529,7 +492,7 @@ useEffect(() => {
                 <Image
                 src={image}
                 alt={`Slide ${index + 1}`}
-                width={800}  // Set appropriate size
+                width={800}
                 height={800}
                 quality={75}
                 className="max-w-full max-h-full object-contain transform transition-transform duration-300 group-hover:scale-105"
@@ -543,7 +506,7 @@ useEffect(() => {
 
           {/* Playlist Column */}
           <div>
-            <h2 className="text-xl font-bold mb-4 dark:text-white">Vibe</h2>
+            <h2 className="text-xl font-bold mb-4 dark:text-white">Vibes</h2>
             <div className="aspect-w-16 aspect-h-9">
               <iframe
                 title="Spotify playlist"
@@ -558,60 +521,69 @@ useEffect(() => {
             </div>
           </div>
         </div>
-      </div>
 
-      <footer className="border-t border-gray-100 dark:border-gray-800 py-6 mt-8">
-  <div className="max-w-4xl mx-auto px-4">
-    <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-      <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300">
-        <span>&copy; 2025 seanmun.com</span>
-        <span className="px-2">•</span>
-        <span className="flex items-center gap-1">
-          Designed and built by Sean Munley
-        </span>
-      </div>
-      
-      <div className="flex flex-wrap items-center gap-4">
-        <button
-          onClick={() => setIsPrivacyModalOpen(true)}
-          className="text-sm text-gray-600 hover:text-blue-600 dark:text-gray-300 dark:hover:text-blue-400 transition-colors"
-        >
-          Privacy Policy
-        </button>
-        <a 
-          href="https://github.com/seanmun" 
-          target="_blank" 
-          aria-label="Visit Sean's GitHub Profile"
-          className="text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 transition-colors"
-        >
-          <Github className="w-4 h-4" />
-        </a>
-        <a 
-          href="https://www.linkedin.com/in/sean-munley/" 
-          target="_blank" 
-          aria-label="Visit Sean's LinkedIn"
-          className="text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 transition-colors"
-        >
-          <Linkedin className="w-4 h-4" />
-        </a>
-      </div>
-    </div>
-  </div>
-</footer>
-</div>
+        <footer className="border-t border-gray-100 dark:border-gray-800 py-6 mt-8">
+          <div className="max-w-4xl mx-auto px-4">
+            <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+              <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300">
+                <span>&copy; 2025 seanmun.com</span>
+                <span className="px-2">•</span>
+                <span className="flex items-center gap-1">
+                  Designed and built by Sean Munley
+                </span>
+              </div>
+              
+              <div className="flex flex-wrap items-center gap-4">
+                <button
+                  onClick={() => {
+                    setIsPrivacyModalOpen(true);
+                    updateURL('privacy');
+                  }}
+                  className="text-sm text-gray-600 hover:text-blue-600 dark:text-gray-300 dark:hover:text-blue-400 transition-colors"
+                >
+                  Privacy Policy
+                </button>
+                <a 
+                  href="https://github.com/seanmun" 
+                  target="_blank" 
+                  aria-label="Visit Sean's GitHub Profile"
+                  className="text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 transition-colors"
+                >
+                  <Github className="w-4 h-4" />
+                </a>
+                <a 
+                  href="https://www.linkedin.com/in/seanmunley/" 
+                  target="_blank" 
+                  aria-label="Visit Sean's LinkedIn"
+                  className="text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 transition-colors"
+                >
+                  <Linkedin className="w-4 h-4" />
+                </a>
+              </div>
+            </div>
+          </div>
+        </footer>
+        </div>
 
-<AIModal 
-  isOpen={isAIModalOpen} 
-  onClose={() => setIsAIModalOpen(false)} 
-  settings={settings} 
-/>
+        {/* AI Modal */}
+        <AIModal 
+          isOpen={isAIModalOpen} 
+          onClose={() => {
+            setIsAIModalOpen(false);
+            updateURL(null);
+          }} 
+          settings={settings} 
+        />
 
-{/* Privacy Policy Modal */}
-{isPrivacyModalOpen && (
-  <div className="fixed inset-0 bg-black bg-opacity-50 flex items-start justify-center z-50 p-4 overflow-y-auto">
-    <div className="relative bg-white dark:bg-gray-800 rounded-lg w-full max-w-2xl my-4 md:my-8">
-      {/* Sticky header with close button */}
-      <div className={`sticky top-0 rounded-t-lg flex justify-between items-center p-4 border-b
+        {/* Privacy Modal */}
+        {isPrivacyModalOpen && (
+  <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+    <div className={`max-w-2xl w-full max-h-[80vh] m-4 rounded-lg overflow-hidden
+      ${settings.theme === 'amber'
+        ? 'bg-amber-50'
+        : 'bg-white dark:bg-gray-800'
+      }`}>
+      <div className={`sticky top-0 flex justify-between items-center p-4 border-b
         ${settings.theme === 'amber'
           ? 'bg-amber-50 border-amber-100'
           : 'bg-white border-gray-200 dark:bg-gray-800 dark:border-gray-700'
@@ -624,20 +596,21 @@ useEffect(() => {
           Privacy Policy
         </h3>
         <button
-          onClick={() => setIsPrivacyModalOpen(false)}
+          onClick={() => {
+            setIsPrivacyModalOpen(false);
+            updateURL(null);
+          }}
           className={`p-2 rounded-full transition-colors
             ${settings.theme === 'amber'
-              ? 'text-amber-600 hover:bg-amber-100'
-              : 'text-gray-500 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700'
+              ? 'hover:bg-amber-100 text-amber-600'
+              : 'hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400'
             }`}
-          aria-label="Close modal"
         >
-          <X className="w-6 h-6" />
+          <X className="w-5 h-5" />
         </button>
       </div>
-
-      {/* Scrollable content */}
-      <div className={`p-4 overflow-y-auto max-h-[60vh] md:max-h-[70vh]
+      
+      <div className={`p-4 overflow-y-auto max-h-[60vh]
         ${settings.theme === 'amber'
           ? 'bg-amber-50'
           : 'bg-white dark:bg-gray-800'
@@ -734,14 +707,14 @@ useEffect(() => {
         >
         <div className="relative w-full h-full p-4 flex items-center justify-center">
         <div 
-        className="relative max-w-[600px] max-h-[80vh]"  // Changed to 600px
+        className="relative max-w-[600px] max-h-[80vh]"
         onClick={e => e.stopPropagation()}
         >
         <Image
         src={fullscreenImage}
         alt="Fullscreen view"
-        width={600}  // Changed to 600
-        height={600}  // Changed to 600
+        width={600}
+        height={600}
         quality={75}
         className="max-w-full max-h-full object-contain"
         />
@@ -788,6 +761,7 @@ useEffect(() => {
         </div>
       )}
     </div>
+  </div>
   );
 };
 
