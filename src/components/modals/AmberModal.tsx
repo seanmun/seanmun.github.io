@@ -59,7 +59,7 @@ export const AmberModal: React.FC<AmberModalProps> = ({ isOpen, onClose }) => {
               <p className="font-medium text-base">Light Spectrum Analysis</p>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {['Light', 'Dark', 'Amber'].map((type) => (
-                  <div key={type} className="space-y-2">
+                  <div key={type} className="space-y-">
                     <div className="relative aspect-w-16 aspect-h-9 h-40 rounded-lg overflow-hidden">
                       <Image
                         src={`/Accessibility/${type}.jpg`}
@@ -74,6 +74,34 @@ export const AmberModal: React.FC<AmberModalProps> = ({ isOpen, onClose }) => {
                     <p className="text-xs text-center font-medium">{type} Mode: Spectrum analysis</p>
                   </div>
                 ))}
+              </div>
+              
+              {/* Device measurement section */}
+              <div className={`p-3 rounded-lg border ${
+                settings.theme === 'amber'
+                  ? 'bg-amber-50 border-amber-200'
+                  : 'bg-gray-50 dark:bg-gray-700 border-gray-200 dark:border-gray-600'
+              }`}>
+                <p className="font-medium mb-2">How These Measurements Were Made</p>
+                <p className="text-sm mb-3">
+                  The spectrum analysis above was captured using a professional light spectrum analyzer to measure the actual wavelength output from the screen in each mode. This data shows the dramatic reduction in blue light wavelengths (400-490nm) when using Amber Mode compared to standard light and dark themes.
+                </p>
+                <p className="text-sm">
+                  Interested in measuring your own screen&rsquo;s light spectrum? Check out the{' '}
+                  <a
+                    href="https://amzn.to/40AqBZu"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={`${
+                      settings.theme === 'amber'
+                        ? 'text-amber-700 hover:text-amber-900'
+                        : 'text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300'
+                    } transition-colors underline`}
+                  >
+                    spectrum analyzer I used
+                  </a>{' '}
+                  to create these measurements.
+                </p>
               </div>
             </div>
 

@@ -57,7 +57,7 @@ export const OrdinalFrameModal = ({ isOpen, onClose, settings }: OrdinalFrameMod
               OrdinalFrame transforms a Raspberry Pi into a dynamic digital art frame that showcases Bitcoin Ordinals - unique digital artifacts inscribed directly onto the Bitcoin blockchain. This project bridges the gap between blockchain technology and physical art display.
             </p>
 
-            {/* Project Images */}
+           {/* Project Images */}
             <div className="my-6 space-y-4">
               <div className="flex justify-center">
                 <Image
@@ -92,9 +92,8 @@ export const OrdinalFrameModal = ({ isOpen, onClose, settings }: OrdinalFrameMod
                   }}
                 />
               </div>
-            </div>
-
-             {/* Optional third image */}
+              
+              {/* Optional third image */}
               <div className="flex justify-center">
                 <Image
                   src="/projects/ordinalframe-back.jpg"
@@ -111,6 +110,58 @@ export const OrdinalFrameModal = ({ isOpen, onClose, settings }: OrdinalFrameMod
                   }}
                 />
               </div>
+            </div>
+
+            {/* Founder Approved Section */}
+            <div className={`my-6 p-4 rounded-lg border-2 ${
+              settings.theme === 'amber'
+                ? 'bg-amber-50 border-amber-200'
+                : 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-700'
+            }`}>
+              <h4 className={`text-lg font-medium mb-3 ${
+                settings.theme === 'amber'
+                  ? 'text-amber-900'
+                  : 'text-green-800 dark:text-green-300'
+              }`}>
+                ✅ Founder Approved
+              </h4>
+              
+              <div className="flex justify-center mb-3">
+                <Image
+                  src="/projects/udi.jpg"
+                  alt="Quantum Cats founder tweet approval"
+                  width={400}
+                  height={300}
+                  quality={85}
+                  className="rounded-lg max-w-full h-auto border border-gray-200 dark:border-gray-600"
+                  onError={(e) => {
+                    const target = e.target as HTMLImageElement;
+                    target.style.display = 'none';
+                  }}
+                />
+              </div>
+              
+              <p className={`text-sm ${
+                settings.theme === 'amber'
+                  ? 'text-amber-800'
+                  : 'text-green-700 dark:text-green-300'
+              }`}>
+                Udi Wertheimer is the co-founder of Taproot Wizards and Quantum Cats—Bitcoin Ordinals projects that blend art, community, and a push for{' '}
+                <a
+                  href="https://www.quantumcats.xyz/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={`${
+                    settings.theme === 'amber'
+                      ? 'text-amber-700 hover:text-amber-900'
+                      : 'text-green-600 hover:text-green-800 dark:text-green-400 dark:hover:text-green-200'
+                  } transition-colors underline`}
+                >
+                  OP_CAT activation
+                </a>{' '}
+                to expand Bitcoin&rsquo;s capabilities.
+              </p>
+            </div>
 
             <div className="space-y-3">
               <h4 className={`text-lg font-medium

@@ -4,7 +4,7 @@
 export const projects = [
   {
     title: "Kinetic.email",
-    description: "An open source resource hub and showcase for interactive kinetic HTML emails that push the boundaries of traditional email design. This site serves as both an educational tool for email developers and a playground for innovation, demonstrating real-world use cases, implementation techniques, and cutting-edge concepts.",
+    description: "An open source resource hub and showcase for interactive kinetic HTML emails that push the boundaries of traditional email design. Features an AI Playground powered by Claude API where users can prompt a specialized AI to generate custom kinetic email modules. The site serves as both an educational tool for email developers and an innovation playground with real-world examples and cutting-edge concepts.",
     iconName: "Zap",
     link: "https://www.kinetic.email/",
     ariaLabel: "View Kinetic.email website",
@@ -14,7 +14,7 @@ export const projects = [
   },
   {
     title: "Amber Mode",
-    description: "Amber Mode is a custom screen theme I designed to reduce blue light exposure and support healthy circadian rhythms. By shifting to warm amber tones, it helps minimize melatonin disruption during evening use while maintaining readability and visual comfort.",
+    description: "Amber Mode is a custom screen theme designed to reduce blue light exposure and support healthy circadian rhythms. By shifting to warm amber tones, it minimizes melatonin disruption during evening use while maintaining readability and visual comfort. Try it yourself using the accessibility settings menu above!",
     iconName: "Sun",
     link: "",
     ariaLabel: "Amber Mode modal",
@@ -35,7 +35,7 @@ export const projects = [
   },
   {
     title: "DraftDayTrades.com",
-    description: "Draft Day Trades is a web application that lets sports fans create and join confidence-based draft prediction pools, where users select which players will be drafted at each position and assign strategic confidence points to their picks. Built with React, Next.js, TypeScript, and Firebase, the platform features real-time leaderboards and scoring during draft night, creating a competitive and engaging experience for friends to enjoy major sporting drafts together.",
+    description: "Draft Day Trades lets sports fans create confidence-based draft prediction pools for NFL, NBA, WNBA, NHL, and MLB drafts. Users predict which players will be drafted at each position and assign strategic confidence points to their picks. The platform features real-time leaderboards and scoring during draft night, creating a competitive experience for friends to enjoy together.",
     iconName: "Trophy",
     link: "https://draftdaytrades.com/",
     ariaLabel: "View Draft Day Trades website",
@@ -45,7 +45,7 @@ export const projects = [
   },
   {
     title: "OrdinalFrame",
-    description: "Bitcoin Ordinals deserve better than a browser tab. OrdinalFrame turns a Raspberry Pi and Waveshare touchscreen into a living art display that hangs on your wall. It runs custom Python + React code to pull your Ordinals straight from the blockchain — no screenshots, no compromises. All wrapped up in a custom gold frame.",
+    description: "Bitcoin Ordinals deserve better than a browser tab. OrdinalFrame turns a Raspberry Pi and Waveshare touchscreen into a living art display that showcases your Ordinals directly from the blockchain. The custom hardware pulls inscriptions in real-time with no screenshots or compromises, all wrapped in a custom gold frame.",
     iconName: "Box",
     link: "#",
     ariaLabel: "View Ordinal Frame project details",
@@ -56,7 +56,7 @@ export const projects = [
   },
   {
     title: "RumbleRaffle.com",
-    description: "RumbleRaffle.com lets friends create Royal Rumble gambling leagues, randomly assign entrant numbers, and track eliminations in real-time. Built with Next.js, Express.js, and TypeScript, it features automated number distribution and a live event tracker, deployed via Vercel.",
+    description: "RumbleRaffle.com lets friends create Royal Rumble gaming leagues with randomly assigned entrant numbers and real-time elimination tracking. Features automated number distribution and a live event tracker for an authentic WWE Royal Rumble experience where the last man standing wins.",
     iconName: "Medal",
     link: "https://www.rumbleraffle.com/",
     ariaLabel: "View Rumble Raffle website",
@@ -92,7 +92,7 @@ export const projects = [
     ariaLabel: "View Telegram bot repo",
     requiresPassword: true,
     status: "MVP",
-    techStack: ["Python", "OpenAI API", "Telegram API", "Railway"]
+    techStack: ["Python", "Venice Token API", "Telegram API", "Railway"]
   },
   {
     title: "Cross-Chain Portfolio Tracker",
@@ -113,7 +113,7 @@ export const techStackCategories = {
   "Backend/Runtime": ["Node.js", "Express.js", "FastAPI", "Flask"],
   "Databases & Storage": ["Firebase", "Supabase", "MongoDB", "PostgreSQL"],
   "Hosting/Deployment": ["Vercel", "Netlify", "Railway", "AWS", "Heroku"],
-  "AI/ML APIs": ["OpenAI API", "Claude API", "Gemini API"],
+  "AI/ML APIs": ["OpenAI API", "Claude API", "Gemini API" , "Venice Token API"],
   "Styling/UI": ["Tailwind CSS", "CSS Modules", "Material UI"],
   "Tools/Services": ["Telegram API", "Stripe API", "GitHub", "Web3", "Raspberry Pi"]
 };

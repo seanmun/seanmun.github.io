@@ -442,6 +442,18 @@ const PersonalWebsite = ({ galleryImages }: PersonalWebsiteProps) => {
                       <h3 className="text-lg font-semibold mb-2 dark:text-white">{project.title}</h3>
                       <p className="text-gray-600 dark:text-gray-300 text-sm mb-2">{project.description}</p>
                       
+                      {/* Tech Stack Tags */}
+                      <div className="flex flex-wrap gap-1 mb-2">
+                        {project.techStack.map((tech, techIndex) => (
+                          <span 
+                            key={techIndex}
+                            className="px-1.5 py-0.5 rounded text-[11px] font-medium transition-colors tech-tag"
+                          >
+                            {tech}
+                          </span>
+                        ))}
+                      </div>
+                      
                       <a
                         href={project.link}
                         onClick={(e) => handleProjectClick(e, project)}
@@ -450,7 +462,6 @@ const PersonalWebsite = ({ galleryImages }: PersonalWebsiteProps) => {
                       >
                         View Project →
                       </a>
-
                     </div>
                   </div>
                 </div>

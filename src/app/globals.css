@@ -146,3 +146,19 @@ body.line-height-loose span {
   50% { border-radius: 40% 60% 40% 60% / 40% 50% 60% 50%; }
   75% { border-radius: 60% 40% 60% 30% / 70% 30% 50% 40%; }
 }
+
+/* Tech stack tag styles */
+[data-theme='light'] .tech-tag {
+  background-color: white;
+  color: #1f2937; /* gray-800 */
+}
+
+[data-theme='dark'] .tech-tag {
+  background-color: #111827; /* gray-900 */
+  color: #d1d5db; /* gray-300 */
+}
+
+[data-theme='amber'] .tech-tag {
+  background-color: #fec984;
+  color: #361900;
+}
