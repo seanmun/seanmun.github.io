@@ -1,3 +1,6 @@
+// File: src/data/projects.ts
+// Purpose: Project data with status and tech stack information
+
 export const projects = [
   {
     title: "Kinetic.email",
@@ -5,7 +8,9 @@ export const projects = [
     iconName: "Zap",
     link: "https://www.kinetic.email/",
     ariaLabel: "View Kinetic.email website",
-    requiresPassword: false
+    requiresPassword: false,
+    status: "Prod",
+    techStack: ["Claude API", "React", "Next.js", "TypeScript", "Tailwind CSS", "HTML/CSS", "Vercel"]
   },
   {
     title: "Amber Mode",
@@ -14,7 +19,9 @@ export const projects = [
     link: "",
     ariaLabel: "Amber Mode modal",
     requiresPassword: false, 
-    triggerAmberModal: true  
+    triggerAmberModal: true,
+    status: "Prod",
+    techStack: ["React", "Next.js", "TypeScript", "Tailwind CSS"]
   },
   {
     title: "TrustThePick.com",
@@ -22,7 +29,9 @@ export const projects = [
     iconName: "Key",
     link: "https://trustthepick.com/",
     ariaLabel: "View Trust The Pick website",
-    requiresPassword: false
+    requiresPassword: false,
+    status: "Prod",
+    techStack: ["React", "Next.js", "TypeScript", "Tailwind CSS", "Vercel"]
   },
   {
     title: "DraftDayTrades.com",
@@ -30,24 +39,30 @@ export const projects = [
     iconName: "Trophy",
     link: "https://draftdaytrades.com/",
     ariaLabel: "View Draft Day Trades website",
-    requiresPassword: false
+    requiresPassword: false,
+    status: "Prod",
+    techStack: ["React", "Next.js", "TypeScript", "Firebase", "Tailwind CSS", "Vercel"]
   },
   {
     title: "OrdinalFrame",
-    description: "Bitcoin Ordinals deserve better than a browser tab. OrdinalFrame turns a Raspberry Pi and Waveshare touchscreen into a living art display that hangs on your wall. It runs custom Python + React code to pull your Ordinals straight from the blockchain — no screenshots, no compromises. ALl wrapped up in a custom gold frame.",
+    description: "Bitcoin Ordinals deserve better than a browser tab. OrdinalFrame turns a Raspberry Pi and Waveshare touchscreen into a living art display that hangs on your wall. It runs custom Python + React code to pull your Ordinals straight from the blockchain — no screenshots, no compromises. All wrapped up in a custom gold frame.",
     iconName: "Box",
     link: "#",
     ariaLabel: "View Ordinal Frame project details",
     requiresPassword: false,
-    triggerOrdinalFrameModal: true
+    triggerOrdinalFrameModal: true,
+    status: "MVP",
+    techStack: ["Python", "React", "Raspberry Pi", "JavaScript"]
   },
   {
     title: "RumbleRaffle.com",
-    description: "RumbleRaffle.com lets friends create Royal Rumble gambling leagues, randomly assign entrant numbers, and track eliminations in real-time. Built with Next.js, Express.js, and TypeScript, it features automated number distribution and a live event tracker, deployed via Vercel..",
+    description: "RumbleRaffle.com lets friends create Royal Rumble gambling leagues, randomly assign entrant numbers, and track eliminations in real-time. Built with Next.js, Express.js, and TypeScript, it features automated number distribution and a live event tracker, deployed via Vercel.",
     iconName: "Medal",
     link: "https://www.rumbleraffle.com/",
     ariaLabel: "View Rumble Raffle website",
-    requiresPassword: false
+    requiresPassword: false,
+    status: "Prod",
+    techStack: ["Next.js", "Express.js", "TypeScript", "Node.js", "Vercel"]
   },
   {
     title: "Human-Diet.com",
@@ -55,7 +70,9 @@ export const projects = [
     iconName: "Beef",
     link: "https://www.human-diet.com/",
     ariaLabel: "View 1 pixel health project page",
-    requiresPassword: false
+    requiresPassword: false,
+    status: "Prod",
+    techStack: ["HTML/CSS", "JavaScript", "Vercel"]
   },
   {
     title: "Fantasy League Bot",
@@ -63,15 +80,19 @@ export const projects = [
     iconName: "Bot",
     link: "https://github.com/seanmun/HinkieBot",
     ariaLabel: "View Telegram bot repo",
-    requiresPassword: false
+    requiresPassword: false,
+    status: "Prod",
+    techStack: ["Python", "Telegram API", "Railway", "GitHub"]
   },
   {
     title: "A.I.bert Bot",
-    description: "A.I.bert is a AI-powered personal data assistant. Used to log sleep, diet, activity, mood, and physical features in a simple Telgram chat, while A.l.bert analyzes trends to help optimize my health and routines.",
+    description: "A.I.bert is a AI-powered personal data assistant. Used to log sleep, diet, activity, mood, and physical features in a simple Telegram chat, while A.I.bert analyzes trends to help optimize my health and routines.",
     iconName: "Activity",
     link: "https://github.com/seanmun",
     ariaLabel: "View Telegram bot repo",
-    requiresPassword: true
+    requiresPassword: true,
+    status: "MVP",
+    techStack: ["Python", "OpenAI API", "Telegram API", "Railway"]
   },
   {
     title: "Cross-Chain Portfolio Tracker",
@@ -79,6 +100,36 @@ export const projects = [
     iconName: "Banknote",
     link: "https://github.com/seanmun",
     ariaLabel: "View Telegram bot repo",
-    requiresPassword: true
+    requiresPassword: true,
+    status: "Dev",
+    techStack: ["React", "Next.js", "TypeScript", "Web3"]
   }
 ];
+
+// Tech Stack categories for reference
+export const techStackCategories = {
+  "Frontend Frameworks": ["React", "Next.js", "Vue.js", "Angular", "Svelte"],
+  "Languages": ["TypeScript", "JavaScript", "Python", "HTML/CSS"],
+  "Backend/Runtime": ["Node.js", "Express.js", "FastAPI", "Flask"],
+  "Databases & Storage": ["Firebase", "Supabase", "MongoDB", "PostgreSQL"],
+  "Hosting/Deployment": ["Vercel", "Netlify", "Railway", "AWS", "Heroku"],
+  "AI/ML APIs": ["OpenAI API", "Claude API", "Gemini API"],
+  "Styling/UI": ["Tailwind CSS", "CSS Modules", "Material UI"],
+  "Tools/Services": ["Telegram API", "Stripe API", "GitHub", "Web3", "Raspberry Pi"]
+};
+
+// Status configuration
+export const statusConfig = {
+  "Dev": {
+    label: "In Development",
+    colorClass: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300"
+  },
+  "MVP": {
+    label: "MVP",
+    colorClass: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300"
+  },
+  "Prod": {
+    label: "Production",
+    colorClass: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300"
+  }
+};
