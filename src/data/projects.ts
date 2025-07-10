@@ -78,9 +78,10 @@ export const projects = [
     title: "Fantasy League Bot",
     description: "The @Sam_Hinkie_bot serves as a league information hub and interactive companion for my fantasy basketball league. Built with Python and deployed on Railway, this bot interfaces with Telegram's API to handle commands, mentions, and provide responses to league members.",
     iconName: "Bot",
-    link: "https://github.com/seanmun/HinkieBot",
-    ariaLabel: "View Telegram bot repo",
+    link: "#",
+    ariaLabel: "View Hinkie Bot details",
     requiresPassword: false,
+    triggerHinkieBotModal: true,
     status: "Prod",
     techStack: ["Python", "Telegram API", "Railway", "GitHub"]
   },
@@ -96,7 +97,7 @@ export const projects = [
   },
   {
     title: "Cross-Chain Portfolio Tracker",
-    description: "A privacy-first, real-time dashboard for tracking crypto holdings across Ethereum, Bitcoin, Pulsechain, Base, Solana, and more. Users simply enter their wallet addresses—no sign-in or wallet connection required. The app pulls token balances, NFTs, and Ordinals, then calculates total USD value using decentralized price feeds like Uniswap, 0x, and PulseX.",
+    description: "A privacy-first, real-time dashboard for tracking crypto holdings across Bitcoin, Ethereum, Pulsechain, Base, Solana, and more. Users simply enter their wallet addresses—no sign-in or wallet connection required. The app pulls token balances, NFTs, and Ordinals, then calculates total USD value using decentralized price feeds like Uniswap, 0x, and PulseX.",
     iconName: "Banknote",
     link: "https://github.com/seanmun",
     ariaLabel: "View Telegram bot repo",

@@ -135,7 +135,7 @@ export const AmberModal: React.FC<AmberModalProps> = ({ isOpen, onClose }) => {
                     : 'text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300'
                 } transition-colors`}
               >
-                Daylight Computer Co. →
+              Daylight Computer Co. →
               </a>
             </p>
           </div>

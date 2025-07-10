@@ -17,6 +17,7 @@ import { useAccessibilitySettings } from '../hooks/useAccessibilitySettings';
 import { maintenanceConfig } from '../config/maintenance';
 import dynamic from 'next/dynamic'
 import { AmberModal } from './modals/AmberModal';
+import { HinkieBotModal } from './modals/HinkieBotModal';
 
 // Icon mapping object
 const iconMap = {
@@ -89,6 +90,7 @@ const PersonalWebsite = ({ galleryImages }: PersonalWebsiteProps) => {
   const [isMaintenanceMode, setIsMaintenanceMode] = useState(maintenanceConfig.isEnabled);
   const [isOrdinalFrameModalOpen, setIsOrdinalFrameModalOpen] = useState(false);
   const [isAmberModalOpen, setAmberModalOpen] = useState(false);
+  const [isHinkieBotModalOpen, setIsHinkieBotModalOpen] = useState(false);
 
   // Helper function to update URL
   const updateURL = (section: string | null) => {
@@ -228,27 +230,30 @@ const PersonalWebsite = ({ galleryImages }: PersonalWebsiteProps) => {
     }
   };
 
-  const handleProjectClick = (
-    e: React.MouseEvent,
-    project: typeof projects[number]
-  ) => {
-    e.preventDefault();
+const handleProjectClick = (
+  e: React.MouseEvent,
+  project: typeof projects[number]
+) => {
+  e.preventDefault();
 
-    if (project.requiresPassword) {
-      setActiveLink(project.link || '');
-      setIsModalOpen(true);
-      setError('');
-      setPassword('');
-    } else if (project.triggerAmberModal) {
-      setAmberModalOpen(true);
-      updateURL('amber');
-    } else if (project.triggerOrdinalFrameModal) {
-      setIsOrdinalFrameModalOpen(true);
-      updateURL('ordinal');
-    } else {
-      window.open(project.link, '_blank');
-    }
-  };
+  if (project.requiresPassword) {
+    setActiveLink(project.link || '');
+    setIsModalOpen(true);
+    setError('');
+    setPassword('');
+  } else if (project.triggerAmberModal) {
+    setAmberModalOpen(true);
+    updateURL('amber');
+  } else if (project.triggerOrdinalFrameModal) {
+    setIsOrdinalFrameModalOpen(true);
+    updateURL('ordinal');
+  } else if (project.triggerHinkieBotModal) {
+    setIsHinkieBotModalOpen(true);
+    updateURL('hinkie');
+  } else {
+    window.open(project.link, '_blank');
+  }
+};
 
   return (
     <div className="min-h-screen bg-white dark:bg-gray-900 transition-colors" style={{ 
@@ -414,6 +419,15 @@ const PersonalWebsite = ({ galleryImages }: PersonalWebsiteProps) => {
   isOpen={isCertsModalOpen} 
   onClose={() => {
     setIsCertsModalOpen(false);
+    updateURL(null);
+  }} 
+  settings={settings} 
+/>
+
+<HinkieBotModal 
+  isOpen={isHinkieBotModalOpen} 
+  onClose={() => {
+    setIsHinkieBotModalOpen(false);
     updateURL(null);
   }} 
   settings={settings} 
