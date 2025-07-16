@@ -62,7 +62,7 @@ export const projects = [
     ariaLabel: "View Rumble Raffle website",
     requiresPassword: false,
     status: "Prod",
-    techStack: ["Next.js", "Express.js", "TypeScript", "Node.js", "Vercel"]
+    techStack: ["React", "Typescript", "Next.js", "Express.js", "PostgreSQL", "Node.js", "Vercel"]
   },
   {
     title: "Human-Diet.com",
