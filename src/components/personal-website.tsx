@@ -299,7 +299,7 @@ const handleProjectClick = (
   </div>
 </div>
     <div>
-      <h1 className="text-6xl font-bold mb-2 leading-relaxed dark:text-white">
+      <h1 className="text-5xl font-bold mb-2 leading-relaxed dark:text-white">
         Sean Munley
       </h1>
         {/* Add current position and employer */}
