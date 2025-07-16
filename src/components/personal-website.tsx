@@ -299,7 +299,7 @@ const handleProjectClick = (
   </div>
 </div>
     <div>
-      <h1 className="text-3xl font-bold mb-2 leading-relaxed dark:text-white">
+      <h1 className="text-6xl font-bold mb-2 leading-relaxed dark:text-white">
         Sean Munley
       </h1>
         {/* Add current position and employer */}
@@ -308,7 +308,7 @@ const handleProjectClick = (
         <span className="text-gray-600 dark:text-gray-200 font-medium">
           CRM strategist, developer, and marketer
         </span>{' '}
-        with over a decade of experience delivering innovative solutions to improve marketing performance. I specialize in crafting data-driven strategies, building interactive email experiences, and optimizing enterprise CRM systems. With a focus on automation and AI-driven personalization, I leverage technology to create scalable, high-impact marketing solutions that drive engagement and results. Beyond my work, I enjoy building apps and bots as a hobby—sometimes to entertain myself, sometimes to amuse my friends.
+        with over a decade of experience delivering innovative solutions to improve marketing performance. I specialize in crafting data-driven strategies, building interactive email experiences, and optimizing enterprise CRM systems. With a focus on automation and AI-driven personalization, I leverage technology to create scalable, high-impact marketing solutions that drive engagement and results. Beyond my work, I enjoy <strong>vibe coding</strong> apps, agents, bots and devices as a hobby—sometimes to entertain myself, sometimes to amuse my friends.
       </p>
 
       {/* Navigation Icons */}

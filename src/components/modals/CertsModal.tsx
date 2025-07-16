@@ -66,7 +66,7 @@ export const CertsModal = ({ isOpen, onClose, settings }: CertsModalProps) => {
              Dev Proficiencies
            </h4>
            <p className="flex flex-wrap gap-2">
-             {['HTML', 'CSS', 'SQL', 'AMP', 'AMPscript', 'JavaScript', 'React', 'Node.js', 'TypeScript', 'Handlebars'
+             {['HTML/CSS', 'SQL', 'AMP4email', 'AMPscript', 'JavaScript', 'React', 'Node.js', 'TypeScript', 'Handlebars', 'Next.js', 'Express.js', 'Python'
              ].map((skill) => (
                <span 
                  key={skill} 
@@ -88,12 +88,38 @@ export const CertsModal = ({ isOpen, onClose, settings }: CertsModalProps) => {
                ? 'text-amber-900'
                : 'text-gray-800 dark:text-gray-200'
              }`}>
-             Marketing Tools
+             CRM Tools
            </h4>
            <p className="flex flex-wrap gap-2">
              {[
                'Shopify', 'Salesforce', 'SFMC', 'Data Cloud', 'Pardot', 
-               'Veeva', 'Eloqua', 'Iterable', 'Marketo', 'Power BI'
+               'Veeva', 'Eloqua', 'Iterable', 'Marketo', 'HubSpot', 'Campaign Monitor', 'Constant Contact'
+             ].map((tool) => (
+               <span 
+                 key={tool} 
+                 className={`px-2 py-1 rounded text-sm
+                   ${settings.theme === 'amber'
+                     ? 'bg-amber-100 text-amber-800'
+                     : 'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200'
+                   }`}
+               >
+                 {tool}
+               </span>
+             ))}
+           </p>
+         </div>
+
+         <div>
+           <h4 className={`text-lg font-medium mb-2
+             ${settings.theme === 'amber'
+               ? 'text-amber-900'
+               : 'text-gray-800 dark:text-gray-200'
+             }`}>
+             AI Tools
+           </h4>
+           <p className="flex flex-wrap gap-2">
+             {[
+               'Claude', 'ChatGPT', 'Gemini', 'Venice', 'Grok', 'Claude API', 'OpenAI API', 'Gemini API', 'Venice Token API', 'Agentforce', 'Veo 3', 'n8n'
              ].map((tool) => (
                <span 
                  key={tool} 
@@ -134,6 +160,8 @@ export const CertsModal = ({ isOpen, onClose, settings }: CertsModalProps) => {
              ))}
            </p>
          </div>
+
+         
        </div>
      </div>
    </div>
