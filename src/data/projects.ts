@@ -13,12 +13,22 @@ export const projects = [
     techStack: ["Claude API", "React", "Next.js", "TypeScript", "Tailwind CSS", "HTML/CSS", "Vercel"]
   },
   {
+    title: "Money Never Sleeps",
+    description: "A sophisticated fantasy basketball dynasty league platform that brings real NBA salary cap management to fantasy sports. Navigate actual NBA cap rules with apron thresholds, manage keeper contracts with advancing rounds, and make strategic financial decisions with real monetary consequences. Track live blockchain investments where penalties and fees fuel a prize pool—sweat your matchups and your portfolio, because money never sleeps.",
+    iconName: "DollarSign",
+    link: "https://mns-dusky.vercel.app/",
+    ariaLabel: "View Money Never Sleeps website",
+    requiresPassword: false,
+    status: "Prod",
+    techStack: ["React", "Next.js", "TypeScript", "Firebase", "Tailwind CSS", "Alchemy API", "Telegram API", "Vercel"]
+  },
+  {
     title: "Amber Mode",
     description: "Amber Mode is a custom screen theme designed to reduce blue light exposure and support healthy circadian rhythms. By shifting to warm amber tones, it minimizes melatonin disruption during evening use while maintaining readability and visual comfort. Try it yourself using the accessibility settings menu above!",
     iconName: "Sun",
     link: "",
     ariaLabel: "Amber Mode modal",
-    requiresPassword: false, 
+    requiresPassword: false,
     triggerAmberModal: true,
     status: "Prod",
     techStack: ["React", "Next.js", "TypeScript", "Tailwind CSS"]
@@ -103,7 +113,7 @@ export const projects = [
     ariaLabel: "View Telegram bot repo",
     requiresPassword: true,
     status: "Dev",
-    techStack: ["React", "Next.js", "TypeScript", "Web3"]
+    techStack: ["React", "Next.js", "TypeScript", "Alchemy API", "Web3"]
   }
 ];
 

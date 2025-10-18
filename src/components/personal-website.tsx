@@ -1,10 +1,10 @@
 'use client';
 import React, { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { trackEvent, TrackEvent } from '@/lib/track-utils';
-import { 
-    Github, Linkedin, FileText, Zap, Trophy, Box, 
-    Beef, Bot, ShieldCheck, X, Medal, Activity, Sun, Key, Banknote 
+import { trackEvent, TrackEvent, getDeviceType, trackModalOpen, trackLinkClick } from '@/lib/track-utils';
+import {
+    Github, Linkedin, FileText, Zap, Trophy, Box,
+    Beef, Bot, ShieldCheck, X, Medal, Activity, Sun, Key, Banknote, DollarSign
 } from "lucide-react";
 import { projects } from '@/data/projects';
 
@@ -22,7 +22,7 @@ import { HinkieBotModal } from './modals/HinkieBotModal';
 // Icon mapping object
 const iconMap = {
   Zap,
-  Trophy, 
+  Trophy,
   Box,
   Beef,
   Bot,
@@ -30,7 +30,8 @@ const iconMap = {
   Sun,
   Key,
   Banknote,
-  Medal
+  Medal,
+  DollarSign
 };
 
 // Helper function to render icons
@@ -184,7 +185,9 @@ const PersonalWebsite = ({ galleryImages }: PersonalWebsiteProps) => {
         const eventData: TrackEvent = {
           cookieId,
           timestamp: new Date(),
-          eventType: 'pageview'
+          eventType: 'pageview',
+          deviceType: getDeviceType(),
+          userAgent: navigator.userAgent
         };
 
         try {
@@ -194,7 +197,7 @@ const PersonalWebsite = ({ galleryImages }: PersonalWebsiteProps) => {
               maximumAge: 300000
             });
           });
-          
+
           eventData.geolocation = {
             latitude: position.coords.latitude,
             longitude: position.coords.longitude
@@ -230,11 +233,27 @@ const PersonalWebsite = ({ galleryImages }: PersonalWebsiteProps) => {
     }
   };
 
-const handleProjectClick = (
+const handleProjectClick = async (
   e: React.MouseEvent,
   project: typeof projects[number]
 ) => {
   e.preventDefault();
+
+  // Track project click
+  if (cookieId) {
+    try {
+      await trackEvent({
+        cookieId,
+        eventType: 'project_click',
+        projectName: project.title,
+        deviceType: getDeviceType(),
+        userAgent: navigator.userAgent,
+        timestamp: new Date()
+      });
+    } catch (err) {
+      console.error('Error tracking project click:', err);
+    }
+  }
 
   if (project.requiresPassword) {
     setActiveLink(project.link || '');
@@ -318,6 +337,7 @@ const handleProjectClick = (
             href="https://github.com/seanmun"
             target="_blank"
             rel="noopener noreferrer"
+            onClick={() => trackLinkClick(cookieId, 'GitHub Profile', 'https://github.com/seanmun')}
             className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
             aria-label="GitHub Profile"
           >
@@ -327,6 +347,7 @@ const handleProjectClick = (
             href="https://www.linkedin.com/in/seanmunley/"
             target="_blank"
             rel="noopener noreferrer"
+            onClick={() => trackLinkClick(cookieId, 'LinkedIn Profile', 'https://www.linkedin.com/in/seanmunley/')}
             className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
             aria-label="LinkedIn Profile"
           >
@@ -336,6 +357,7 @@ const handleProjectClick = (
           <div className="group relative">
             <button
               onClick={() => {
+                trackModalOpen(cookieId, 'Resume');
                 setResumeModalOpen(true);
                 updateURL('resume');
               }}
@@ -352,6 +374,7 @@ const handleProjectClick = (
           <div className="group relative">
             <button
               onClick={() => {
+                trackModalOpen(cookieId, 'Certifications');
                 setIsCertsModalOpen(true);
                 updateURL('skills');
               }}
@@ -368,6 +391,7 @@ const handleProjectClick = (
           <div className="group relative">
             <button
               onClick={() => {
+                trackModalOpen(cookieId, 'AI Philosophy');
                 setIsAIModalOpen(true);
                 updateURL('ai');
               }}
@@ -561,6 +585,7 @@ const handleProjectClick = (
               <div className="flex flex-wrap items-center gap-4">
                 <button
                   onClick={() => {
+                    trackModalOpen(cookieId, 'Privacy Policy');
                     setIsPrivacyModalOpen(true);
                     updateURL('privacy');
                   }}
@@ -568,17 +593,19 @@ const handleProjectClick = (
                 >
                   Privacy Policy
                 </button>
-                <a 
-                  href="https://github.com/seanmun" 
-                  target="_blank" 
+                <a
+                  href="https://github.com/seanmun"
+                  target="_blank"
+                  onClick={() => trackLinkClick(cookieId, 'GitHub Footer', 'https://github.com/seanmun')}
                   aria-label="Visit Sean's GitHub Profile"
                   className="text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 transition-colors"
                 >
                   <Github className="w-4 h-4" />
                 </a>
-                <a 
-                  href="https://www.linkedin.com/in/seanmunley/" 
-                  target="_blank" 
+                <a
+                  href="https://www.linkedin.com/in/seanmunley/"
+                  target="_blank"
+                  onClick={() => trackLinkClick(cookieId, 'LinkedIn Footer', 'https://www.linkedin.com/in/seanmunley/')}
                   aria-label="Visit Sean's LinkedIn"
                   className="text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 transition-colors"
                 >
