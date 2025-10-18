@@ -57,8 +57,49 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en">
-      <body>{children}</body>
+    <html lang="en" suppressHydrationWarning>
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function() {
+                try {
+                  const stored = localStorage.getItem('accessibility-settings');
+                  if (stored) {
+                    const settings = JSON.parse(stored);
+                    const theme = settings.theme || 'default';
+
+                    // Apply theme class
+                    document.documentElement.classList.add(theme);
+
+                    // Apply data-theme attribute
+                    document.documentElement.setAttribute('data-theme', theme);
+
+                    // Apply font size
+                    if (settings.fontSize) {
+                      document.documentElement.classList.add('text-' + settings.fontSize);
+                    }
+
+                    // Apply line height
+                    if (settings.lineHeight) {
+                      document.documentElement.classList.add('leading-' + settings.lineHeight);
+                    }
+                  } else {
+                    // Default theme
+                    document.documentElement.classList.add('default');
+                    document.documentElement.setAttribute('data-theme', 'default');
+                  }
+                } catch (e) {
+                  // Fallback to default
+                  document.documentElement.classList.add('default');
+                  document.documentElement.setAttribute('data-theme', 'default');
+                }
+              })();
+            `,
+          }}
+        />
+      </head>
+      <body suppressHydrationWarning>{children}</body>
     </html>
   )
 }

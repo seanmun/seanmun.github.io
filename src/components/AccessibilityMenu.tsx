@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Settings2Icon, SunIcon, MoonIcon, FlameIcon, UsersIcon, TypeIcon, AlignVerticalJustifyCenter, InfoIcon, XIcon } from "lucide-react";
+import { Settings2Icon, SunIcon, MoonIcon, FlameIcon, UsersIcon, LayoutIcon, TypeIcon, AlignVerticalJustifyCenter, InfoIcon, XIcon } from "lucide-react";
 import { useAccessibilitySettings } from '../hooks/useAccessibilitySettings';
 import { getAllThemes, ThemeName } from '@/config/themes';
 import Image from 'next/image';
@@ -9,6 +9,7 @@ const themeIcons = {
   Sun: SunIcon,
   Moon: MoonIcon,
   Flame: FlameIcon,
+  Layout: LayoutIcon,
   Users: UsersIcon,
 };
 
@@ -17,6 +18,17 @@ export function AccessibilityMenu() {
   const menuRef = useRef<HTMLDivElement>(null);
   const { settings, setSettings } = useAccessibilitySettings();
   const [isInfoModalOpen, setIsInfoModalOpen] = useState(false);
+
+  // Sync theme with current route
+  useEffect(() => {
+    const currentPath = window.location.pathname;
+    if (currentPath === '/myspace' && settings.theme !== 'myspace') {
+      setSettings(prev => ({ ...prev, theme: 'myspace' }));
+    } else if (currentPath !== '/myspace' && settings.theme === 'myspace') {
+      setSettings(prev => ({ ...prev, theme: 'default' }));
+    }
+  }, [settings.theme, setSettings]);
+
   // Close menu when clicking outside
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -41,6 +53,15 @@ export function AccessibilityMenu() {
 
   function updateSettings(key: keyof typeof settings, value: string) {
     setSettings(prev => ({ ...prev, [key]: value }));
+
+    // If selecting MySpace theme, navigate to /myspace page
+    if (key === 'theme' && value === 'myspace') {
+      window.location.href = '/myspace';
+    }
+    // If selecting default theme from MySpace page, navigate to home
+    else if (key === 'theme' && value === 'default' && window.location.pathname === '/myspace') {
+      window.location.href = '/';
+    }
   }
 
   return (

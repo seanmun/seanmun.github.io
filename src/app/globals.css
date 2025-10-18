@@ -89,23 +89,42 @@ body.line-height-loose span {
   --link-hover: #783101;
 }
 
-/* MySpace Theme */
+/* Default Theme */
+[data-theme='default'] {
+  --bg-primary: #ffffff;
+  --bg-secondary: #f9fafb;
+  --bg-tertiary: #f3f4f6;
+  --bg-hover: #e5e7eb;
+  --text-primary: #111827;
+  --text-secondary: #4b5563;
+  --text-tertiary: #6b7280;
+  --accent: #3b82f6;
+  --accent-hover: #2563eb;
+  --accent-active: #1d4ed8;
+  --border: #e5e7eb;
+  --border-hover: #d1d5db;
+  --icon-color: #3b82f6;
+  --link-color: #2563eb;
+  --link-hover: #1d4ed8;
+}
+
+/* MySpace Theme - Uses MySpaceLayout component, minimal CSS overrides */
 [data-theme='myspace'] {
-  --bg-primary: #0066CC;
-  --bg-secondary: #6699CC;
-  --bg-tertiary: #FFFFFF;
-  --bg-hover: #5588BB;
+  --bg-primary: #ffffff;
+  --bg-secondary: #ffffff;
+  --bg-tertiary: #ffffff;
+  --bg-hover: #f5f5f5;
   --text-primary: #000000;
   --text-secondary: #333333;
   --text-tertiary: #666666;
-  --accent: #FF6600;
-  --accent-hover: #FF8833;
-  --accent-active: #CC5500;
-  --border: #CCCCCC;
-  --border-hover: #999999;
-  --icon-color: #FF6600;
-  --link-color: #0066CC;
-  --link-hover: #003366;
+  --accent: #3b82f6;
+  --accent-hover: #2563eb;
+  --accent-active: #1d4ed8;
+  --border: #e5e7eb;
+  --border-hover: #d1d5db;
+  --icon-color: #3b82f6;
+  --link-color: #2563eb;
+  --link-hover: #1d4ed8;
 }
 
 /* ========================================
@@ -217,8 +236,23 @@ button:disabled {
   box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
 }
 
-[data-theme='myspace'] .rounded-lg {
-  border-radius: 0 !important; /* Remove rounded corners for classic look */
+[data-theme='myspace'] .rounded-lg,
+[data-theme='myspace'] .rounded,
+[data-theme='myspace'] .rounded-md,
+[data-theme='myspace'] .rounded-sm,
+[data-theme='myspace'] .rounded-xl,
+[data-theme='myspace'] .rounded-2xl,
+[data-theme='myspace'] .rounded-3xl,
+[data-theme='myspace'] .rounded-full,
+[data-theme='myspace'] button,
+[data-theme='myspace'] input,
+[data-theme='myspace'] .border {
+  border-radius: 0 !important; /* Square everything - pre-2008 style */
+}
+
+/* MySpace images also square */
+[data-theme='myspace'] img {
+  border-radius: 0 !important;
 }
 
 /* Animations */

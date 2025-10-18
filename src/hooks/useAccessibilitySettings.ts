@@ -10,7 +10,7 @@ interface AccessibilitySettings {
 const defaultSettings: AccessibilitySettings = {
   fontSize: 'medium',
   lineHeight: 'normal',
-  theme: 'light'
+  theme: 'default'
 };
 
 export function useAccessibilitySettings() {
@@ -20,7 +20,7 @@ export function useAccessibilitySettings() {
   useEffect(() => {
     // First, check if there are stored settings
     const stored = localStorage.getItem('accessibilitySettings');
-    
+
     if (stored) {
       // If user has previously set preferences, use those
       setSettings(JSON.parse(stored));
@@ -29,7 +29,7 @@ export function useAccessibilitySettings() {
       const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
       setSettings(prev => ({
         ...prev,
-        theme: prefersDark ? 'dark' : 'light'
+        theme: prefersDark ? 'dark' : 'default'
       }));
     }
     
@@ -39,7 +39,7 @@ export function useAccessibilitySettings() {
       if (!localStorage.getItem('accessibilitySettings')) {
         setSettings(prev => ({
           ...prev,
-          theme: e.matches ? 'dark' : 'light'
+          theme: e.matches ? 'dark' : 'default'
         }));
       }
     };
@@ -58,7 +58,7 @@ export function useAccessibilitySettings() {
       }
       
       // Theme classes - Remove all possible themes, then add current
-      document.documentElement.classList.remove('light', 'dark', 'amber', 'myspace');
+      document.documentElement.classList.remove('light', 'dark', 'amber', 'default', 'myspace');
       document.documentElement.classList.add(settings.theme);
       document.documentElement.setAttribute('data-theme', settings.theme);
       

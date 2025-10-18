@@ -1,7 +1,7 @@
 // Theme configuration system
 // This file centralizes all theme definitions for easy management and scaling
 
-export type ThemeName = 'light' | 'dark' | 'amber' | 'myspace';
+export type ThemeName = 'light' | 'dark' | 'amber' | 'default' | 'myspace';
 
 export interface ThemeConfig {
   id: ThemeName;
@@ -126,6 +126,31 @@ export const themes: Record<ThemeName, ThemeConfig> = {
     }
   },
 
+  default: {
+    id: 'default',
+    name: 'Default',
+    description: 'Professional portfolio layout',
+    category: 'theme',
+    icon: 'Layout',
+    colors: {
+      bgPrimary: '#ffffff',
+      bgSecondary: '#f9fafb',
+      bgTertiary: '#f3f4f6',
+      bgHover: '#e5e7eb',
+      textPrimary: '#111827',
+      textSecondary: '#4b5563',
+      textTertiary: '#6b7280',
+      accent: '#3b82f6',
+      accentHover: '#2563eb',
+      accentActive: '#1d4ed8',
+      border: '#e5e7eb',
+      borderHover: '#d1d5db',
+      iconColor: '#3b82f6',
+      link: '#2563eb',
+      linkHover: '#1d4ed8',
+    }
+  },
+
   myspace: {
     id: 'myspace',
     name: 'MySpace',
@@ -133,61 +158,27 @@ export const themes: Record<ThemeName, ThemeConfig> = {
     category: 'theme',
     icon: 'Users',
     colors: {
-      // MySpace classic colors
-      bgPrimary: '#0066CC',      // Classic MySpace blue
-      bgSecondary: '#6699CC',    // Lighter blue for content areas
-      bgTertiary: '#FFFFFF',     // White content boxes
-      bgHover: '#5588BB',        // Hover state
-      textPrimary: '#000000',    // Black text on white
-      textSecondary: '#333333',  // Dark gray
-      textTertiary: '#666666',   // Medium gray
-      accent: '#FF6600',         // MySpace orange
-      accentHover: '#FF8833',    // Lighter orange
-      accentActive: '#CC5500',   // Darker orange
-      border: '#CCCCCC',         // Light gray borders
-      borderHover: '#999999',    // Darker borders on hover
-      iconColor: '#FF6600',      // Orange icons
-      link: '#0066CC',           // Blue links
-      linkHover: '#003366',      // Dark blue on hover
+      // Minimal colors - MySpaceLayout handles its own styling
+      bgPrimary: '#ffffff',
+      bgSecondary: '#ffffff',
+      bgTertiary: '#ffffff',
+      bgHover: '#f5f5f5',
+      textPrimary: '#000000',
+      textSecondary: '#333333',
+      textTertiary: '#666666',
+      accent: '#3b82f6',
+      accentHover: '#2563eb',
+      accentActive: '#1d4ed8',
+      border: '#e5e7eb',
+      borderHover: '#d1d5db',
+      iconColor: '#3b82f6',
+      link: '#2563eb',
+      linkHover: '#1d4ed8',
     },
     fonts: {
       primary: 'Verdana, Geneva, sans-serif',
       heading: 'Arial, Helvetica, sans-serif',
-    },
-    customCSS: `
-      /* MySpace-specific styles */
-      [data-theme='myspace'] body {
-        font-family: Verdana, Geneva, sans-serif !important;
-      }
-
-      [data-theme='myspace'] h1,
-      [data-theme='myspace'] h2,
-      [data-theme='myspace'] h3 {
-        font-family: Arial, Helvetica, sans-serif !important;
-        font-weight: bold;
-      }
-
-      /* Table-like layout borders */
-      [data-theme='myspace'] .project-card {
-        border: 2px solid #CCCCCC;
-        box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
-      }
-
-      /* Classic gradient header */
-      [data-theme='myspace'] .header-section {
-        background: linear-gradient(to bottom, #0066CC, #003366);
-      }
-
-      /* Blink-style animations for links (optional) */
-      [data-theme='myspace'] .blink-text {
-        animation: blink 1.5s infinite;
-      }
-
-      @keyframes blink {
-        0%, 50%, 100% { opacity: 1; }
-        25%, 75% { opacity: 0.5; }
-      }
-    `
+    }
   }
 };
 
