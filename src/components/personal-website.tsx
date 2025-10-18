@@ -337,7 +337,11 @@ const handleProjectClick = async (
             href="https://github.com/seanmun"
             target="_blank"
             rel="noopener noreferrer"
-            onClick={() => trackLinkClick(cookieId, 'GitHub Profile', 'https://github.com/seanmun')}
+            onClick={async (e) => {
+              e.preventDefault();
+              await trackLinkClick(cookieId, 'GitHub Profile', 'https://github.com/seanmun');
+              window.open('https://github.com/seanmun', '_blank');
+            }}
             className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
             aria-label="GitHub Profile"
           >
@@ -347,7 +351,11 @@ const handleProjectClick = async (
             href="https://www.linkedin.com/in/seanmunley/"
             target="_blank"
             rel="noopener noreferrer"
-            onClick={() => trackLinkClick(cookieId, 'LinkedIn Profile', 'https://www.linkedin.com/in/seanmunley/')}
+            onClick={async (e) => {
+              e.preventDefault();
+              await trackLinkClick(cookieId, 'LinkedIn Profile', 'https://www.linkedin.com/in/seanmunley/');
+              window.open('https://www.linkedin.com/in/seanmunley/', '_blank');
+            }}
             className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
             aria-label="LinkedIn Profile"
           >
@@ -596,7 +604,11 @@ const handleProjectClick = async (
                 <a
                   href="https://github.com/seanmun"
                   target="_blank"
-                  onClick={() => trackLinkClick(cookieId, 'GitHub Footer', 'https://github.com/seanmun')}
+                  onClick={async (e) => {
+                    e.preventDefault();
+                    await trackLinkClick(cookieId, 'GitHub Footer', 'https://github.com/seanmun');
+                    window.open('https://github.com/seanmun', '_blank');
+                  }}
                   aria-label="Visit Sean's GitHub Profile"
                   className="text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 transition-colors"
                 >
@@ -605,7 +617,11 @@ const handleProjectClick = async (
                 <a
                   href="https://www.linkedin.com/in/seanmunley/"
                   target="_blank"
-                  onClick={() => trackLinkClick(cookieId, 'LinkedIn Footer', 'https://www.linkedin.com/in/seanmunley/')}
+                  onClick={async (e) => {
+                    e.preventDefault();
+                    await trackLinkClick(cookieId, 'LinkedIn Footer', 'https://www.linkedin.com/in/seanmunley/');
+                    window.open('https://www.linkedin.com/in/seanmunley/', '_blank');
+                  }}
                   aria-label="Visit Sean's LinkedIn"
                   className="text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 transition-colors"
                 >
