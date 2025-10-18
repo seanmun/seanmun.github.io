@@ -1,11 +1,12 @@
 import { X } from "lucide-react"
 import Image from 'next/image'
+import { ThemeName } from '@/config/themes'
 
 interface OrdinalFrameModalProps {
   isOpen: boolean
   onClose: () => void
   settings: {
-    theme: 'light' | 'dark' | 'amber'
+    theme: ThemeName
   }
 }
 

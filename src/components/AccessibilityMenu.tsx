@@ -1,7 +1,16 @@
 import { useState, useEffect, useRef } from 'react';
-import { Settings2Icon, SunIcon, MoonIcon, FlameIcon, TypeIcon, AlignVerticalJustifyCenter, InfoIcon, XIcon } from "lucide-react";
+import { Settings2Icon, SunIcon, MoonIcon, FlameIcon, UsersIcon, TypeIcon, AlignVerticalJustifyCenter, InfoIcon, XIcon } from "lucide-react";
 import { useAccessibilitySettings } from '../hooks/useAccessibilitySettings';
+import { getAllThemes, ThemeName } from '@/config/themes';
 import Image from 'next/image';
+
+// Icon mapping for themes
+const themeIcons = {
+  Sun: SunIcon,
+  Moon: MoonIcon,
+  Flame: FlameIcon,
+  Users: UsersIcon,
+};
 
 export function AccessibilityMenu() {
   const [isOpen, setIsOpen] = useState(false);
@@ -110,14 +119,14 @@ export function AccessibilityMenu() {
 </div>
 
 
-{/* Theme Toggle */}
+{/* Mode Selection */}
 <div className="mb-4">
-<label className="flex items-center gap-2 text-sm mb-2 text-gray-700 dark:text-gray-300" id="theme-label">
-  Theme
+<label className="flex items-center gap-2 text-sm mb-2 text-gray-700 dark:text-gray-300" id="mode-label">
+  Mode
   <button
     onClick={() => setIsInfoModalOpen(true)}
     className="text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300"
-    aria-label="Learn about theme modes"
+    aria-label="Learn about modes"
   >
     <InfoIcon className="w-4 h-4" />
   </button>
@@ -280,43 +289,79 @@ export function AccessibilityMenu() {
   </div>
 )}
 
-  <div className="flex gap-2" role="radiogroup" aria-labelledby="theme-label">
-    <button
-      onClick={() => updateSettings('theme', 'light')}
-      className={`flex items-center gap-1 px-3 py-1 rounded transition-colors ${
-        settings.theme === 'light' 
-          ? 'bg-blue-500 text-white' 
-          : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
-      }`}
-      role="radio"
-      aria-checked={settings.theme === 'light'}
-    >
-      <SunIcon className="w-4 h-4" /> Light
-    </button>
-    <button
-      onClick={() => updateSettings('theme', 'dark')}
-      className={`flex items-center gap-1 px-3 py-1 rounded transition-colors ${
-        settings.theme === 'dark' 
-          ? 'bg-blue-500 text-white' 
-          : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
-      }`}
-      role="radio"
-      aria-checked={settings.theme === 'dark'}
-    >
-      <MoonIcon className="w-4 h-4" /> Dark
-    </button>
-    <button
-  onClick={() => updateSettings('theme', 'amber')}
-  className={`flex items-center gap-1 px-3 py-1 rounded transition-colors ${
-    settings.theme === 'amber' 
-      ? 'bg-amber-500 text-white' // Changed from bg-blue-500
-      : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
-  }`}
-  role="radio"
-  aria-checked={settings.theme === 'amber'}
->
-  <FlameIcon className="w-4 h-4" /> Amber
-</button>
+  {/* Modes Grid */}
+  <div className="grid grid-cols-3 gap-2 mb-4" role="radiogroup" aria-labelledby="mode-label">
+    {getAllThemes().filter(t => t.category === 'mode').map((mode) => {
+      const IconComponent = themeIcons[mode.icon as keyof typeof themeIcons];
+      const isActive = settings.theme === mode.id;
+
+      // Special styling for active mode
+      let activeClasses = 'bg-blue-500 text-white';
+      if (isActive) {
+        if (mode.id === 'amber') {
+          activeClasses = 'bg-amber-500 text-white';
+        }
+      }
+
+      return (
+        <button
+          key={mode.id}
+          onClick={() => updateSettings('theme', mode.id as ThemeName)}
+          className={`flex items-center justify-center gap-1 px-3 py-1 rounded transition-colors ${
+            isActive
+              ? activeClasses
+              : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
+          }`}
+          role="radio"
+          aria-checked={isActive}
+          title={mode.description}
+        >
+          {IconComponent && <IconComponent className="w-4 h-4" />}
+          <span className="text-sm">{mode.name}</span>
+        </button>
+      );
+    })}
+  </div>
+</div>
+
+{/* Theme Selection */}
+<div className="mb-4">
+  <label className="flex items-center gap-2 text-sm mb-2 text-gray-700 dark:text-gray-300" id="theme-label">
+    Theme
+  </label>
+
+  {/* Themes Grid */}
+  <div className="grid grid-cols-2 gap-2" role="radiogroup" aria-labelledby="theme-label">
+    {getAllThemes().filter(t => t.category === 'theme').map((theme) => {
+      const IconComponent = themeIcons[theme.icon as keyof typeof themeIcons];
+      const isActive = settings.theme === theme.id;
+
+      // Special styling for active theme
+      let activeClasses = 'bg-blue-500 text-white';
+      if (isActive) {
+        if (theme.id === 'myspace') {
+          activeClasses = 'bg-orange-500 text-white';
+        }
+      }
+
+      return (
+        <button
+          key={theme.id}
+          onClick={() => updateSettings('theme', theme.id as ThemeName)}
+          className={`flex items-center gap-1 px-3 py-1 rounded transition-colors ${
+            isActive
+              ? activeClasses
+              : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
+          }`}
+          role="radio"
+          aria-checked={isActive}
+          title={theme.description}
+        >
+          {IconComponent && <IconComponent className="w-4 h-4" />}
+          <span className="text-sm">{theme.name}</span>
+        </button>
+      );
+    })}
   </div>
 </div>
         </div>

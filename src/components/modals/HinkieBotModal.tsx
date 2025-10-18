@@ -1,12 +1,13 @@
 import { X, ChevronLeft, ChevronRight } from "lucide-react"
 import Image from 'next/image'
 import { useState } from 'react'
+import { ThemeName } from '@/config/themes'
 
 interface HinkieBotModalProps {
   isOpen: boolean
   onClose: () => void
   settings: {
-    theme: 'light' | 'dark' | 'amber'
+    theme: ThemeName
   }
 }
 

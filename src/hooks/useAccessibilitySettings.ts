@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
+import { ThemeName } from '@/config/themes';
 
 interface AccessibilitySettings {
   fontSize: 'small' | 'medium' | 'large';
   lineHeight: 'normal' | 'relaxed' | 'loose';
-  theme: 'light' | 'dark' | 'amber';
+  theme: ThemeName;
 }
 
 const defaultSettings: AccessibilitySettings = {
@@ -56,8 +57,8 @@ export function useAccessibilitySettings() {
         localStorage.setItem('accessibilitySettings', JSON.stringify(settings));
       }
       
-      // Theme classes
-      document.documentElement.classList.remove('light', 'dark', 'amber');
+      // Theme classes - Remove all possible themes, then add current
+      document.documentElement.classList.remove('light', 'dark', 'amber', 'myspace');
       document.documentElement.classList.add(settings.theme);
       document.documentElement.setAttribute('data-theme', settings.theme);
       

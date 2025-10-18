@@ -65,21 +65,20 @@ export async function trackModalOpen(cookieId: string, modalName: string) {
   }
 }
 
-// Helper function to track link clicks
-export async function trackLinkClick(cookieId: string, linkName: string, linkUrl: string) {
+// Helper function to track link clicks (fire and forget - non-blocking)
+export function trackLinkClick(cookieId: string, linkName: string, linkUrl: string) {
   if (!cookieId) return;
 
-  try {
-    await trackEvent({
-      cookieId,
-      eventType: 'link_click',
-      linkName,
-      linkUrl,
-      deviceType: getDeviceType(),
-      userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : undefined,
-      timestamp: new Date()
-    });
-  } catch (err) {
+  // Fire and forget - don't block navigation
+  trackEvent({
+    cookieId,
+    eventType: 'link_click',
+    linkName,
+    linkUrl,
+    deviceType: getDeviceType(),
+    userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : undefined,
+    timestamp: new Date()
+  }).catch(err => {
     console.error('Error tracking link click:', err);
-  }
+  });
 }

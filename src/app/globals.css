@@ -28,66 +28,162 @@ body.line-height-loose span {
   background-color: #111827;
 }
 
-/* Theme Colors */
+/* ========================================
+   THEME SYSTEM - CSS CUSTOM PROPERTIES
+   ======================================== */
+
+/* Light Theme */
 [data-theme='light'] {
-  background-color: white;
+  --bg-primary: #ffffff;
+  --bg-secondary: #f9fafb;
+  --bg-tertiary: #f3f4f6;
+  --bg-hover: #e5e7eb;
+  --text-primary: #111827;
+  --text-secondary: #4b5563;
+  --text-tertiary: #6b7280;
+  --accent: #3b82f6;
+  --accent-hover: #2563eb;
+  --accent-active: #1d4ed8;
+  --border: #e5e7eb;
+  --border-hover: #d1d5db;
+  --icon-color: #3b82f6;
+  --link-color: #2563eb;
+  --link-hover: #1d4ed8;
 }
 
+/* Dark Theme */
 [data-theme='dark'] {
-  background-color: #111827;
+  --bg-primary: #111827;
+  --bg-secondary: #1f2937;
+  --bg-tertiary: #374151;
+  --bg-hover: #4b5563;
+  --text-primary: #f9fafb;
+  --text-secondary: #d1d5db;
+  --text-tertiary: #9ca3af;
+  --accent: #3b82f6;
+  --accent-hover: #60a5fa;
+  --accent-active: #93c5fd;
+  --border: #374151;
+  --border-hover: #4b5563;
+  --icon-color: #60a5fa;
+  --link-color: #60a5fa;
+  --link-hover: #93c5fd;
 }
 
 /* Amber Theme */
 [data-theme='amber'] {
-  --bg-primary: #fec984;      /* Light amber background */
-  --bg-secondary: #fddcbf;    /* Cards background */
-  --text-primary: #361900;    /* Dark amber for main text */
-  --text-secondary: #482a15;  /* Medium amber for descriptions */
-  --icon-color: #e46611;      /* Burnt orange for icons */
-  --link-color: #CC4400;      /* Dark orange for links */
-  --link-hover: #783101;      /* Darker orange for link hovers */
+  --bg-primary: #fec984;
+  --bg-secondary: #fddcbf;
+  --bg-tertiary: #FFD7B3;
+  --bg-hover: #ffc999;
+  --text-primary: #361900;
+  --text-secondary: #482a15;
+  --text-tertiary: #5c3a21;
+  --accent: #CC4400;
+  --accent-hover: #783101;
+  --accent-active: #5a2501;
+  --border: #ffc999;
+  --border-hover: #ffb77a;
+  --icon-color: #e46611;
+  --link-color: #CC4400;
+  --link-hover: #783101;
 }
 
-/* Amber mode styles */
-[data-theme='amber'] .min-h-screen {
+/* MySpace Theme */
+[data-theme='myspace'] {
+  --bg-primary: #0066CC;
+  --bg-secondary: #6699CC;
+  --bg-tertiary: #FFFFFF;
+  --bg-hover: #5588BB;
+  --text-primary: #000000;
+  --text-secondary: #333333;
+  --text-tertiary: #666666;
+  --accent: #FF6600;
+  --accent-hover: #FF8833;
+  --accent-active: #CC5500;
+  --border: #CCCCCC;
+  --border-hover: #999999;
+  --icon-color: #FF6600;
+  --link-color: #0066CC;
+  --link-hover: #003366;
+}
+
+/* ========================================
+   UNIVERSAL THEME OVERRIDES
+   Apply CSS variables to all themes
+   ======================================== */
+
+/* Background colors */
+.min-h-screen {
   background-color: var(--bg-primary) !important;
 }
 
-[data-theme='amber'] .bg-gray-50,
-[data-theme='amber'] .bg-gray-100,
-[data-theme='amber'] .bg-gray-200 {
+.bg-gray-50,
+.bg-gray-100,
+.bg-gray-200,
+.dark\:bg-gray-800.dark\:bg-gray-800 {
   background-color: var(--bg-secondary);
 }
 
-[data-theme='amber'] .hover\:bg-gray-100:hover {
-  background-color: #FFD7B3 !important; /* Slightly darker amber for hover */
+.hover\:bg-gray-100:hover,
+.dark\:hover\:bg-gray-700:hover,
+.dark\:hover\:bg-gray-800:hover {
+  background-color: var(--bg-hover) !important;
 }
 
-[data-theme='amber'] .dark\:hover\:bg-gray-700:hover {
-  background-color: #FFD7B3 !important; /* Same color to maintain consistency */
-}
-
-[data-theme='amber'] .text-blue-600 {
+/* Text colors */
+.text-blue-600 {
   color: var(--icon-color) !important;
 }
 
-[data-theme='amber'] .text-blue-600.hover\:text-blue-800 {
+.text-blue-600.hover\:text-blue-800 {
   color: var(--link-color) !important;
 }
 
-[data-theme='amber'] .text-blue-600.hover\:text-blue-800:hover {
+.text-blue-600.hover\:text-blue-800:hover {
   color: var(--link-hover) !important;
 }
 
-[data-theme='amber'] .text-gray-600 {
+.text-gray-600,
+.dark\:text-gray-300.dark\:text-gray-300 {
   color: var(--text-secondary) !important;
 }
 
-[data-theme='amber'] .text-gray-700 {
+.text-gray-700,
+.dark\:text-white.dark\:text-white {
   color: var(--text-primary) !important;
 }
 
-/* Amber blob gradients */
+/* Button styles */
+button.bg-blue-500,
+button.bg-blue-600,
+button.hover\:bg-blue-700 {
+  background-color: var(--accent) !important;
+}
+
+button.hover\:bg-blue-700:hover {
+  background-color: var(--accent-hover) !important;
+}
+
+button.text-blue-600,
+button.hover\:text-blue-800 {
+  color: var(--accent) !important;
+}
+
+button.hover\:text-blue-800:hover {
+  color: var(--accent-hover) !important;
+}
+
+button:focus-visible {
+  outline-color: var(--accent) !important;
+}
+
+button:disabled {
+  background-color: var(--text-tertiary) !important;
+  opacity: 0.7;
+}
+
+/* Theme-specific overrides */
 [data-theme='amber'] .amber-gradient-1 {
   background: linear-gradient(to right, #C65D00, #B35000, #A34600) !important;
 }
@@ -100,36 +196,29 @@ body.line-height-loose span {
   background-color: var(--bg-primary) !important;
 }
 
-/* Button styles for amber mode */
-[data-theme='amber'] button.bg-blue-500,
-[data-theme='amber'] button.bg-blue-600,
-[data-theme='amber'] button.hover\:bg-blue-700 {
-  background-color: var(--link-color) !important;
+/* MySpace Theme Specifics */
+[data-theme='myspace'] body {
+  font-family: Verdana, Geneva, sans-serif !important;
 }
 
-[data-theme='amber'] button.hover\:bg-blue-700:hover {
-  background-color: var(--link-hover) !important;
+[data-theme='myspace'] h1,
+[data-theme='myspace'] h2,
+[data-theme='myspace'] h3 {
+  font-family: Arial, Helvetica, sans-serif !important;
+  font-weight: bold;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
 }
 
-/* For outlined or secondary buttons */
-[data-theme='amber'] button.text-blue-600,
-[data-theme='amber'] button.hover\:text-blue-800 {
-  color: var(--link-color) !important;
+[data-theme='myspace'] .bg-gray-50,
+[data-theme='myspace'] .bg-gray-100,
+[data-theme='myspace'] .dark\:bg-gray-800 {
+  background-color: var(--bg-tertiary) !important;
+  border: 2px solid var(--border);
+  box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
 }
 
-[data-theme='amber'] button.hover\:text-blue-800:hover {
-  color: var(--link-hover) !important;
-}
-
-/* For button focus states */
-[data-theme='amber'] button:focus-visible {
-  outline-color: var(--link-color) !important;
-}
-
-/* For disabled states */
-[data-theme='amber'] button:disabled {
-  background-color: var(--text-secondary) !important;
-  opacity: 0.7;
+[data-theme='myspace'] .rounded-lg {
+  border-radius: 0 !important; /* Remove rounded corners for classic look */
 }
 
 /* Animations */
@@ -147,18 +236,8 @@ body.line-height-loose span {
   75% { border-radius: 60% 40% 60% 30% / 70% 30% 50% 40%; }
 }
 
-/* Tech stack tag styles */
-[data-theme='light'] .tech-tag {
-  background-color: white;
-  color: #1f2937; /* gray-800 */
-}
-
-[data-theme='dark'] .tech-tag {
-  background-color: #111827; /* gray-900 */
-  color: #d1d5db; /* gray-300 */
-}
-
-[data-theme='amber'] .tech-tag {
-  background-color: #fec984;
-  color: #361900;
+/* Tech stack tag styles - Universal */
+.tech-tag {
+  background-color: var(--bg-tertiary);
+  color: var(--text-primary);
 }

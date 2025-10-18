@@ -1,10 +1,11 @@
 import { X } from "lucide-react"
+import { ThemeName } from '@/config/themes'
 
 interface CertsModalProps {
  isOpen: boolean
  onClose: () => void
  settings: {
-   theme: 'light' | 'dark' | 'amber'
+   theme: ThemeName
  }
 }
 
@@ -68,13 +69,9 @@ export const CertsModal = ({ isOpen, onClose, settings }: CertsModalProps) => {
            <p className="flex flex-wrap gap-2">
              {['HTML/CSS', 'SQL', 'AMP4email', 'AMPscript', 'JavaScript', 'React', 'Node.js', 'TypeScript', 'Handlebars', 'Next.js', 'Express.js', 'Python'
              ].map((skill) => (
-               <span 
-                 key={skill} 
-                 className={`px-2 py-1 rounded text-sm
-                   ${settings.theme === 'amber'
-                     ? 'bg-amber-100 text-amber-800'
-                     : 'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200'
-                   }`}
+               <span
+                 key={skill}
+                 className="px-2 py-1 rounded text-sm tech-tag"
                >
                  {skill}
                </span>
@@ -95,13 +92,9 @@ export const CertsModal = ({ isOpen, onClose, settings }: CertsModalProps) => {
                'Shopify', 'Salesforce', 'SFMC', 'Data Cloud', 'Pardot', 
                'Veeva', 'Eloqua', 'Iterable', 'Marketo', 'HubSpot', 'Campaign Monitor', 'Constant Contact'
              ].map((tool) => (
-               <span 
-                 key={tool} 
-                 className={`px-2 py-1 rounded text-sm
-                   ${settings.theme === 'amber'
-                     ? 'bg-amber-100 text-amber-800'
-                     : 'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200'
-                   }`}
+               <span
+                 key={tool}
+                 className="px-2 py-1 rounded text-sm tech-tag"
                >
                  {tool}
                </span>
@@ -121,13 +114,9 @@ export const CertsModal = ({ isOpen, onClose, settings }: CertsModalProps) => {
              {[
                'Claude', 'ChatGPT', 'Gemini', 'Venice', 'Grok', 'Claude API', 'OpenAI API', 'Gemini API', 'Venice Token API', 'Agentforce', 'Veo 3', 'n8n'
              ].map((tool) => (
-               <span 
-                 key={tool} 
-                 className={`px-2 py-1 rounded text-sm
-                   ${settings.theme === 'amber'
-                     ? 'bg-amber-100 text-amber-800'
-                     : 'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200'
-                   }`}
+               <span
+                 key={tool}
+                 className="px-2 py-1 rounded text-sm tech-tag"
                >
                  {tool}
                </span>
@@ -147,13 +136,9 @@ export const CertsModal = ({ isOpen, onClose, settings }: CertsModalProps) => {
              {[
                'JIRA', 'Notion', 'Monday.com', 'Workfront'
              ].map((tool) => (
-               <span 
-                 key={tool} 
-                 className={`px-2 py-1 rounded text-sm
-                   ${settings.theme === 'amber'
-                     ? 'bg-amber-100 text-amber-800'
-                     : 'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200'
-                   }`}
+               <span
+                 key={tool}
+                 className="px-2 py-1 rounded text-sm tech-tag"
                >
                  {tool}
                </span>

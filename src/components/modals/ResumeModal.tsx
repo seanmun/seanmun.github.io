@@ -1,10 +1,11 @@
 import { X } from "lucide-react"
+import { ThemeName } from '@/config/themes'
 
 interface ResumeModalProps {
  isOpen: boolean
  onClose: () => void
  settings: {
-   theme: 'light' | 'dark' | 'amber'
+   theme: ThemeName
  }
 }
 
