@@ -66,6 +66,7 @@ export async function trackModalOpen(cookieId: string, modalName: string) {
 }
 
 // Helper function to track link clicks (fire and forget - non-blocking)
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export function trackLinkClick(cookieId: string, linkName: string, linkUrl: string) {
   // Disabled for now to prevent mobile click-through issues
   return;

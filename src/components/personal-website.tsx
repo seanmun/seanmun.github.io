@@ -5,7 +5,6 @@ import { trackEvent, TrackEvent, getDeviceType, trackModalOpen, trackLinkClick }
 import { X } from "lucide-react";
 import { projects } from '@/data/projects';
 import { ModernLayout } from './layouts/ModernLayout';
-import { MySpaceLayout } from './layouts/MySpaceLayout';
 
 interface PersonalWebsiteProps {
   galleryImages: string[]
@@ -55,8 +54,6 @@ const PersonalWebsite = ({ galleryImages }: PersonalWebsiteProps) => {
   const [isOrdinalFrameModalOpen, setIsOrdinalFrameModalOpen] = useState(false);
   const [isAmberModalOpen, setAmberModalOpen] = useState(false);
   const [isHinkieBotModalOpen, setIsHinkieBotModalOpen] = useState(false);
-  const [isThemeTransitioning, setIsThemeTransitioning] = useState(false);
-  const [previousTheme, setPreviousTheme] = useState<string>('');
 
   // Helper function to update URL
   const updateURL = (section: string | null) => {
@@ -132,33 +129,7 @@ const PersonalWebsite = ({ galleryImages }: PersonalWebsiteProps) => {
 
   const { settings } = useAccessibilitySettings();
 
-  // Debug: Log theme changes
-  useEffect(() => {
-    console.log('Current theme:', settings.theme);
-  }, [settings.theme]);
-
-  // Handle theme transitions with loading state
-  useEffect(() => {
-    const themeCategory = settings.theme === 'myspace' || settings.theme === 'default' ? 'theme' : 'mode';
-    const currentTheme = settings.theme;
-
-    console.log('Theme transition check:', { themeCategory, currentTheme, previousTheme });
-
-    // Only show transition for theme changes (not mode changes)
-    if (themeCategory === 'theme' && previousTheme && previousTheme !== currentTheme) {
-      console.log('Showing transition spinner');
-      setIsThemeTransitioning(true);
-      const timer = setTimeout(() => {
-        console.log('Hiding transition spinner');
-        setIsThemeTransitioning(false);
-      }, 500); // 500ms transition
-      return () => clearTimeout(timer);
-    }
-
-    setPreviousTheme(currentTheme);
-  }, [settings.theme, previousTheme]);
-
-  // Third useEffect for gallery
+  // Gallery effect
   useEffect(() => {
     setIsVisible(true);
     setShuffledImages(shuffleArray([...galleryImages]));

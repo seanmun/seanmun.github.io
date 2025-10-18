@@ -1,6 +1,7 @@
 'use client';
 import React from 'react';
 import Image from 'next/image';
+import Link from 'next/link';
 import { Github, Linkedin, FileText, ShieldCheck } from "lucide-react";
 import { projects } from '@/data/projects';
 
@@ -45,9 +46,9 @@ export function MySpaceLayout({
             seanmun.com
           </h1>
           <span className="text-white text-xl">|</span>
-          <a href="/" className="text-white text-sm hover:underline cursor-pointer">
+          <Link href="/" className="text-white text-sm hover:underline cursor-pointer">
             Home
-          </a>
+          </Link>
         </div>
       </div>
 
@@ -59,7 +60,7 @@ export function MySpaceLayout({
       }}>
         <div className="max-w-6xl mx-auto">
           <div className="flex gap-2 text-white text-xs items-center overflow-hidden whitespace-nowrap">
-            <a href="/" className="hover:underline cursor-pointer flex-shrink-0">Browse</a>
+            <Link href="/" className="hover:underline cursor-pointer flex-shrink-0">Browse</Link>
             <span className="flex-shrink-0">|</span>
             <span className="hover:underline cursor-pointer flex-shrink-0">Invite</span>
             <span className="flex-shrink-0">|</span>
