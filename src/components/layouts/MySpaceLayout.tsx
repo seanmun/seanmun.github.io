@@ -34,7 +34,16 @@ export function MySpaceLayout({
   updateURL,
 }: MySpaceLayoutProps) {
   return (
-    <div className="min-h-screen bg-white" style={{ fontFamily: 'Verdana, Geneva, sans-serif' }}>
+    <div
+      className="min-h-screen"
+      style={{
+        fontFamily: 'Verdana, Geneva, sans-serif',
+        backgroundImage: 'url(/myspace/s.png)',
+        backgroundRepeat: 'repeat',
+        backgroundPosition: 'top left',
+        backgroundSize: '200px 200px'
+      }}
+    >
       {/* Dark Blue Banner with Logo */}
       <div className="w-full" style={{
         background: 'linear-gradient(to bottom, #1e3a8a, #1e40af)',
