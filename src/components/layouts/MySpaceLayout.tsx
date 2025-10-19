@@ -2,7 +2,7 @@
 import React from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { Github, Linkedin, FileText, ShieldCheck } from "lucide-react";
+import { Github, Linkedin, FileText, ShieldCheck, Mail } from "lucide-react";
 import { projects } from '@/data/projects';
 
 interface MySpaceLayoutProps {
@@ -31,6 +31,7 @@ export function MySpaceLayout({
   setResumeModalOpen,
   setIsCertsModalOpen,
   setIsPrivacyModalOpen,
+  setIsAIModalOpen,
   updateURL,
 }: MySpaceLayoutProps) {
   return (
@@ -41,7 +42,7 @@ export function MySpaceLayout({
         backgroundImage: 'url(/myspace/s.png)',
         backgroundRepeat: 'repeat',
         backgroundPosition: 'top left',
-        backgroundSize: '200px 200px'
+        backgroundSize: '160px 160px'
       }}
     >
       {/* Dark Blue Banner with Logo */}
@@ -101,7 +102,7 @@ export function MySpaceLayout({
           <div className="space-y-4">
             {/* Profile Section */}
             <div className="bg-white border-2 border-gray-400" style={{ boxShadow: '2px 2px 4px rgba(0,0,0,0.2)' }}>
-              <div className="bg-gradient-to-r from-sky-400 to-sky-500 text-white px-3 py-2 font-bold border-b-2 border-gray-400">
+              <div className="text-white px-3 py-2 font-bold border-b-2 border-gray-400" style={{ backgroundColor: '#6699CC' }}>
                 Sean
               </div>
               <div className="p-3">
@@ -139,10 +140,10 @@ export function MySpaceLayout({
 
             {/* Contact Section */}
             <div className="bg-white border-2 border-gray-400" style={{ boxShadow: '2px 2px 4px rgba(0,0,0,0.2)' }}>
-              <div className="bg-gradient-to-r from-orange-300 to-orange-400 text-white px-3 py-2 font-bold border-b-2 border-gray-400">
+              <div className="text-white px-3 py-2 font-bold border-b-2 border-gray-400" style={{ backgroundColor: '#6699CC' }}>
                 Contacting Sean
               </div>
-              <div className="p-3 space-y-2">
+              <div className="p-3 grid grid-cols-2 gap-x-4 gap-y-2">
                 <a
                   href="https://github.com/seanmun"
                   target="_blank"
@@ -150,8 +151,18 @@ export function MySpaceLayout({
                   onClick={() => trackLinkClick(cookieId, 'GitHub MySpace', 'https://github.com/seanmun')}
                   className="flex items-center gap-2 text-blue-600 hover:underline text-sm"
                 >
-                  <Github className="w-4 h-4" /> GitHub
+                  <Github className="w-4 h-4" style={{ color: '#CC6600' }} /> GitHub
                 </a>
+                <button
+                  onClick={() => {
+                    trackModalOpen(cookieId, 'AI Philosophy');
+                    setIsAIModalOpen(true);
+                    updateURL('ai');
+                  }}
+                  className="flex items-center gap-2 text-blue-600 hover:underline text-sm"
+                >
+                  <FileText className="w-4 h-4" style={{ color: '#CC6600' }} /> AI POV
+                </button>
                 <a
                   href="https://www.linkedin.com/in/seanmunley/"
                   target="_blank"
@@ -159,7 +170,7 @@ export function MySpaceLayout({
                   onClick={() => trackLinkClick(cookieId, 'LinkedIn MySpace', 'https://www.linkedin.com/in/seanmunley/')}
                   className="flex items-center gap-2 text-blue-600 hover:underline text-sm"
                 >
-                  <Linkedin className="w-4 h-4" /> LinkedIn
+                  <Linkedin className="w-4 h-4" style={{ color: '#CC6600' }} /> LinkedIn
                 </a>
                 <button
                   onClick={() => {
@@ -169,8 +180,14 @@ export function MySpaceLayout({
                   }}
                   className="flex items-center gap-2 text-blue-600 hover:underline text-sm"
                 >
-                  <FileText className="w-4 h-4" /> View Resume
+                  <FileText className="w-4 h-4" style={{ color: '#CC6600' }} /> View Resume
                 </button>
+                <a
+                  href="mailto:sean.munley@protonmail.com"
+                  className="flex items-center gap-2 text-blue-600 hover:underline text-sm"
+                >
+                  <Mail className="w-4 h-4" style={{ color: '#CC6600' }} /> Send Message
+                </a>
                 <button
                   onClick={() => {
                     trackModalOpen(cookieId, 'Certifications');
@@ -179,14 +196,14 @@ export function MySpaceLayout({
                   }}
                   className="flex items-center gap-2 text-blue-600 hover:underline text-sm"
                 >
-                  <ShieldCheck className="w-4 h-4" /> Skills & Certs
+                  <ShieldCheck className="w-4 h-4" style={{ color: '#CC6600' }} /> Skills & Certs
                 </button>
               </div>
             </div>
 
             {/* Music Section */}
             <div className="bg-white border-2 border-gray-400" style={{ boxShadow: '2px 2px 4px rgba(0,0,0,0.2)' }}>
-              <div className="bg-gradient-to-r from-orange-300 to-orange-400 text-white px-3 py-2 font-bold border-b-2 border-gray-400">
+              <div className="text-white px-3 py-2 font-bold border-b-2 border-gray-400" style={{ backgroundColor: '#6699CC' }}>
                 Music
               </div>
               <div className="p-3">
@@ -204,7 +221,7 @@ export function MySpaceLayout({
 
             {/* URL Section */}
             <div className="bg-white border-2 border-gray-400" style={{ boxShadow: '2px 2px 4px rgba(0,0,0,0.2)' }}>
-              <div className="bg-gradient-to-r from-sky-400 to-sky-500 text-white px-3 py-2 font-bold border-b-2 border-gray-400">
+              <div className="text-white px-3 py-2 font-bold border-b-2 border-gray-400" style={{ backgroundColor: '#6699CC' }}>
                 MySpace URL:
               </div>
               <div className="p-3">
@@ -220,7 +237,7 @@ export function MySpaceLayout({
 
             {/* Photos Section */}
             <div id="photos" className="bg-white border-2 border-gray-400" style={{ boxShadow: '2px 2px 4px rgba(0,0,0,0.2)' }}>
-              <div className="bg-gradient-to-r from-orange-300 to-orange-400 text-white px-3 py-2 font-bold border-b-2 border-gray-400">
+              <div className="text-white px-3 py-2 font-bold border-b-2 border-gray-400" style={{ backgroundColor: '#6699CC' }}>
                 Sean&apos;s Photos
               </div>
               <div className="p-4">
@@ -253,7 +270,7 @@ export function MySpaceLayout({
 
             {/* Status Section */}
             <div className="bg-white border-2 border-gray-400" style={{ boxShadow: '2px 2px 4px rgba(0,0,0,0.2)' }}>
-              <div className="bg-gradient-to-r from-sky-400 to-sky-500 text-white px-3 py-2 font-bold border-b-2 border-gray-400">
+              <div className="px-3 py-2 font-bold border-b-2 border-gray-400" style={{ backgroundColor: '#FFEDD5', color: '#CC6600' }}>
                 Sean&apos;s Latest Status
               </div>
               <div className="p-3 text-xs italic text-gray-700">
@@ -263,7 +280,7 @@ export function MySpaceLayout({
 
             {/* Latest Blog Entry / Featured Project */}
             <div className="bg-white border-2 border-gray-400" style={{ boxShadow: '2px 2px 4px rgba(0,0,0,0.2)' }}>
-              <div className="bg-gradient-to-r from-orange-300 to-orange-400 text-white px-3 py-2 font-bold border-b-2 border-gray-400">
+              <div className="px-3 py-2 font-bold border-b-2 border-gray-400" style={{ backgroundColor: '#FFEDD5', color: '#CC6600' }}>
                 Sean&apos;s Latest Blog Entry <span className="font-normal text-sm">[Subscribe to this Blog]</span>
               </div>
               <div className="p-4">
@@ -284,7 +301,7 @@ export function MySpaceLayout({
 
             {/* About Me / Blurbs */}
             <div className="bg-white border-2 border-gray-400" style={{ boxShadow: '2px 2px 4px rgba(0,0,0,0.2)' }}>
-              <div className="bg-gradient-to-r from-orange-300 to-orange-400 text-white px-3 py-2 font-bold border-b-2 border-gray-400">
+              <div className="px-3 py-2 font-bold border-b-2 border-gray-400" style={{ backgroundColor: '#FFEDD5', color: '#CC6600' }}>
                 About me:
               </div>
               <div className="p-4 text-sm leading-relaxed">
@@ -306,7 +323,7 @@ export function MySpaceLayout({
 
             {/* Interests - Projects */}
             <div className="bg-white border-2 border-gray-400" style={{ boxShadow: '2px 2px 4px rgba(0,0,0,0.2)' }}>
-              <div className="bg-gradient-to-r from-sky-400 to-sky-500 text-white px-3 py-2 font-bold border-b-2 border-gray-400">
+              <div className="px-3 py-2 font-bold border-b-2 border-gray-400" style={{ backgroundColor: '#FFEDD5', color: '#CC6600' }}>
                 Sean&apos;s Interests
               </div>
               <div className="p-4">
@@ -343,7 +360,7 @@ export function MySpaceLayout({
       </div>
 
       {/* Footer */}
-      <div className="bg-gradient-to-r from-sky-400 to-sky-500 text-white text-center py-4 mt-8 text-xs">
+      <div className="text-white text-center py-4 mt-8 text-xs" style={{ backgroundColor: '#6699CC' }}>
         <p>&copy; 2025 seanmun.com • <span className="cursor-pointer hover:underline" onClick={() => {
           trackModalOpen(cookieId, 'Privacy Policy');
           setIsPrivacyModalOpen(true);
