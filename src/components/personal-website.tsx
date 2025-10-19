@@ -195,27 +195,11 @@ const PersonalWebsite = ({ galleryImages }: PersonalWebsiteProps) => {
     }
   };
 
-  const handleProjectClick = async (
+  const handleProjectClick = (
     e: React.MouseEvent,
     project: typeof projects[number]
   ) => {
     e.preventDefault();
-
-    // Track project click
-    if (cookieId) {
-      try {
-        await trackEvent({
-          cookieId,
-          eventType: 'project_click',
-          projectName: project.title,
-          deviceType: getDeviceType(),
-          userAgent: navigator.userAgent,
-          timestamp: new Date()
-        });
-      } catch (err) {
-        console.error('Error tracking project click:', err);
-      }
-    }
 
     if (project.requiresPassword) {
       setActiveLink(project.link || '');
