@@ -3,7 +3,7 @@
 
 'use client';
 import React from 'react';
-import { XIcon } from 'lucide-react';
+import { X } from 'lucide-react';
 import Image from 'next/image';
 import { useAccessibilitySettings } from '@/hooks/useAccessibilitySettings';
 
@@ -12,7 +12,7 @@ interface AmberModalProps {
   onClose: () => void;
 }
 
-export const AmberModal: React.FC<AmberModalProps> = ({ isOpen, onClose }) => {
+export function AmberModal({ isOpen, onClose }: AmberModalProps) {
   const { settings } = useAccessibilitySettings();
   if (!isOpen) return null;
 
@@ -38,7 +38,7 @@ export const AmberModal: React.FC<AmberModalProps> = ({ isOpen, onClose }) => {
             }`}
             aria-label="Close modal"
           >
-            <XIcon className="w-6 h-6" />
+            <X className="w-6 h-6" />
           </button>
         </div>
 
@@ -156,4 +156,4 @@ export const AmberModal: React.FC<AmberModalProps> = ({ isOpen, onClose }) => {
       </div>
     </div>
   );
-};
+}

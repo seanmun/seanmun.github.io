@@ -11,6 +11,7 @@ interface MySpaceWebsiteProps {
 }
 
 import { OrdinalFrameModal } from './modals/OrdinalFrameModal';
+import { ProjectModal } from './modals/ProjectModal';
 import { useAccessibilitySettings } from '../hooks/useAccessibilitySettings';
 import { maintenanceConfig } from '../config/maintenance';
 import { AmberModal } from './modals/AmberModal';
@@ -19,6 +20,7 @@ import { MaintenanceOverlay } from './MaintenanceOverlay';
 import { ResumeModal } from './modals/ResumeModal';
 import { CertsModal } from './modals/CertsModal';
 import { AIModal } from './modals/AIModal';
+import { Project } from '@/data/projects';
 
 import Image from 'next/image';
 import { AccessibilityMenu } from './AccessibilityMenu';
@@ -54,6 +56,8 @@ const MySpaceWebsite = ({ galleryImages }: MySpaceWebsiteProps) => {
   const [isOrdinalFrameModalOpen, setIsOrdinalFrameModalOpen] = useState(false);
   const [isAmberModalOpen, setAmberModalOpen] = useState(false);
   const [isHinkieBotModalOpen, setIsHinkieBotModalOpen] = useState(false);
+  const [selectedProject, setSelectedProject] = useState<Project | null>(null);
+  const [isProjectModalOpen, setIsProjectModalOpen] = useState(false);
 
   // Helper function to update URL
   const updateURL = (section: string | null) => {
@@ -201,21 +205,46 @@ const MySpaceWebsite = ({ galleryImages }: MySpaceWebsiteProps) => {
   ) => {
     e.preventDefault();
 
+    // Handle password-protected projects
     if (project.requiresPassword) {
       setActiveLink(project.link || '');
       setIsModalOpen(true);
       setError('');
       setPassword('');
-    } else if (project.triggerAmberModal) {
+      return;
+    }
+
+    // Handle special modals
+    if (project.triggerAmberModal) {
       setAmberModalOpen(true);
       updateURL('amber');
-    } else if (project.triggerOrdinalFrameModal) {
+      return;
+    }
+
+    // New unified modal system - prioritize modalContent OR isLive: false
+    if (project.modalContent || project.isLive === false) {
+      setSelectedProject(project);
+      setIsProjectModalOpen(true);
+      updateURL(project.title.toLowerCase().replace(/\s+/g, '-'));
+      trackModalOpen(cookieId, project.title);
+      return;
+    }
+
+    // Legacy modals (will be migrated eventually)
+    if (project.triggerOrdinalFrameModal) {
       setIsOrdinalFrameModalOpen(true);
       updateURL('ordinal');
-    } else if (project.triggerHinkieBotModal) {
+      return;
+    }
+
+    if (project.triggerHinkieBotModal) {
       setIsHinkieBotModalOpen(true);
       updateURL('hinkie');
-    } else {
+      return;
+    }
+
+    // Default: open link in new tab
+    if (project.link) {
       window.open(project.link, '_blank');
     }
   };
@@ -234,6 +263,19 @@ const MySpaceWebsite = ({ galleryImages }: MySpaceWebsiteProps) => {
             updateURL(null);
           }}
         />
+
+        {/* New Unified Project Modal */}
+        {selectedProject && (
+          <ProjectModal
+            isOpen={isProjectModalOpen}
+            onClose={() => {
+              setIsProjectModalOpen(false);
+              setSelectedProject(null);
+              updateURL(null);
+            }}
+            project={selectedProject}
+          />
+        )}
 
         <OrdinalFrameModal
           isOpen={isOrdinalFrameModalOpen}

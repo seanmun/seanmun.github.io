@@ -1,7 +1,50 @@
 // File: src/data/projects.ts
 // Purpose: Project data with status and tech stack information
 
-export const projects = [
+// Type definitions for project structure
+export interface ProjectImage {
+  src: string;
+  alt: string;
+  caption?: string;
+}
+
+export interface ProjectCallToAction {
+  primary?: { label: string; url: string };
+  secondary?: { label: string; url: string };
+}
+
+export interface ProjectModalContent {
+  images?: ProjectImage[];
+  overview?: string;
+  keyFeatures?: string[];
+  technicalDetails?: string;
+  plannedFeatures?: string[];
+  callToAction?: ProjectCallToAction;
+  specialSections?: {
+    title: string;
+    content: string;
+    image?: ProjectImage;
+    highlightColor?: 'green' | 'blue' | 'amber' | 'purple';
+  }[];
+}
+
+export interface Project {
+  title: string;
+  description: string;
+  iconName: string;
+  link: string;
+  ariaLabel: string;
+  requiresPassword: boolean;
+  status: 'Dev' | 'MVP' | 'Prod';
+  techStack: string[];
+  isLive?: boolean; // If false, show modal instead of linking directly
+  triggerAmberModal?: boolean;
+  triggerOrdinalFrameModal?: boolean;
+  triggerHinkieBotModal?: boolean;
+  modalContent?: ProjectModalContent;
+}
+
+export const projects: Project[] = [
   {
     title: "Kinetic.email",
     description: "An open source resource hub and showcase for interactive kinetic HTML emails that push the boundaries of traditional email design. Features an AI Playground powered by Claude API where users can prompt a specialized AI to generate custom kinetic email modules. The site serves as both an educational tool for email developers and an innovation playground with real-world examples and cutting-edge concepts.",
@@ -20,7 +63,76 @@ export const projects = [
     ariaLabel: "View Money Never Sleeps website",
     requiresPassword: false,
     status: "Prod",
-    techStack: ["React", "Next.js", "TypeScript", "Firebase", "Tailwind CSS", "Alchemy API", "Telegram API", "Vercel"]
+    techStack: ["React", "Next.js", "TypeScript", "Firebase", "Tailwind CSS", "Alchemy API", "Telegram API", "Vercel"],
+    modalContent: {
+      images: [
+        {
+          src: "/projects/mns-home.png",
+          alt: "Money Never Sleeps home screen",
+          caption: "Home screen login state showing main platform components"
+        },
+        {
+          src: "/projects/mns-prize.png",
+          alt: "Prize pool with blockchain stats",
+          caption: "Live prize pool with real-time stats from Ethereum blockchain"
+        },
+        {
+          src: "/projects/mns-teamPage.png",
+          alt: "Team page overview",
+          caption: "Team page showing total salary, fees, players and watch list"
+        },
+        {
+          src: "/projects/mns-draft.png",
+          alt: "Live draft tool",
+          caption: "Interactive live draft tool for league draft day"
+        },
+        {
+          src: "/projects/mns-freeAgents.png",
+          alt: "Free agent tool",
+          caption: "Free agent acquisition tool complementing the draft system"
+        },
+        {
+          src: "/projects/mns-inbox.png",
+          alt: "Daily Sam Hinkie quotes inbox",
+          caption: "Daily Sam Hinkie inspired quotes - future home for trades and wagers"
+        },
+        {
+          src: "/projects/mns-rules.png",
+          alt: "League rules reference",
+          caption: "Comprehensive league rules for members navigating complex regulations"
+        }
+      ],
+      overview: "Money Never Sleeps is a cutting-edge fantasy basketball dynasty league platform that merges real NBA salary cap mechanics with blockchain-backed financial consequences. League members navigate authentic cap rules, manage multi-year keeper contracts, and make strategic decisions that affect both their fantasy roster and real-world prize pool funded by blockchain investments.",
+      keyFeatures: [
+        "Real NBA salary cap rules with apron thresholds and luxury tax calculations",
+        "Multi-year keeper contracts with advancing draft round costs",
+        "Live blockchain investment tracking via Alchemy API",
+        "Automated penalty and fee collection that fuels the prize pool",
+        "Real-time league standings and matchup tracking",
+        "Telegram bot integration for notifications and updates",
+        "Financial dashboard showing both fantasy performance and portfolio value",
+        "Dynasty league management with long-term roster building strategy"
+      ],
+      technicalDetails: "Built with Next.js and TypeScript for type-safe development. Firebase powers real-time database syncing for league data and matchup tracking. Alchemy API provides blockchain integration for tracking cryptocurrency investments that fund the prize pool. Telegram API delivers instant notifications for league events, trades, and financial updates. Deployed on Vercel for optimal performance and global CDN distribution.",
+      plannedFeatures: [
+        "Advanced analytics dashboard with historical cap space trends",
+        "Trade analyzer with cap implications calculator",
+        "Mock draft simulator with keeper contract integration",
+        "Mobile app for iOS and Android",
+        "Multi-league support for commissioners managing multiple leagues",
+        "Integration with additional blockchain networks for diverse investment options"
+      ],
+      callToAction: {
+        primary: {
+          label: "View Live Site",
+          url: "https://mns-dusky.vercel.app/"
+        },
+        secondary: {
+          label: "Get in touch",
+          url: "mailto:sean.munley@protonmail.com"
+        }
+      }
+    }
   },
   {
     title: "Amber Mode",
@@ -57,12 +169,70 @@ export const projects = [
     title: "OrdinalFrame",
     description: "Bitcoin Ordinals deserve better than a browser tab. OrdinalFrame turns a Raspberry Pi and Waveshare touchscreen into a living art display that showcases your Ordinals directly from the blockchain. The custom hardware pulls inscriptions in real-time with no screenshots or compromises, all wrapped in a custom gold frame.",
     iconName: "Box",
-    link: "#",
+    link: "https://github.com/seanmun/ordinalframe",
     ariaLabel: "View Ordinal Frame project details",
     requiresPassword: false,
-    triggerOrdinalFrameModal: true,
+    isLive: false, // Not publicly launched yet - show modal
     status: "MVP",
-    techStack: ["Python", "React", "Raspberry Pi", "JavaScript"]
+    techStack: ["Python", "React", "Raspberry Pi", "JavaScript"],
+    modalContent: {
+      images: [
+        {
+          src: "/projects/ordinalframe-display.jpg",
+          alt: "OrdinalFrame displaying Bitcoin Ordinals",
+          caption: "OrdinalFrame in action, showcasing Bitcoin Ordinals"
+        },
+        {
+          src: "/projects/ordinalframe-setup.jpg",
+          alt: "OrdinalFrame hardware setup",
+          caption: "The complete hardware setup with Raspberry Pi"
+        },
+        {
+          src: "/projects/ordinalframe-back.jpg",
+          alt: "OrdinalFrame back panel",
+          caption: "Custom frame housing and back panel design"
+        }
+      ],
+      overview: "OrdinalFrame transforms a Raspberry Pi into a dynamic digital art frame that showcases Bitcoin Ordinals - unique digital artifacts inscribed directly onto the Bitcoin blockchain. This project bridges the gap between blockchain technology and physical art display.",
+      keyFeatures: [
+        "Automatic rotation through Bitcoin Ordinal collections",
+        "Raspberry Pi-powered with high-resolution display",
+        "Real-time fetching of Ordinals from the Bitcoin blockchain",
+        "Support for various Ordinal formats (images, text, inscriptions)",
+        "Remote configuration and collection management",
+        "Energy-efficient operation for continuous display"
+      ],
+      technicalDetails: "Built on Raspberry Pi hardware with Python scripts for blockchain integration. Uses Bitcoin blockchain and Ordinals indexers APIs with a custom rendering engine for various media types. Features local caching with automatic updates for optimal performance.",
+      plannedFeatures: [
+        "Bitcoin message signature verification to authenticate ownership of displayed Ordinals",
+        "Multi-wallet support to display Ordinals from multiple Bitcoin wallets",
+        "Collection-based selection to curate and cycle through specific Ordinal collections",
+        "Advanced display modes with slideshow timing, transitions, and viewing preferences",
+        "Custom frame design - physical frame design has been commissioned for a polished presentation",
+        "3D blueprint creation for complete DIY blueprint for 3D printing the frame enclosure"
+      ],
+      callToAction: {
+        primary: {
+          label: "View on GitHub",
+          url: "https://github.com/seanmun/ordinalframe"
+        },
+        secondary: {
+          label: "Get in touch",
+          url: "mailto:sean.munley@protonmail.com"
+        }
+      },
+      specialSections: [
+        {
+          title: "✅ Founder Approved",
+          content: "Udi Wertheimer is the co-founder of Taproot Wizards and Quantum Cats—Bitcoin Ordinals projects that blend art, community, and a push for OP_CAT activation to expand Bitcoin's capabilities.",
+          image: {
+            src: "/projects/udi.jpg",
+            alt: "Quantum Cats founder tweet approval"
+          },
+          highlightColor: "green"
+        }
+      ]
+    }
   },
   {
     title: "RumbleRaffle.com",
@@ -88,12 +258,66 @@ export const projects = [
     title: "Fantasy League Bot",
     description: "The @Sam_Hinkie_bot serves as a league information hub and interactive companion for my fantasy basketball league. Built with Python and deployed on Railway, this bot interfaces with Telegram's API to handle commands, mentions, and provide responses to league members.",
     iconName: "Bot",
-    link: "#",
+    link: "https://github.com/seanmun",
     ariaLabel: "View Hinkie Bot details",
     requiresPassword: false,
-    triggerHinkieBotModal: true,
+    isLive: false,
     status: "Prod",
-    techStack: ["Python", "Telegram API", "Railway", "GitHub"]
+    techStack: ["Python", "Telegram API", "Railway", "GitHub"],
+    modalContent: {
+      images: [
+        {
+          src: "/projects/start.png",
+          alt: "Fantasy League Bot welcome screen",
+          caption: "Bot welcome screen showing available commands"
+        },
+        {
+          src: "/projects/standings.png",
+          alt: "Live league standings",
+          caption: "Real-time league standings and statistics"
+        },
+        {
+          src: "/projects/matchup.png",
+          alt: "Weekly matchup information",
+          caption: "Detailed weekly matchup breakdowns"
+        },
+        {
+          src: "/projects/player.png",
+          alt: "Player statistics lookup",
+          caption: "Player stats and information on demand"
+        },
+        {
+          src: "/projects/rules.png",
+          alt: "League rules display",
+          caption: "Quick access to league rules and settings"
+        },
+        {
+          src: "/projects/responds.png",
+          alt: "Bot interaction examples",
+          caption: "Interactive responses to player queries"
+        }
+      ],
+      overview: "The @Sam_Hinkie_bot is an interactive Telegram bot that serves as the digital commissioner and information hub for my fantasy basketball dynasty league. Named after the legendary NBA executive known for his analytics-driven approach, this bot brings automation and real-time information to league management.",
+      keyFeatures: [
+        "Real-time league standings and statistics",
+        "Automated transaction notifications and updates",
+        "Custom commands for league rules and information",
+        "Interactive responses to player mentions and queries",
+        "Integration with league database for live data",
+        "Scheduled reminders for important league deadlines"
+      ],
+      technicalDetails: "Built with Python and deployed on Railway for 24/7 uptime. Integrates with Telegram's Bot API for message handling and uses webhooks for real-time updates. Connected to the league's database to provide accurate, up-to-date information to all league members.",
+      callToAction: {
+        primary: {
+          label: "View on GitHub",
+          url: "https://github.com/seanmun"
+        },
+        secondary: {
+          label: "Get in touch",
+          url: "mailto:sean.munley@protonmail.com"
+        }
+      }
+    }
   },
   {
     title: "A.I.bert Bot",

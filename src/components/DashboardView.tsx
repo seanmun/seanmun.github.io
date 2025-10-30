@@ -1,9 +1,9 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import { db } from '@/lib/firebase';
-import { collection, query, where, orderBy, getDocs, Timestamp } from 'firebase/firestore';
+import { collection, query, where, orderBy, getDocs, Timestamp, setDoc, doc } from 'firebase/firestore';
 import { ComposableMap, Geographies, Geography, Marker, ZoomableGroup } from "react-simple-maps";
 import { TrendingUp, Users, MapPin, Monitor, Smartphone, Tablet, MousePointerClick } from 'lucide-react';
 
@@ -56,9 +56,36 @@ export default function DashboardView() {
   const [error, setError] = useState<string | null>(null);
   const [dateRange, setDateRange] = useState<number>(45);
 
+  // Track this visitor as an admin (dashboard viewer)
+  useEffect(() => {
+    async function trackAdminVisitor() {
+      if (typeof window === 'undefined') return;
+
+      const visitorId = localStorage.getItem('visitorId');
+      if (visitorId) {
+        try {
+          // Store this visitor ID in a separate collection for exclusion
+          await setDoc(doc(db, 'admin_visitors', visitorId), {
+            visitorId,
+            firstSeen: new Date(),
+            lastSeen: new Date()
+          }, { merge: true });
+        } catch (err) {
+          console.error('Error tracking admin visitor:', err);
+        }
+      }
+    }
+    trackAdminVisitor();
+  }, []);
+
   useEffect(() => {
     async function fetchData() {
       try {
+        // Fetch admin visitor IDs
+        const adminVisitorsRef = collection(db, 'admin_visitors');
+        const adminSnapshot = await getDocs(adminVisitorsRef);
+        const adminIds = new Set(adminSnapshot.docs.map(doc => doc.data().visitorId));
+
         const pageviewsRef = collection(db, 'pageviews');
         let q;
 
@@ -112,7 +139,10 @@ export default function DashboardView() {
           };
         });
 
-        setPageViews(views);
+        // Filter out admin visits (anyone who has ever accessed the dashboard)
+        const filteredViews = views.filter(view => !adminIds.has(view.cookieId));
+
+        setPageViews(filteredViews);
       } catch (err) {
         console.error('Error fetching data:', err);
         setError(err instanceof Error ? err.message : 'An error occurred');
@@ -129,15 +159,7 @@ export default function DashboardView() {
 
   // Filter by event types
   const pageviewsOnly = pageViews.filter(v => v.eventType === 'pageview');
-  const projectClicks = pageViews.filter(v => v.eventType === 'project_click');
   const modalOpens = pageViews.filter(v => v.eventType === 'modal_open');
-  const linkClicks = pageViews.filter(v => v.eventType === 'link_click');
-
-  // Process data for charts
-  const chartData = pageViews.map(view => ({
-    timestamp: view.timestamp,
-    visits: 1
-  }));
 
   // Unique visitors count
   const uniqueVisitors = new Set(pageviewsOnly.map(view => view.cookieId)).size;
@@ -155,18 +177,6 @@ export default function DashboardView() {
     { name: 'Tablet', value: deviceCounts.tablet || 0, icon: Tablet }
   ].filter(d => d.value > 0);
 
-  // Project click stats
-  const projectClickCounts = projectClicks.reduce((acc, click) => {
-    const project = click.projectName || 'Unknown';
-    acc[project] = (acc[project] || 0) + 1;
-    return acc;
-  }, {} as Record<string, number>);
-
-  const topProjects = Object.entries(projectClickCounts)
-    .map(([name, clicks]) => ({ name, clicks }))
-    .sort((a, b) => b.clicks - a.clicks)
-    .slice(0, 10);
-
   // Modal open stats
   const modalOpenCounts = modalOpens.reduce((acc, open) => {
     const modal = open.modalName || 'Unknown';
@@ -177,25 +187,6 @@ export default function DashboardView() {
   const topModals = Object.entries(modalOpenCounts)
     .map(([name, opens]) => ({ name, opens }))
     .sort((a, b) => b.opens - a.opens);
-
-  // Link click stats
-  const linkClickCounts = linkClicks.reduce((acc, click) => {
-    const link = click.linkName || 'Unknown';
-    acc[link] = (acc[link] || 0) + 1;
-    return acc;
-  }, {} as Record<string, number>);
-
-  const topLinks = Object.entries(linkClickCounts)
-    .map(([name, clicks]) => ({ name, clicks }))
-    .sort((a, b) => b.clicks - a.clicks);
-
-  // Time of day distribution
-  const hourlyDistribution = Array.from({ length: 24 }, (_, hour) => ({
-    hour,
-    visits: pageViews.filter(view => 
-      new Date(view.timestamp).getHours() === hour
-    ).length
-  }));
 
   // Visitor frequency (return rate)
   const visitorFrequency = Object.values(
@@ -298,15 +289,6 @@ export default function DashboardView() {
             <AnimatedCounter value={uniqueVisitors} />
           </p>
         </div>
-        <div className="bg-gradient-to-br from-green-500 to-green-700 p-6 rounded-lg shadow-lg text-white">
-          <div className="flex items-center justify-between mb-2">
-            <h3 className="text-sm font-semibold opacity-90">Project Clicks</h3>
-            <MousePointerClick className="w-5 h-5 opacity-75" />
-          </div>
-          <p className="text-3xl font-bold">
-            <AnimatedCounter value={projectClicks.length} />
-          </p>
-        </div>
         <div className="bg-gradient-to-br from-orange-500 to-orange-700 p-6 rounded-lg shadow-lg text-white">
           <div className="flex items-center justify-between mb-2">
             <h3 className="text-sm font-semibold opacity-90">Locations Tracked</h3>
@@ -315,53 +297,6 @@ export default function DashboardView() {
           <p className="text-3xl font-bold">
             <AnimatedCounter value={pageViews.filter(view => view.geolocation).length} />
           </p>
-        </div>
-      </div>
-
-      {/* Pageviews Over Time */}
-      <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
-        <h3 className="text-lg font-semibold mb-4 dark:text-white">Pageviews Over Time</h3>
-        <div className="h-80">
-          <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={chartData}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis 
-                dataKey="timestamp" 
-                tickFormatter={(timestamp) => new Date(timestamp).toLocaleDateString()}
-              />
-              <YAxis />
-              <Tooltip 
-                labelFormatter={(timestamp) => new Date(timestamp).toLocaleString()}
-              />
-              <Line 
-                type="monotone" 
-                dataKey="visits" 
-                stroke="#8884d8" 
-                strokeWidth={2}
-              />
-            </LineChart>
-          </ResponsiveContainer>
-        </div>
-      </div>
-
-      {/* Time of Day Distribution */}
-      <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
-        <h3 className="text-lg font-semibold mb-4 dark:text-white">Visits by Hour</h3>
-        <div className="h-80">
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={hourlyDistribution}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis 
-                dataKey="hour"
-                tickFormatter={(hour) => `${hour}:00`}
-              />
-              <YAxis />
-              <Tooltip 
-                labelFormatter={(hour) => `${hour}:00 - ${hour+1}:00`}
-              />
-              <Bar dataKey="visits" fill="#82ca9d" />
-            </BarChart>
-          </ResponsiveContainer>
         </div>
       </div>
 
@@ -430,31 +365,8 @@ export default function DashboardView() {
         </div>
       </div>
 
-      {/* Engagement Section - Projects, Modals, Links */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Top Projects */}
-        {topProjects.length > 0 && (
-          <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
-            <h3 className="text-lg font-semibold mb-4 dark:text-white">Most Clicked Projects</h3>
-            <div className="h-80">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={topProjects} layout="vertical">
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis type="number" />
-                  <YAxis
-                    dataKey="name"
-                    type="category"
-                    width={150}
-                    tick={{ fontSize: 12 }}
-                  />
-                  <Tooltip />
-                  <Bar dataKey="clicks" fill="#8b5cf6" />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
-        )}
-
+      {/* Engagement Section - Modals */}
+      <div className="grid grid-cols-1 gap-6">
         {/* Top Modals */}
         {topModals.length > 0 && (
           <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
@@ -478,29 +390,6 @@ export default function DashboardView() {
           </div>
         )}
       </div>
-
-      {/* Top Links */}
-      {topLinks.length > 0 && (
-        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
-          <h3 className="text-lg font-semibold mb-4 dark:text-white">Most Clicked Links</h3>
-          <div className="h-80">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={topLinks} layout="vertical">
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis type="number" />
-                <YAxis
-                  dataKey="name"
-                  type="category"
-                  width={150}
-                  tick={{ fontSize: 12 }}
-                />
-                <Tooltip />
-                <Bar dataKey="clicks" fill="#f59e0b" />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
-      )}
 
       {/* Geolocation Map */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
