@@ -5,7 +5,7 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 import { db } from '@/lib/firebase';
 import { collection, query, where, orderBy, getDocs, Timestamp, setDoc, doc } from 'firebase/firestore';
 import { ComposableMap, Geographies, Geography, Marker, ZoomableGroup } from "react-simple-maps";
-import { TrendingUp, Users, MapPin, Monitor, Smartphone, Tablet, MousePointerClick } from 'lucide-react';
+import { TrendingUp, Users, MapPin, Monitor, Smartphone, Tablet } from 'lucide-react';
 
 
 interface PageView {
