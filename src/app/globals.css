@@ -127,6 +127,36 @@ body.line-height-loose span {
   --link-hover: #1d4ed8;
 }
 
+/* Windows 98 Theme */
+[data-theme='windows98'] {
+  --bg-primary: #008080;  /* Teal desktop background */
+  --bg-secondary: #c0c0c0; /* Window gray */
+  --bg-tertiary: #ffffff;  /* White content areas */
+  --bg-hover: #d4d0c8;
+  --text-primary: #000000;
+  --text-secondary: #000000;
+  --text-tertiary: #808080;
+  --accent: #000080;       /* Windows blue */
+  --accent-hover: #0000a0;
+  --accent-active: #000060;
+  --border: #808080;
+  --border-hover: #000000;
+  --icon-color: #000080;
+  --link-color: #0000ff;   /* Classic blue hyperlink */
+  --link-hover: #ff00ff;   /* Visited purple */
+
+  /* Windows 98 specific colors */
+  --win98-gray: #c0c0c0;
+  --win98-dark-gray: #808080;
+  --win98-light-gray: #dfdfdf;
+  --win98-white: #ffffff;
+  --win98-black: #000000;
+  --win98-blue: #000080;
+  --win98-teal: #008080;
+  --win98-highlight: #000080;
+  --win98-highlight-text: #ffffff;
+}
+
 /* ========================================
    UNIVERSAL THEME OVERRIDES
    Apply CSS variables to all themes

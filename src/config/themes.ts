@@ -1,7 +1,7 @@
 // Theme configuration system
 // This file centralizes all theme definitions for easy management and scaling
 
-export type ThemeName = 'light' | 'dark' | 'amber' | 'default' | 'myspace';
+export type ThemeName = 'light' | 'dark' | 'amber' | 'default' | 'myspace' | 'windows98';
 
 export interface ThemeConfig {
   id: ThemeName;
@@ -178,6 +178,35 @@ export const themes: Record<ThemeName, ThemeConfig> = {
     fonts: {
       primary: 'Verdana, Geneva, sans-serif',
       heading: 'Arial, Helvetica, sans-serif',
+    }
+  },
+
+  windows98: {
+    id: 'windows98',
+    name: 'Windows 98',
+    description: 'Nostalgic Windows 98 desktop experience',
+    category: 'theme',
+    icon: 'Box',
+    colors: {
+      bgPrimary: '#008080',
+      bgSecondary: '#c0c0c0',
+      bgTertiary: '#ffffff',
+      bgHover: '#d4d0c8',
+      textPrimary: '#000000',
+      textSecondary: '#000000',
+      textTertiary: '#808080',
+      accent: '#000080',
+      accentHover: '#0000a0',
+      accentActive: '#000060',
+      border: '#808080',
+      borderHover: '#000000',
+      iconColor: '#000080',
+      link: '#0000ff',
+      linkHover: '#ff00ff',
+    },
+    fonts: {
+      primary: 'Tahoma, "MS Sans Serif", Arial, sans-serif',
+      heading: 'Tahoma, Arial, sans-serif',
     }
   }
 };

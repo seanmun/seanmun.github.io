@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Settings2Icon, SunIcon, MoonIcon, FlameIcon, UsersIcon, LayoutIcon, TypeIcon, AlignVerticalJustifyCenter, InfoIcon, XIcon } from "lucide-react";
+import { Settings2Icon, SunIcon, MoonIcon, FlameIcon, UsersIcon, LayoutIcon, TypeIcon, AlignVerticalJustifyCenter, InfoIcon, XIcon, Box } from "lucide-react";
 import { useAccessibilitySettings } from '../hooks/useAccessibilitySettings';
 import { getAllThemes, ThemeName } from '@/config/themes';
 import Image from 'next/image';
@@ -11,6 +11,7 @@ const themeIcons = {
   Flame: FlameIcon,
   Layout: LayoutIcon,
   Users: UsersIcon,
+  Box: Box,
 };
 
 export function AccessibilityMenu() {
@@ -24,7 +25,9 @@ export function AccessibilityMenu() {
     const currentPath = window.location.pathname;
     if (currentPath === '/myspace' && settings.theme !== 'myspace') {
       setSettings(prev => ({ ...prev, theme: 'myspace' }));
-    } else if (currentPath !== '/myspace' && settings.theme === 'myspace') {
+    } else if (currentPath === '/windows98' && settings.theme !== 'windows98') {
+      setSettings(prev => ({ ...prev, theme: 'windows98' }));
+    } else if (currentPath !== '/myspace' && currentPath !== '/windows98' && (settings.theme === 'myspace' || settings.theme === 'windows98')) {
       setSettings(prev => ({ ...prev, theme: 'default' }));
     }
   }, [settings.theme, setSettings]);
@@ -58,8 +61,12 @@ export function AccessibilityMenu() {
     if (key === 'theme' && value === 'myspace') {
       window.location.href = '/myspace';
     }
-    // If selecting default theme from MySpace page, navigate to home
-    else if (key === 'theme' && value === 'default' && window.location.pathname === '/myspace') {
+    // If selecting Windows 98 theme, navigate to /windows98 page
+    else if (key === 'theme' && value === 'windows98') {
+      window.location.href = '/windows98';
+    }
+    // If selecting default theme from themed pages, navigate to home
+    else if (key === 'theme' && value === 'default' && (window.location.pathname === '/myspace' || window.location.pathname === '/windows98')) {
       window.location.href = '/';
     }
   }
@@ -362,6 +369,8 @@ export function AccessibilityMenu() {
       if (isActive) {
         if (theme.id === 'myspace') {
           activeClasses = 'bg-orange-500 text-white';
+        } else if (theme.id === 'windows98') {
+          activeClasses = 'bg-teal-600 text-white';
         }
       }
 
