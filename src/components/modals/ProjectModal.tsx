@@ -198,7 +198,7 @@ export const ProjectModal = ({ isOpen, onClose, project }: ProjectModalProps) =>
               </div>
             )}
 
-            {/* Special Sections - MOVED TO BOTTOM */}
+            {/* Special Sections */}
             {modalContent.specialSections?.map((section, index) => (
               <div
                 key={index}
@@ -230,15 +230,15 @@ export const ProjectModal = ({ isOpen, onClose, project }: ProjectModalProps) =>
                 </p>
               </div>
             ))}
+
+            {/* CTA Button - inside scrollable content */}
+            {modalContent.callToAction && (
+              <div className="pt-4">
+                <CTAButtons />
+              </div>
+            )}
           </div>
         </div>
-
-        {/* Footer CTA Buttons */}
-        {modalContent.callToAction && (
-          <div className="px-6 py-4 border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 flex-shrink-0">
-            <CTAButtons />
-          </div>
-        )}
       </div>
 
       {/* Fullscreen Image Modal */}
