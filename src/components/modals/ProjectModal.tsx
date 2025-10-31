@@ -1,6 +1,6 @@
 'use client';
 import { useState } from 'react';
-import { X, ChevronLeft, ChevronRight, ExternalLink, Mail } from 'lucide-react';
+import { X, ChevronLeft, ChevronRight, ExternalLink } from 'lucide-react';
 import Image from 'next/image';
 import { Project } from '@/data/projects';
 
@@ -53,18 +53,6 @@ export const ProjectModal = ({ isOpen, onClose, project }: ProjectModalProps) =>
         >
           <ExternalLink className="w-4 h-4" />
           {modalContent.callToAction.primary.label}
-        </a>
-      )}
-      {modalContent.callToAction?.secondary && (
-        <a
-          href={modalContent.callToAction.secondary.url}
-          target="_blank"
-          rel="noopener noreferrer"
-          style={{ borderColor: 'var(--border)', color: 'var(--text-primary)' }}
-          className="flex items-center justify-center gap-2 px-6 py-3 rounded-lg border-2 transition-colors font-medium hover:opacity-80"
-        >
-          <Mail className="w-4 h-4" />
-          {modalContent.callToAction.secondary.label}
         </a>
       )}
     </div>
