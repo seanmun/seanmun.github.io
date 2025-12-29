@@ -16,7 +16,8 @@ import {
   Key,
   Banknote,
   Medal,
-  DollarSign
+  DollarSign,
+  Rocket
 } from "lucide-react";
 import { projects } from '@/data/projects';
 
@@ -32,7 +33,8 @@ const iconMap = {
   Key,
   Banknote,
   Medal,
-  DollarSign
+  DollarSign,
+  Rocket
 };
 
 // Helper function to render icons

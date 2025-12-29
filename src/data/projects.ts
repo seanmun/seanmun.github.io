@@ -135,6 +135,16 @@ export const projects: Project[] = [
     }
   },
   {
+    title: "Rocket Pool Tour",
+    description: "A website built for World Champion Pool player Rodney 'Rocket' Morris to showcase his vision for a revolutionary new professional pool tour. The site presents both the current state of professional pool and a future-state vision of Rocket's grand idea for transforming the sport. Expected launch Q2 2026.",
+    iconName: "Rocket",
+    link: "https://therocketpooltour.com/",
+    ariaLabel: "View Rocket Pool Tour website",
+    requiresPassword: false,
+    status: "Dev",
+    techStack: ["React", "Next.js", "TypeScript", "Tailwind CSS", "Vercel"]
+  },
+  {
     title: "Amber Mode",
     description: "Amber Mode is a custom screen theme designed to reduce blue light exposure and support healthy circadian rhythms. By shifting to warm amber tones, it minimizes melatonin disruption during evening use while maintaining readability and visual comfort. Try it yourself using the accessibility settings menu above!",
     iconName: "Sun",
@@ -144,26 +154,6 @@ export const projects: Project[] = [
     triggerAmberModal: true,
     status: "Prod",
     techStack: ["React", "Next.js", "TypeScript", "Tailwind CSS"]
-  },
-  {
-    title: "TrustThePick.com",
-    description: "Trust The Pick is a secure NBA-style lottery simulator for fantasy sports leagues that uses a multi-verification system to ensure fairness and transparency. It recreates the excitement of the official NBA draft lottery with animated ball drawings, while giving league commissioners confidence through downloadable combination assignments and verifiable results.",
-    iconName: "Key",
-    link: "https://trustthepick.com/",
-    ariaLabel: "View Trust The Pick website",
-    requiresPassword: false,
-    status: "Prod",
-    techStack: ["React", "Next.js", "TypeScript", "Tailwind CSS", "Vercel"]
-  },
-  {
-    title: "DraftDayTrades.com",
-    description: "Draft Day Trades lets sports fans create confidence-based draft prediction pools for NFL, NBA, WNBA, NHL, and MLB drafts. Users predict which players will be drafted at each position and assign strategic confidence points to their picks. The platform features real-time leaderboards and scoring during draft night, creating a competitive experience for friends to enjoy together.",
-    iconName: "Trophy",
-    link: "https://draftdaytrades.com/",
-    ariaLabel: "View Draft Day Trades website",
-    requiresPassword: false,
-    status: "Prod",
-    techStack: ["React", "Next.js", "TypeScript", "Firebase", "Tailwind CSS", "Vercel"]
   },
   {
     title: "OrdinalFrame",
@@ -253,6 +243,26 @@ export const projects: Project[] = [
     requiresPassword: false,
     status: "Prod",
     techStack: ["HTML/CSS", "JavaScript", "Vercel"]
+  },
+  {
+    title: "TrustThePick.com",
+    description: "Trust The Pick is a secure NBA-style lottery simulator for fantasy sports leagues that uses a multi-verification system to ensure fairness and transparency. It recreates the excitement of the official NBA draft lottery with animated ball drawings, while giving league commissioners confidence through downloadable combination assignments and verifiable results.",
+    iconName: "Key",
+    link: "https://trustthepick.com/",
+    ariaLabel: "View Trust The Pick website",
+    requiresPassword: false,
+    status: "Prod",
+    techStack: ["React", "Next.js", "TypeScript", "Tailwind CSS", "Vercel"]
+  },
+  {
+    title: "DraftDayTrades.com",
+    description: "Draft Day Trades lets sports fans create confidence-based draft prediction pools for NFL, NBA, WNBA, NHL, and MLB drafts. Users predict which players will be drafted at each position and assign strategic confidence points to their picks. The platform features real-time leaderboards and scoring during draft night, creating a competitive experience for friends to enjoy together.",
+    iconName: "Trophy",
+    link: "https://draftdaytrades.com/",
+    ariaLabel: "View Draft Day Trades website",
+    requiresPassword: false,
+    status: "Prod",
+    techStack: ["React", "Next.js", "TypeScript", "Firebase", "Tailwind CSS", "Vercel"]
   },
   {
     title: "Fantasy League Bot",
