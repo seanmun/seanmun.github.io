@@ -48,6 +48,7 @@ const PersonalWebsite = ({ galleryImages }: PersonalWebsiteProps) => {
   const [shuffledImages, setShuffledImages] = useState<string[]>([]);
   const [fullscreenImage, setFullscreenImage] = useState<string | null>(null);
   const [cookieId, setCookieId] = useState('');
+  const [pageLoadTime, setPageLoadTime] = useState<number>(Date.now());
   const [isPrivacyModalOpen, setIsPrivacyModalOpen] = useState(false);
   const [isAIModalOpen, setIsAIModalOpen] = useState(false);
   const [isCertsModalOpen, setIsCertsModalOpen] = useState(false);
@@ -153,24 +154,26 @@ const PersonalWebsite = ({ galleryImages }: PersonalWebsiteProps) => {
           timestamp: new Date(),
           eventType: 'pageview',
           deviceType: getDeviceType(),
-          userAgent: navigator.userAgent
+          userAgent: navigator.userAgent,
+          referrer: document.referrer || 'direct'
         };
 
-        try {
-          const position = await new Promise<GeolocationPosition>((resolve, reject) => {
-            navigator.geolocation.getCurrentPosition(resolve, reject, {
-              timeout: 5000,
-              maximumAge: 300000
-            });
-          });
+        // Geolocation tracking disabled
+        // try {
+        //   const position = await new Promise<GeolocationPosition>((resolve, reject) => {
+        //     navigator.geolocation.getCurrentPosition(resolve, reject, {
+        //       timeout: 5000,
+        //       maximumAge: 300000
+        //     });
+        //   });
 
-          eventData.geolocation = {
-            latitude: position.coords.latitude,
-            longitude: position.coords.longitude
-          };
-        } catch {
-          console.log('Geolocation not available or denied');
-        }
+        //   eventData.geolocation = {
+        //     latitude: position.coords.latitude,
+        //     longitude: position.coords.longitude
+        //   };
+        // } catch {
+        //   console.log('Geolocation not available or denied');
+        // }
 
         await trackEvent(eventData);
       } catch (err) {
@@ -185,7 +188,33 @@ const PersonalWebsite = ({ galleryImages }: PersonalWebsiteProps) => {
         sessionStorage.setItem('hasTrackedPageview', 'true');
       }
     }
-  }, [cookieId]);
+
+    // Track time on site when user leaves
+    const handleBeforeUnload = async () => {
+      if (cookieId) {
+        const timeOnSite = Math.floor((Date.now() - pageLoadTime) / 1000); // in seconds
+
+        const eventData: TrackEvent = {
+          cookieId,
+          timestamp: new Date(),
+          eventType: 'pageview',
+          deviceType: getDeviceType(),
+          userAgent: navigator.userAgent,
+          referrer: document.referrer || 'direct',
+          timeOnSite
+        };
+
+        // Use regular tracking (sendBeacon would need an API endpoint)
+        await trackEvent(eventData);
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
+  }, [cookieId, pageLoadTime]);
 
   const handlePasswordSubmit = (e: React.FormEvent) => {
     e.preventDefault();

@@ -47,13 +47,13 @@ export interface Project {
 export const projects: Project[] = [
   {
     title: "Kinetic.email",
-    description: "An open source resource hub and showcase for interactive kinetic HTML emails that push the boundaries of traditional email design. Features an AI Playground powered by Claude API where users can prompt a specialized AI to generate custom kinetic email modules. The site serves as both an educational tool for email developers and an innovation playground with real-world examples and cutting-edge concepts.",
+    description: "An open-source platform for interactive kinetic HTML emails that push the boundaries of traditional email design. Features an AI Playground powered by Claude API with a custom RAG system that encodes my expertise as a kinetic email developer into a vector database, allowing users to generate production-ready code based on proven techniques through natural language prompts. Includes comprehensive learning modules with progress tracking, a custom CRM admin portal, and role-based authentication.",
     iconName: "Zap",
     link: "https://www.kinetic.email/",
     ariaLabel: "View Kinetic.email website",
     requiresPassword: false,
     status: "Prod",
-    techStack: ["Claude API", "React", "Next.js", "TypeScript", "Tailwind CSS", "HTML/CSS", "Vercel"]
+    techStack: ["React", "TypeScript", "Vite", "Tailwind CSS", "Supabase", "Claude API", "OpenAI API", "Pinecone", "Resend", "Vercel"]
   },
   {
     title: "Money Never Sleeps",

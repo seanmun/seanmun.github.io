@@ -5,7 +5,7 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 import { db } from '@/lib/firebase';
 import { collection, query, where, orderBy, getDocs, Timestamp, setDoc, doc } from 'firebase/firestore';
 import { ComposableMap, Geographies, Geography, Marker, ZoomableGroup } from "react-simple-maps";
-import { TrendingUp, Users, MapPin, Monitor, Smartphone, Tablet } from 'lucide-react';
+import { TrendingUp, Users, MapPin, Monitor, Smartphone, Tablet, Clock, ExternalLink } from 'lucide-react';
 
 
 interface PageView {
@@ -23,6 +23,8 @@ interface PageView {
   linkUrl?: string;
   deviceType?: 'mobile' | 'tablet' | 'desktop';
   userAgent?: string;
+  referrer?: string;
+  timeOnSite?: number;
 }
 
 // Animated Counter Component
@@ -136,6 +138,8 @@ export default function DashboardView() {
             linkUrl: data.linkUrl,
             deviceType: data.deviceType,
             userAgent: data.userAgent,
+            referrer: data.referrer,
+            timeOnSite: data.timeOnSite,
           };
         });
 
@@ -204,6 +208,42 @@ export default function DashboardView() {
     { name: 'New', value: visitorFrequency['New'] || 0 },
     { name: 'Returning', value: visitorFrequency['Returning'] || 0 }
   ];
+
+  // Referrer stats
+  const referrerCounts = pageviewsOnly.reduce((acc, view) => {
+    let referrer = view.referrer || 'direct';
+
+    // Clean up referrer - extract domain
+    if (referrer !== 'direct' && referrer.startsWith('http')) {
+      try {
+        const url = new URL(referrer);
+        referrer = url.hostname.replace('www.', '');
+      } catch {
+        // Keep as is if URL parsing fails
+      }
+    }
+
+    acc[referrer] = (acc[referrer] || 0) + 1;
+    return acc;
+  }, {} as Record<string, number>);
+
+  const topReferrers = Object.entries(referrerCounts)
+    .map(([name, count]) => ({ name, count }))
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 10);
+
+  // Average time on site (only for sessions with timeOnSite data)
+  const timeOnSiteData = pageviewsOnly.filter(v => v.timeOnSite && v.timeOnSite > 0);
+  const avgTimeOnSite = timeOnSiteData.length > 0
+    ? Math.floor(timeOnSiteData.reduce((sum, v) => sum + (v.timeOnSite || 0), 0) / timeOnSiteData.length)
+    : 0;
+
+  // Format time in minutes and seconds
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return mins > 0 ? `${mins}m ${secs}s` : `${secs}s`;
+  };
 
   const worldGeoUrl = "/maps/world.json";
   const usGeoUrl = "/maps/us-states.json";
@@ -289,6 +329,15 @@ export default function DashboardView() {
             <AnimatedCounter value={uniqueVisitors} />
           </p>
         </div>
+        <div className="bg-gradient-to-br from-green-500 to-green-700 p-6 rounded-lg shadow-lg text-white">
+          <div className="flex items-center justify-between mb-2">
+            <h3 className="text-sm font-semibold opacity-90">Avg. Time on Site</h3>
+            <Clock className="w-5 h-5 opacity-75" />
+          </div>
+          <p className="text-3xl font-bold">
+            {formatTime(avgTimeOnSite)}
+          </p>
+        </div>
         <div className="bg-gradient-to-br from-orange-500 to-orange-700 p-6 rounded-lg shadow-lg text-white">
           <div className="flex items-center justify-between mb-2">
             <h3 className="text-sm font-semibold opacity-90">Locations Tracked</h3>
@@ -365,8 +414,8 @@ export default function DashboardView() {
         </div>
       </div>
 
-      {/* Engagement Section - Modals */}
-      <div className="grid grid-cols-1 gap-6">
+      {/* Engagement Section - Modals and Referrers */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Top Modals */}
         {topModals.length > 0 && (
           <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
@@ -389,6 +438,30 @@ export default function DashboardView() {
             </div>
           </div>
         )}
+
+        {/* Top Referrers */}
+        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
+          <h3 className="text-lg font-semibold mb-4 dark:text-white flex items-center gap-2">
+            <ExternalLink className="w-5 h-5" />
+            Top Traffic Sources
+          </h3>
+          <div className="h-80">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={topReferrers} layout="vertical">
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis type="number" />
+                <YAxis
+                  dataKey="name"
+                  type="category"
+                  width={150}
+                  tick={{ fontSize: 12 }}
+                />
+                <Tooltip />
+                <Bar dataKey="count" fill="#3b82f6" />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
       </div>
 
       {/* Geolocation Map */}

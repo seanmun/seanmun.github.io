@@ -16,6 +16,8 @@ export type TrackEvent = {
   linkUrl?: string;
   deviceType?: 'mobile' | 'tablet' | 'desktop';
   userAgent?: string;
+  referrer?: string;
+  timeOnSite?: number; // in seconds
 }
 
 export function getDeviceType(): 'mobile' | 'tablet' | 'desktop' {
