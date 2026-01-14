@@ -48,7 +48,7 @@ const MySpaceWebsite = ({ galleryImages }: MySpaceWebsiteProps) => {
   const [shuffledImages, setShuffledImages] = useState<string[]>([]);
   const [fullscreenImage, setFullscreenImage] = useState<string | null>(null);
   const [cookieId, setCookieId] = useState('');
-  const [pageLoadTime, setPageLoadTime] = useState<number>(Date.now());
+  const [pageLoadTime] = useState<number>(Date.now());
   const [isPrivacyModalOpen, setIsPrivacyModalOpen] = useState(false);
   const [isAIModalOpen, setIsAIModalOpen] = useState(false);
   const [isCertsModalOpen, setIsCertsModalOpen] = useState(false);
