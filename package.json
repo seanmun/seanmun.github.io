@@ -11,7 +11,6 @@
   "dependencies": {
     "@tremor/react": "^3.18.7",
     "@types/mongodb": "^4.0.6",
-    "@types/react-simple-maps": "^3.0.6",
     "@types/recharts": "^1.8.29",
     "firebase": "^11.3.1",
     "firebase-admin": "^13.1.0",
@@ -19,8 +18,8 @@
     "next": "^16.1.6",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
-    "react-simple-maps": "^3.0.0",
-    "recharts": "^2.15.1"
+    "recharts": "^2.15.1",
+    "resend": "^6.9.2"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",

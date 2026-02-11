@@ -4,8 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import { db } from '@/lib/firebase';
 import { collection, query, where, orderBy, getDocs, Timestamp, setDoc, doc } from 'firebase/firestore';
-import { ComposableMap, Geographies, Geography, Marker, ZoomableGroup } from "react-simple-maps";
-import { TrendingUp, Users, MapPin, Monitor, Smartphone, Tablet, Clock, ExternalLink } from 'lucide-react';
+import { TrendingUp, Users, Monitor, Smartphone, Tablet, Clock, ExternalLink } from 'lucide-react';
 
 
 interface PageView {
@@ -245,9 +244,6 @@ export default function DashboardView() {
     return mins > 0 ? `${mins}m ${secs}s` : `${secs}s`;
   };
 
-  const worldGeoUrl = "/maps/world.json";
-  const usGeoUrl = "/maps/us-states.json";
-
   const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042'];
 
   return (
@@ -336,15 +332,6 @@ export default function DashboardView() {
           </div>
           <p className="text-3xl font-bold">
             {formatTime(avgTimeOnSite)}
-          </p>
-        </div>
-        <div className="bg-gradient-to-br from-orange-500 to-orange-700 p-6 rounded-lg shadow-lg text-white">
-          <div className="flex items-center justify-between mb-2">
-            <h3 className="text-sm font-semibold opacity-90">Locations Tracked</h3>
-            <MapPin className="w-5 h-5 opacity-75" />
-          </div>
-          <p className="text-3xl font-bold">
-            <AnimatedCounter value={pageViews.filter(view => view.geolocation).length} />
           </p>
         </div>
       </div>
@@ -464,101 +451,6 @@ export default function DashboardView() {
         </div>
       </div>
 
-      {/* Geolocation Map */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-  {/* World Map */}
-  <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
-    <h3 className="text-lg font-semibold mb-4 dark:text-white">Global Visitor Locations</h3>
-    <div className="h-[400px]">
-      <ComposableMap>
-        <ZoomableGroup zoom={1}>
-          <Geographies geography={worldGeoUrl}>
-            {({ geographies }) =>
-              geographies.map((geo) => (
-                <Geography
-                  key={geo.properties.name}
-                  geography={geo}
-                  fill="#D6D6DA"
-                  stroke="#9CA3AF"
-                  style={{
-                    default: { outline: "none" },
-                    hover: { fill: "#A9A9A9", outline: "none" },
-                  }}
-                />
-              ))
-            }
-          </Geographies>
-          {pageViews
-            .filter(view => view.geolocation)
-            .map((view, index) => (
-              <Marker
-                key={index}
-                coordinates={[view.geolocation!.longitude, view.geolocation!.latitude]}
-              >
-                <circle r={4} fill="#EF4444" />
-              </Marker>
-            ))}
-        </ZoomableGroup>
-      </ComposableMap>
-    </div>
-  </div>
-
-{/* US Map */}
-<div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
-  <h3 className="text-lg font-semibold mb-4 dark:text-white">US Visitor Locations</h3>
-  <div className="h-[400px]">
-    <ComposableMap
-      projection="geoAlbersUsa"
-      projectionConfig={{
-        scale: 1200
-      }}
-    >
-      <ZoomableGroup>
-        <Geographies geography={usGeoUrl} onError={(error) => console.log("Map error:", error)}>
-          {({ geographies }) =>
-            geographies.map((geo) => (
-              <Geography
-                key={geo.id}
-                geography={geo}
-                fill="#D6D6DA"
-                stroke="#9CA3AF"
-                style={{
-                  default: {
-                    fill: "#D6D6DA",
-                    stroke: "#9CA3AF",
-                    outline: "none"
-                  },
-                  hover: {
-                    fill: "#A9A9A9",
-                    outline: "none"
-                  }
-                }}
-              />
-            ))
-          }
-        </Geographies>
-        {pageViews
-          .filter(view => view.geolocation)
-          .filter(view => 
-            view.geolocation!.latitude >= 24 && 
-            view.geolocation!.latitude <= 50 &&
-            view.geolocation!.longitude >= -125 && 
-            view.geolocation!.longitude <= -65
-          )
-          .map((view, index) => (
-            <Marker
-              key={index}
-              coordinates={[view.geolocation!.longitude, view.geolocation!.latitude]}
-            >
-              <circle r={4} fill="#EF4444" />
-            </Marker>
-          ))}
-      </ZoomableGroup>
-    </ComposableMap>
-  </div>
-</div>
-
-</div>
 
     </div>
   );
