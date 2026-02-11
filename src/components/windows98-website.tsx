@@ -151,7 +151,7 @@ const Windows98Website = ({ galleryImages }: Windows98WebsiteProps) => {
               <strong>LinkedIn:</strong>
               <br />
               <a
-                href="https://www.linkedin.com/in/sean-munley"
+                href="https://www.linkedin.com/in/sean-munley/"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-blue-600 hover:text-purple-600 underline"

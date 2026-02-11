@@ -139,10 +139,10 @@ export function ModernLayout({
                   <Github className="w-5 h-5 text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200" />
                 </a>
                 <a
-                  href="https://www.linkedin.com/in/seanmunley/"
+                  href="https://www.linkedin.com/in/sean-munley/"
                   target="_blank"
                   rel="noopener noreferrer"
-                  onClick={() => trackLinkClick(cookieId, 'LinkedIn Profile', 'https://www.linkedin.com/in/seanmunley/')}
+                  onClick={() => trackLinkClick(cookieId, 'LinkedIn Profile', 'https://www.linkedin.com/in/sean-munley/')}
                   className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
                   aria-label="LinkedIn Profile"
                 >
@@ -346,10 +346,10 @@ export function ModernLayout({
                 <Github className="w-4 h-4" />
               </a>
               <a
-                href="https://www.linkedin.com/in/seanmunley/"
+                href="https://www.linkedin.com/in/sean-munley/"
                 target="_blank"
                 rel="noopener noreferrer"
-                onClick={() => trackLinkClick(cookieId, 'LinkedIn Footer', 'https://www.linkedin.com/in/seanmunley/')}
+                onClick={() => trackLinkClick(cookieId, 'LinkedIn Footer', 'https://www.linkedin.com/in/sean-munley/')}
                 aria-label="Visit Sean's LinkedIn"
                 className="text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 transition-colors"
               >

@@ -164,10 +164,10 @@ export function MySpaceLayout({
                   <FileText className="w-4 h-4" style={{ color: '#CC6600' }} /> AI POV
                 </button>
                 <a
-                  href="https://www.linkedin.com/in/seanmunley/"
+                  href="https://www.linkedin.com/in/sean-munley/"
                   target="_blank"
                   rel="noopener noreferrer"
-                  onClick={() => trackLinkClick(cookieId, 'LinkedIn MySpace', 'https://www.linkedin.com/in/seanmunley/')}
+                  onClick={() => trackLinkClick(cookieId, 'LinkedIn MySpace', 'https://www.linkedin.com/in/sean-munley/')}
                   className="flex items-center gap-2 text-blue-600 hover:underline text-sm"
                 >
                   <Linkedin className="w-4 h-4" style={{ color: '#CC6600' }} /> LinkedIn
