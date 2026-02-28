@@ -1,6 +1,12 @@
 'use client';
 import React from 'react';
 import Image from 'next/image';
+import { Orbitron } from 'next/font/google';
+
+const orbitron = Orbitron({
+  subsets: ['latin'],
+  weight: ['900'],
+});
 import {
   Github,
   Linkedin,
@@ -114,8 +120,8 @@ export function ModernLayout({
             </div>
           </div>
           <div>
-            <h1 className="text-5xl font-bold mb-2 leading-relaxed dark:text-white">
-              Sean Munley
+            <h1 className={`text-5xl font-black mb-2 leading-relaxed tracking-wide ${orbitron.className}`}>
+              <span className="name-bright bg-gradient-to-r bg-clip-text text-transparent">SeanMun</span><span className="name-dull bg-gradient-to-r bg-clip-text text-transparent">ley</span>
             </h1>
 
             <p className="text-base leading-relaxed text-gray-700 dark:text-gray-300 mb-4 max-w-xl">
@@ -317,7 +323,7 @@ export function ModernLayout({
         <div className="max-w-4xl mx-auto px-4">
           <div className="flex flex-col md:flex-row justify-between items-center gap-4">
             <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300">
-              <span>&copy; 2025 seanmun.com</span>
+              <span>&copy; 2026 seanmun.com</span>
               <span className="px-2">•</span>
               <span className="flex items-center gap-1">
                 Designed and built by Sean Munley

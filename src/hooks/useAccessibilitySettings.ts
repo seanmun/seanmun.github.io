@@ -58,7 +58,7 @@ export function useAccessibilitySettings() {
       }
       
       // Theme classes - Remove all possible themes, then add current
-      document.documentElement.classList.remove('light', 'dark', 'amber', 'default', 'myspace');
+      document.documentElement.classList.remove('light', 'dark', 'amber', 'default', 'myspace', 'ecosystem');
       document.documentElement.classList.add(settings.theme);
       document.documentElement.setAttribute('data-theme', settings.theme);
       

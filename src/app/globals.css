@@ -158,6 +158,42 @@ body.line-height-loose span {
 }
 
 /* ========================================
+   NAME GRADIENT STYLES
+   ======================================== */
+
+.name-bright {
+  --tw-gradient-from: #3b82f6;
+  --tw-gradient-to: #06b6d4;
+  background-image: linear-gradient(to right, var(--tw-gradient-from), var(--tw-gradient-to));
+}
+
+.name-dull {
+  --tw-gradient-from: #94a3b8;
+  --tw-gradient-to: #64748b;
+  background-image: linear-gradient(to right, var(--tw-gradient-from), var(--tw-gradient-to));
+}
+
+[data-theme='dark'] .name-bright {
+  --tw-gradient-from: #60a5fa;
+  --tw-gradient-to: #22d3ee;
+}
+
+[data-theme='dark'] .name-dull {
+  --tw-gradient-from: #64748b;
+  --tw-gradient-to: #475569;
+}
+
+[data-theme='amber'] .name-bright {
+  --tw-gradient-from: #e46611;
+  --tw-gradient-to: #d97706;
+}
+
+[data-theme='amber'] .name-dull {
+  --tw-gradient-from: #78350f;
+  --tw-gradient-to: #451a03;
+}
+
+/* ========================================
    UNIVERSAL THEME OVERRIDES
    Apply CSS variables to all themes
    ======================================== */
@@ -298,6 +334,22 @@ button:disabled {
   25% { border-radius: 30% 60% 70% 40% / 50% 60% 30% 60%; }
   50% { border-radius: 40% 60% 40% 60% / 40% 50% 60% 50%; }
   75% { border-radius: 60% 40% 60% 30% / 70% 30% 50% 40%; }
+}
+
+/* Concept page slide-in animation */
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.animate-slide-in-right {
+  animation: slideInRight 0.3s ease-out;
 }
 
 /* Tech stack tag styles - Universal */

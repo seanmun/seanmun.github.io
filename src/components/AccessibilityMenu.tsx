@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Settings2Icon, SunIcon, MoonIcon, FlameIcon, UsersIcon, LayoutIcon, TypeIcon, AlignVerticalJustifyCenter, InfoIcon, XIcon, Box } from "lucide-react";
+import { Settings2Icon, SunIcon, MoonIcon, FlameIcon, UsersIcon, LayoutIcon, TypeIcon, AlignVerticalJustifyCenter, InfoIcon, XIcon, Box, NetworkIcon } from "lucide-react";
 import { useAccessibilitySettings } from '../hooks/useAccessibilitySettings';
 import { getAllThemes, ThemeName } from '@/config/themes';
 import Image from 'next/image';
@@ -12,6 +12,7 @@ const themeIcons = {
   Layout: LayoutIcon,
   Users: UsersIcon,
   Box: Box,
+  Network: NetworkIcon,
 };
 
 export function AccessibilityMenu() {
@@ -27,7 +28,9 @@ export function AccessibilityMenu() {
       setSettings(prev => ({ ...prev, theme: 'myspace' }));
     } else if (currentPath === '/windows98' && settings.theme !== 'windows98') {
       setSettings(prev => ({ ...prev, theme: 'windows98' }));
-    } else if (currentPath !== '/myspace' && currentPath !== '/windows98' && (settings.theme === 'myspace' || settings.theme === 'windows98')) {
+    } else if (currentPath === '/ecosystem' && settings.theme !== 'ecosystem') {
+      setSettings(prev => ({ ...prev, theme: 'ecosystem' }));
+    } else if (!['/myspace', '/windows98', '/ecosystem'].includes(currentPath) && ['myspace', 'windows98', 'ecosystem'].includes(settings.theme)) {
       setSettings(prev => ({ ...prev, theme: 'default' }));
     }
   }, [settings.theme, setSettings]);
@@ -65,21 +68,32 @@ export function AccessibilityMenu() {
     else if (key === 'theme' && value === 'windows98') {
       window.location.href = '/windows98';
     }
+    // If selecting Ecosystem theme, navigate to /ecosystem page
+    else if (key === 'theme' && value === 'ecosystem') {
+      window.location.href = '/ecosystem';
+    }
     // If selecting default theme from themed pages, navigate to home
-    else if (key === 'theme' && value === 'default' && (window.location.pathname === '/myspace' || window.location.pathname === '/windows98')) {
+    else if (key === 'theme' && value === 'default' && ['/myspace', '/windows98', '/ecosystem'].includes(window.location.pathname)) {
       window.location.href = '/';
     }
   }
+
+  const showNewBadge = Date.now() < new Date('2026-03-06').getTime();
 
   return (
     <div className="fixed top-4 right-4 z-50" ref={menuRef}>
         <button
         onClick={() => setIsOpen(!isOpen)}
-        className="p-2 rounded-full bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+        className="relative p-2 rounded-full bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
         aria-label="Accessibility Settings"
         aria-expanded={isOpen}
         >
-        <Settings2Icon className="w-5 h-5 text-gray-700 dark:text-gray-300" />  {/* Added text color classes */}
+        <Settings2Icon className="w-5 h-5 text-gray-700 dark:text-gray-300" />
+        {showNewBadge && !isOpen && (
+          <span className="absolute -bottom-5 left-1/2 -translate-x-1/2 whitespace-nowrap px-1.5 py-0.5 rounded text-[9px] font-bold bg-indigo-600 text-white animate-pulse">
+            New Theme
+          </span>
+        )}
         </button>
 
         {isOpen && (
@@ -371,6 +385,8 @@ export function AccessibilityMenu() {
           activeClasses = 'bg-orange-500 text-white';
         } else if (theme.id === 'windows98') {
           activeClasses = 'bg-teal-600 text-white';
+        } else if (theme.id === 'ecosystem') {
+          activeClasses = 'bg-indigo-600 text-white';
         }
       }
 

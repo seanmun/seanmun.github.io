@@ -1,7 +1,7 @@
 // Theme configuration system
 // This file centralizes all theme definitions for easy management and scaling
 
-export type ThemeName = 'light' | 'dark' | 'amber' | 'default' | 'myspace' | 'windows98';
+export type ThemeName = 'light' | 'dark' | 'amber' | 'default' | 'myspace' | 'windows98' | 'ecosystem';
 
 export interface ThemeConfig {
   id: ThemeName;
@@ -207,6 +207,31 @@ export const themes: Record<ThemeName, ThemeConfig> = {
     fonts: {
       primary: 'Tahoma, "MS Sans Serif", Arial, sans-serif',
       heading: 'Tahoma, Arial, sans-serif',
+    }
+  },
+
+  ecosystem: {
+    id: 'ecosystem',
+    name: 'Ecosystem',
+    description: '3D project connections graph',
+    category: 'theme',
+    icon: 'Network',
+    colors: {
+      bgPrimary: '#050a18',
+      bgSecondary: '#0f172a',
+      bgTertiary: '#1e293b',
+      bgHover: '#334155',
+      textPrimary: '#f1f5f9',
+      textSecondary: '#94a3b8',
+      textTertiary: '#64748b',
+      accent: '#3b82f6',
+      accentHover: '#60a5fa',
+      accentActive: '#93c5fd',
+      border: '#1e293b',
+      borderHover: '#334155',
+      iconColor: '#60a5fa',
+      link: '#60a5fa',
+      linkHover: '#93c5fd',
     }
   }
 };

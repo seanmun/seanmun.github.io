@@ -361,7 +361,7 @@ export function MySpaceLayout({
 
       {/* Footer */}
       <div className="text-white text-center py-4 mt-8 text-xs" style={{ backgroundColor: '#6699CC' }}>
-        <p>&copy; 2025 seanmun.com • <span className="cursor-pointer hover:underline" onClick={() => {
+        <p>&copy; 2026 seanmun.com • <span className="cursor-pointer hover:underline" onClick={() => {
           trackModalOpen(cookieId, 'Privacy Policy');
           setIsPrivacyModalOpen(true);
           updateURL('privacy');

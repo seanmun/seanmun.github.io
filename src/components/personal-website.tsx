@@ -423,7 +423,7 @@ const PersonalWebsite = ({ galleryImages }: PersonalWebsiteProps) => {
             ? 'text-amber-900'
             : 'text-gray-600 dark:text-gray-300'
         }`}>
-          <p>Last updated: January 13, 2025</p>
+          <p>Last updated: February 27, 2026</p>
 
           <section className="space-y-2">
             <h4 className={`text-lg font-medium
