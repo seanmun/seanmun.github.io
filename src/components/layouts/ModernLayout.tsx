@@ -307,7 +307,7 @@ export function ModernLayout({
           <div className="aspect-w-16 aspect-h-9">
             <iframe
               title="Spotify playlist"
-              src="https://open.spotify.com/embed/album/4fcZBukqygltK48rGGzylj?utm_source=generator&theme=0"
+              src="https://open.spotify.com/embed/album/0MzU9pXhacv2QkVjAhDVtd?utm_source=generator&theme=0"
               width="100%"
               height="425"
               loading="lazy"

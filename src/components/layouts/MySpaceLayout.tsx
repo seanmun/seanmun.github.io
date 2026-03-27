@@ -209,7 +209,7 @@ export function MySpaceLayout({
               <div className="p-3">
                 <iframe
                   title="Spotify playlist"
-                  src="https://open.spotify.com/embed/album/4fcZBukqygltK48rGGzylj?utm_source=generator&theme=0"
+                  src="https://open.spotify.com/embed/album/7AHq0NrwkB3vwlPdUwSY9z?utm_source=generator&theme=0"
                   width="100%"
                   height="152"
                   frameBorder="0"
