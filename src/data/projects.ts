@@ -145,6 +145,16 @@ export const projects: Project[] = [
     techStack: ["React", "Next.js", "TypeScript", "Tailwind CSS", "Vercel"]
   },
   {
+    title: "To Posterity",
+    description: "A voice-first legacy platform that turns spoken stories into polished written memoirs, podcast-style audio, and structured metadata — with zero writing required. The name is drawn from Petrarch's 1350 letter Ad Posteros — \"to those who come after, whoever you turn out to be\" — and every recording in the app is framed as a sealed letter to the reader centuries from now. Built around the \"Bumper Test\" for older adults, it pairs radical UX simplicity with a sophisticated AI pipeline: Deepgram Nova-2 for voice-optimized transcription, Claude for narrative enhancement with automated theme and character extraction, and ElevenLabs for TTS narration with optional voice cloning from the user's own recordings. A many-to-many collections system weaves individual stories into combined biographies.",
+    iconName: "Mic",
+    link: "https://toposterity.ai",
+    ariaLabel: "View To Posterity website",
+    requiresPassword: false,
+    status: "Dev",
+    techStack: ["Next.js", "TypeScript", "Tailwind CSS", "shadcn/ui", "Supabase", "Deepgram", "Claude API", "ElevenLabs", "Zustand", "Vercel"]
+  },
+  {
     title: "Amber Mode",
     description: "Amber Mode is a custom screen theme designed to reduce blue light exposure and support healthy circadian rhythms. By shifting to warm amber tones, it minimizes melatonin disruption during evening use while maintaining readability and visual comfort. Try it yourself using the accessibility settings menu above!",
     iconName: "Sun",
