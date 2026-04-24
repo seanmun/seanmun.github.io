@@ -146,7 +146,7 @@ export const projects: Project[] = [
   },
   {
     title: "To Posterity",
-    description: "A voice-first legacy platform that turns spoken stories into polished written memoirs, podcast-style audio, and structured metadata — with zero writing required. The name is drawn from Petrarch's 1350 letter Ad Posteros — \"to those who come after, whoever you turn out to be\" — and every recording in the app is framed as a sealed letter to the reader centuries from now. Built around the \"Bumper Test\" for older adults, it pairs radical UX simplicity with a sophisticated AI pipeline: Deepgram Nova-2 for voice-optimized transcription, Claude for narrative enhancement with automated theme and character extraction, and ElevenLabs for TTS narration with optional voice cloning from the user's own recordings. A many-to-many collections system weaves individual stories into combined biographies.",
+    description: "A voice-first legacy platform that turns spoken stories into polished memoirs, podcast audio, and structured metadata — with zero writing required. The name is drawn from Petrarch's 1350 letter Ad Posteros, and every recording is framed as a sealed letter to readers centuries from now. An end-to-end AI pipeline handles transcription (Deepgram), narrative enhancement (Claude), and narration with optional voice cloning (ElevenLabs). Designed around the \"Bumper Test\" for older adults — radical simplicity, zero tech skills required.",
     iconName: "Mic",
     link: "https://toposterity.ai",
     ariaLabel: "View To Posterity website",
