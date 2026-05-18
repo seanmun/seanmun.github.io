@@ -24,7 +24,8 @@ import {
   Medal,
   DollarSign,
   Rocket,
-  Mic
+  Mic,
+  LandPlot
 } from "lucide-react";
 import { projects } from '@/data/projects';
 import { SeesawCard } from '@/components/ui/SeesawCard';
@@ -44,7 +45,8 @@ const iconMap = {
   Medal,
   DollarSign,
   Rocket,
-  Mic
+  Mic,
+  LandPlot
 };
 
 // Helper function to render icons

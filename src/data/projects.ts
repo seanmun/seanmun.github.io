@@ -135,16 +135,6 @@ export const projects: Project[] = [
     }
   },
   {
-    title: "Rocket Pool Tour",
-    description: "A website for the Rocket Pool Tour — a next-generation professional billiards league founded by World Champion Rodney 'Rocket' Morris. The RPT introduces Rocket Run-Out©, a fast-paced, offense-driven game format that brings a modern, data-rich approach to a classic sport. The site pairs a back-end CRM for investor relations with a front-end marketing and educational hub for the league and its upcoming events. Expected launch Q2 2026.",
-    iconName: "Rocket",
-    link: "https://therocketpooltour.com/",
-    ariaLabel: "View Rocket Pool Tour website",
-    requiresPassword: false,
-    status: "Dev",
-    techStack: ["React", "Next.js", "TypeScript", "Tailwind CSS", "Vercel"]
-  },
-  {
     title: "To Posterity",
     description: "A voice-first legacy platform that turns spoken stories into polished memoirs, podcast audio, and structured metadata — with zero writing required. The name is drawn from Petrarch's 1350 letter Ad Posteros, and every recording is framed as a sealed letter to readers centuries from now. An end-to-end AI pipeline handles transcription (Deepgram), narrative enhancement (Claude), and narration with optional voice cloning (ElevenLabs). Designed around the \"Bumper Test\" for older adults — radical simplicity, zero tech skills required.",
     iconName: "Mic",
@@ -153,6 +143,26 @@ export const projects: Project[] = [
     requiresPassword: false,
     status: "Dev",
     techStack: ["Next.js", "TypeScript", "Tailwind CSS", "shadcn/ui", "Supabase", "Deepgram", "Claude API", "ElevenLabs", "Zustand", "Vercel"]
+  },
+  {
+    title: "Buddy Cup",
+    description: "A multi-tenant Ryder-Cup-style platform that brings real match-play scoring to the buddy golf trip. Navigate actual match-play math with handicap strokes auto-allocated by stroke index, dormie tracking, and closeouts (3&2, 4&3) computed the moment the deciding hole posts. Manage your entire trip from one phone — courses, players, tee times, matchups, even the welcome dinner. Snap a scorecard photo and AI reads par and stroke index for all 18 holes. The team feed runs hot with score posts, trash talk, and photos, while team and individual leaderboards update the second a putt drops. Defend the cup.",
+    iconName: "LandPlot",
+    link: "https://pern-red.vercel.app/",
+    ariaLabel: "View Buddy Cup website",
+    requiresPassword: false,
+    status: "MVP",
+    techStack: ["React", "Next.js", "TypeScript", "Drizzle ORM", "Neon Postgres", "Clerk Auth", "Anthropic Claude API", "Tailwind CSS", "Vercel"]
+  },
+  {
+    title: "Rocket Pool Tour",
+    description: "A website for the Rocket Pool Tour — a next-generation professional billiards league founded by World Champion Rodney 'Rocket' Morris. The RPT introduces Rocket Run-Out©, a fast-paced, offense-driven game format that brings a modern, data-rich approach to a classic sport. The site pairs a back-end CRM for investor relations with a front-end marketing and educational hub for the league and its upcoming events. Expected launch Q2 2026.",
+    iconName: "Rocket",
+    link: "https://therocketpooltour.com/",
+    ariaLabel: "View Rocket Pool Tour website",
+    requiresPassword: false,
+    status: "Dev",
+    techStack: ["React", "Next.js", "TypeScript", "Tailwind CSS", "Vercel"]
   },
   {
     title: "Amber Mode",
