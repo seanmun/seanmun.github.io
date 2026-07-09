@@ -11,7 +11,6 @@ interface PersonalWebsiteProps {
 }
 
 import { OrdinalFrameModal } from './modals/OrdinalFrameModal';
-import { ProjectModal } from './modals/ProjectModal';
 import { useAccessibilitySettings } from '../hooks/useAccessibilitySettings';
 import { maintenanceConfig } from '../config/maintenance';
 import { AmberModal } from './modals/AmberModal';
@@ -20,7 +19,6 @@ import { MaintenanceOverlay } from './MaintenanceOverlay';
 import { ResumeModal } from './modals/ResumeModal';
 import { CertsModal } from './modals/CertsModal';
 import { AIModal } from './modals/AIModal';
-import { Project } from '@/data/projects';
 
 import Image from 'next/image';
 import { AccessibilityMenu } from './AccessibilityMenu';
@@ -41,10 +39,6 @@ const PersonalWebsite = ({ galleryImages }: PersonalWebsiteProps) => {
   
   const [activeSlide, setActiveSlide] = useState(0);
   const [isVisible, setIsVisible] = useState(false);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [password, setPassword] = useState('');
-  const [activeLink, setActiveLink] = useState('');
-  const [error, setError] = useState('');
   const [shuffledImages, setShuffledImages] = useState<string[]>([]);
   const [fullscreenImage, setFullscreenImage] = useState<string | null>(null);
   const [cookieId, setCookieId] = useState('');
@@ -57,8 +51,6 @@ const PersonalWebsite = ({ galleryImages }: PersonalWebsiteProps) => {
   const [isOrdinalFrameModalOpen, setIsOrdinalFrameModalOpen] = useState(false);
   const [isAmberModalOpen, setAmberModalOpen] = useState(false);
   const [isHinkieBotModalOpen, setIsHinkieBotModalOpen] = useState(false);
-  const [selectedProject, setSelectedProject] = useState<Project | null>(null);
-  const [isProjectModalOpen, setIsProjectModalOpen] = useState(false);
 
   // Helper function to update URL
   const updateURL = (section: string | null) => {
@@ -94,9 +86,21 @@ const PersonalWebsite = ({ galleryImages }: PersonalWebsiteProps) => {
         case 'ordinal':
           setIsOrdinalFrameModalOpen(true);
           break;
+        default: {
+          // Legacy project modal deep links (?section=project-title) now live
+          // on dedicated feature pages
+          const project = projects.find(
+            (p) =>
+              p.slug === section ||
+              p.title.toLowerCase().replace(/\s+/g, '-') === section
+          );
+          if (project) {
+            router.replace(`/projects/${project.slug}`);
+          }
+        }
       }
     }
-  }, [searchParams]);
+  }, [searchParams, router]);
 
   // First useEffect for maintenance mode
   useEffect(() => {
@@ -216,68 +220,6 @@ const PersonalWebsite = ({ galleryImages }: PersonalWebsiteProps) => {
     };
   }, [cookieId, pageLoadTime]);
 
-  const handlePasswordSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (password === process.env.NEXT_PUBLIC_PROJECTS_PASSWORD) {
-      setIsModalOpen(false);
-      setPassword('');
-      setError('');
-      window.open(activeLink, '_blank');
-    } else {
-      setError('Incorrect password');
-    }
-  };
-
-  const handleProjectClick = (
-    e: React.MouseEvent,
-    project: typeof projects[number]
-  ) => {
-    e.preventDefault();
-
-    // Handle password-protected projects
-    if (project.requiresPassword) {
-      setActiveLink(project.link || '');
-      setIsModalOpen(true);
-      setError('');
-      setPassword('');
-      return;
-    }
-
-    // Handle special modals
-    if (project.triggerAmberModal) {
-      setAmberModalOpen(true);
-      updateURL('amber');
-      return;
-    }
-
-    // New unified modal system - prioritize modalContent OR isLive: false
-    if (project.modalContent || project.isLive === false) {
-      setSelectedProject(project);
-      setIsProjectModalOpen(true);
-      updateURL(project.title.toLowerCase().replace(/\s+/g, '-'));
-      trackModalOpen(cookieId, project.title);
-      return;
-    }
-
-    // Legacy modals (will be migrated eventually)
-    if (project.triggerOrdinalFrameModal) {
-      setIsOrdinalFrameModalOpen(true);
-      updateURL('ordinal');
-      return;
-    }
-
-    if (project.triggerHinkieBotModal) {
-      setIsHinkieBotModalOpen(true);
-      updateURL('hinkie');
-      return;
-    }
-
-    // Default: open link in new tab
-    if (project.link) {
-      window.open(project.link, '_blank');
-    }
-  };
-
   return (
     <div className="min-h-screen bg-white dark:bg-gray-900 transition-colors" style={{
         backgroundColor: settings.theme === 'amber' ? 'var(--bg-primary)' : ''
@@ -292,19 +234,6 @@ const PersonalWebsite = ({ galleryImages }: PersonalWebsiteProps) => {
             updateURL(null);
           }}
         />
-
-        {/* New Unified Project Modal */}
-        {selectedProject && (
-          <ProjectModal
-            isOpen={isProjectModalOpen}
-            onClose={() => {
-              setIsProjectModalOpen(false);
-              setSelectedProject(null);
-              updateURL(null);
-            }}
-            project={selectedProject}
-          />
-        )}
 
         <OrdinalFrameModal
           isOpen={isOrdinalFrameModalOpen}
@@ -357,7 +286,6 @@ const PersonalWebsite = ({ galleryImages }: PersonalWebsiteProps) => {
             activeSlide={activeSlide}
             isVisible={isVisible}
             handleImageClick={handleImageClick}
-            handleProjectClick={handleProjectClick}
             trackLinkClick={trackLinkClick}
             trackModalOpen={trackModalOpen}
             setResumeModalOpen={setResumeModalOpen}
@@ -526,43 +454,6 @@ const PersonalWebsite = ({ galleryImages }: PersonalWebsiteProps) => {
         </div>
         )}
 
-      {/* Password Modal */}
-      {isModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-sm w-full mx-4">
-            <h3 className="text-lg font-semibold mb-4 dark:text-white">Enter Password</h3>
-            <form onSubmit={handlePasswordSubmit}>
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white mb-2"
-                placeholder="Password"
-              />
-              {error && <p className="text-red-500 text-sm mb-2">{error}</p>}
-              <div className="flex justify-end gap-2">
-                <button
-                  type="button"
-                  onClick={() => setIsModalOpen(false)}
-                  className="px-4 py-2 text-gray-600 hover:text-gray-800 dark:text-gray-300 dark:hover:text-gray-200"
-                >
-                  Cancel
-                </button>
-                <button
-                    type="submit"
-                    className={`px-4 py-2 ${
-                      settings.theme === 'amber'
-                        ? 'bg-amber-600 hover:bg-amber-700'
-                        : 'bg-blue-600 hover:bg-blue-700'
-                    } text-white rounded`}
-                  >
-                    Submit
-                  </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
     </div>
   );
 };

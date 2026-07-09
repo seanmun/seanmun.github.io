@@ -30,6 +30,7 @@ export interface ProjectModalContent {
 
 export interface Project {
   title: string;
+  slug: string; // URL segment for the project feature page: /projects/[slug]
   description: string;
   iconName: string;
   link: string;
@@ -47,6 +48,7 @@ export interface Project {
 export const projects: Project[] = [
   {
     title: "Kinetic.email",
+    slug: "kinetic-email",
     description: "An open-source platform for interactive kinetic HTML emails that push the boundaries of traditional email design. Features an AI Playground powered by Claude API with a custom RAG system that encodes my expertise as a kinetic email developer into a vector database, allowing users to generate production-ready code based on proven techniques through natural language prompts. Includes comprehensive learning modules with progress tracking, a custom CRM admin portal, and role-based authentication.",
     iconName: "Zap",
     link: "https://www.kinetic.email/",
@@ -57,6 +59,7 @@ export const projects: Project[] = [
   },
   {
     title: "Money Never Sleeps",
+    slug: "money-never-sleeps",
     description: "A sophisticated fantasy basketball dynasty league platform that brings real NBA salary cap management to fantasy sports. Navigate actual NBA cap rules with apron thresholds, manage keeper contracts with advancing rounds, and make strategic financial decisions with real monetary consequences. Track live blockchain investments where penalties and fees fuel a prize pool—sweat your matchups and your portfolio, because money never sleeps.",
     iconName: "DollarSign",
     link: "https://mns-dusky.vercel.app/",
@@ -136,6 +139,7 @@ export const projects: Project[] = [
   },
   {
     title: "To Posterity",
+    slug: "to-posterity",
     description: "A voice-first legacy platform that turns spoken stories into polished memoirs, podcast audio, and structured metadata — with zero writing required. The name is drawn from Petrarch's 1350 letter Ad Posteros, and every recording is framed as a sealed letter to readers centuries from now. An end-to-end AI pipeline handles transcription (Deepgram), narrative enhancement (Claude), and narration with optional voice cloning (ElevenLabs). Designed around the \"Bumper Test\" for older adults — radical simplicity, zero tech skills required.",
     iconName: "Mic",
     link: "https://toposterity.ai",
@@ -146,6 +150,7 @@ export const projects: Project[] = [
   },
   {
     title: "Buddy Cup",
+    slug: "buddy-cup",
     description: "A multi-tenant Ryder-Cup-style platform that brings real match-play scoring to the buddy golf trip. Navigate actual match-play math with handicap strokes auto-allocated by stroke index, dormie tracking, and closeouts (3&2, 4&3) computed the moment the deciding hole posts. Manage your entire trip from one phone — courses, players, tee times, matchups, even the welcome dinner. Snap a scorecard photo and AI reads par and stroke index for all 18 holes. The team feed runs hot with score posts, trash talk, and photos, while team and individual leaderboards update the second a putt drops. Defend the cup.",
     iconName: "LandPlot",
     link: "https://www.buddycup.golf/",
@@ -156,6 +161,7 @@ export const projects: Project[] = [
   },
   {
     title: "Rocket Pool Tour",
+    slug: "rocket-pool-tour",
     description: "A website for the Rocket Pool Tour — a next-generation professional billiards league founded by World Champion Rodney 'Rocket' Morris. The RPT introduces Rocket Run-Out©, a fast-paced, offense-driven game format that brings a modern, data-rich approach to a classic sport. The site pairs a back-end CRM for investor relations with a front-end marketing and educational hub for the league and its upcoming events. Expected launch Q2 2026.",
     iconName: "Rocket",
     link: "https://therocketpooltour.com/",
@@ -166,6 +172,7 @@ export const projects: Project[] = [
   },
   {
     title: "Amber Mode",
+    slug: "amber-mode",
     description: "Amber Mode is a custom screen theme designed to reduce blue light exposure and support healthy circadian rhythms. By shifting to warm amber tones, it minimizes melatonin disruption during evening use while maintaining readability and visual comfort. Try it yourself using the accessibility settings menu above!",
     iconName: "Sun",
     link: "",
@@ -177,6 +184,7 @@ export const projects: Project[] = [
   },
   {
     title: "OrdinalFrame",
+    slug: "ordinalframe",
     description: "Bitcoin Ordinals deserve better than a browser tab. OrdinalFrame turns a Raspberry Pi and Waveshare touchscreen into a living art display that showcases your Ordinals directly from the blockchain. The custom hardware pulls inscriptions in real-time with no screenshots or compromises, all wrapped in a custom gold frame.",
     iconName: "Box",
     link: "https://github.com/seanmun/ordinalframe",
@@ -246,6 +254,7 @@ export const projects: Project[] = [
   },
   {
     title: "RumbleRaffle.com",
+    slug: "rumbleraffle",
     description: "RumbleRaffle.com lets friends create Royal Rumble gaming leagues with randomly assigned entrant numbers and real-time elimination tracking. Features automated number distribution and a live event tracker for an authentic WWE Royal Rumble experience where the last man standing wins.",
     iconName: "Medal",
     link: "https://www.rumbleraffle.com/",
@@ -256,6 +265,7 @@ export const projects: Project[] = [
   },
   {
     title: "Human-Diet.com",
+    slug: "human-diet",
     description: "Explore 300,000 years of human dietary evolution through an interactive horizontal scroll where each pixel represents one year, showcasing the transition from natural diets to modern preservative-laden and seed oil-rich foods.",
     iconName: "Beef",
     link: "https://www.human-diet.com/",
@@ -266,6 +276,7 @@ export const projects: Project[] = [
   },
   {
     title: "TrustThePick.com",
+    slug: "trustthepick",
     description: "Trust The Pick is a secure NBA-style lottery simulator for fantasy sports leagues that uses a multi-verification system to ensure fairness and transparency. It recreates the excitement of the official NBA draft lottery with animated ball drawings, while giving league commissioners confidence through downloadable combination assignments and verifiable results.",
     iconName: "Key",
     link: "https://trustthepick.com/",
@@ -276,6 +287,7 @@ export const projects: Project[] = [
   },
   {
     title: "DraftDayTrades.com",
+    slug: "draftdaytrades",
     description: "Draft Day Trades lets sports fans create confidence-based draft prediction pools for NFL, NBA, WNBA, NHL, and MLB drafts. Users predict which players will be drafted at each position and assign strategic confidence points to their picks. The platform features real-time leaderboards and scoring during draft night, creating a competitive experience for friends to enjoy together.",
     iconName: "Trophy",
     link: "https://draftdaytrades.com/",
@@ -286,6 +298,7 @@ export const projects: Project[] = [
   },
   {
     title: "Fantasy League Bot",
+    slug: "fantasy-league-bot",
     description: "The @Sam_Hinkie_bot serves as a league information hub and interactive companion for my fantasy basketball league. Built with Python and deployed on Railway, this bot interfaces with Telegram's API to handle commands, mentions, and provide responses to league members.",
     iconName: "Bot",
     link: "https://github.com/seanmun",
@@ -351,6 +364,7 @@ export const projects: Project[] = [
   },
   {
     title: "A.I.bert Bot",
+    slug: "aibert-bot",
     description: "A.I.bert is a AI-powered personal data assistant. Used to log sleep, diet, activity, mood, and physical features in a simple Telegram chat, while A.I.bert analyzes trends to help optimize my health and routines.",
     iconName: "Activity",
     link: "https://github.com/seanmun",
@@ -361,6 +375,7 @@ export const projects: Project[] = [
   },
   {
     title: "Cross-Chain Portfolio Tracker",
+    slug: "cross-chain-portfolio-tracker",
     description: "A privacy-first, real-time dashboard for tracking crypto holdings across Bitcoin, Ethereum, Pulsechain, Base, Solana, and more. Users simply enter their wallet addresses—no sign-in or wallet connection required. The app pulls token balances, NFTs, and Ordinals, then calculates total USD value using decentralized price feeds like Uniswap, 0x, and PulseX.",
     iconName: "Banknote",
     link: "https://github.com/seanmun",

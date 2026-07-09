@@ -451,3 +451,14 @@ button:disabled {
   .seesaw-card { transform: none !important; box-shadow: none !important; }
   .seesaw-sheen { display: none; }
 }
+/* Project feature page — staggered rise-in for content sections */
+@keyframes feature-rise {
+  from { opacity: 0; transform: translateY(24px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.feature-rise {
+  animation: feature-rise 0.55s cubic-bezier(0.22, 1, 0.36, 1) backwards;
+}
+@media (prefers-reduced-motion: reduce) {
+  .feature-rise { animation: none !important; }
+}

@@ -1,5 +1,5 @@
 'use client';
-import React from 'react';
+import React, { useState } from 'react';
 import Image from 'next/image';
 import { Orbitron } from 'next/font/google';
 
@@ -12,48 +12,10 @@ import {
   Linkedin,
   FileText,
   Bot,
-  ShieldCheck,
-  Zap,
-  Trophy,
-  Box,
-  Beef,
-  Activity,
-  Sun,
-  Key,
-  Banknote,
-  Medal,
-  DollarSign,
-  Rocket,
-  Mic,
-  LandPlot
+  ShieldCheck
 } from "lucide-react";
-import { projects } from '@/data/projects';
-import { SeesawCard } from '@/components/ui/SeesawCard';
 import { BandReveal } from '@/components/ui/BandReveal';
-
-// Icon mapping object
-const iconMap = {
-  Zap,
-  Trophy,
-  Box,
-  Beef,
-  Bot,
-  Activity,
-  Sun,
-  Key,
-  Banknote,
-  Medal,
-  DollarSign,
-  Rocket,
-  Mic,
-  LandPlot
-};
-
-// Helper function to render icons
-const renderIcon = (iconName: string) => {
-  const IconComponent = iconMap[iconName as keyof typeof iconMap];
-  return IconComponent ? <IconComponent className="w-12 h-12 text-blue-600" /> : null;
-};
+import { ProjectCardsGrid } from '@/components/ProjectCardsGrid';
 
 interface ModernLayoutProps {
   cookieId: string;
@@ -61,7 +23,6 @@ interface ModernLayoutProps {
   activeSlide: number;
   isVisible: boolean;
   handleImageClick: (image: string) => void;
-  handleProjectClick: (e: React.MouseEvent, project: typeof projects[number]) => void;
   trackLinkClick: (cookieId: string, linkName: string, linkUrl: string) => void;
   trackModalOpen: (cookieId: string, modalName: string) => void;
   setResumeModalOpen: (open: boolean) => void;
@@ -77,7 +38,6 @@ export function ModernLayout({
   activeSlide,
   isVisible,
   handleImageClick,
-  handleProjectClick,
   trackLinkClick,
   trackModalOpen,
   setResumeModalOpen,
@@ -86,10 +46,14 @@ export function ModernLayout({
   setIsPrivacyModalOpen,
   updateURL,
 }: ModernLayoutProps) {
+  // While the project cards tumble off-screen, everything else fades out
+  const [isDeckExiting, setIsDeckExiting] = useState(false);
+  const deckFade = `transition-opacity duration-500 ${isDeckExiting ? 'opacity-0' : 'opacity-100'}`;
+
   return (
     <div className="max-w-4xl mx-auto p-4">
       {/* Bio Section */}
-      <div className="mb-6 spring-active">
+      <div className={`mb-6 spring-active ${deckFade}`}>
         <div className="flex flex-col sm:flex-row gap-4 items-start">
           <div className="relative w-40 h-40 flex-shrink-0 sm:mt-3">
             {/* Animated blobs (ambient halo — visible throughout) */}
@@ -211,53 +175,17 @@ export function ModernLayout({
 
       {/* Projects Section - Two Columns */}
       <div className="mb-8">
-        <h2 className="text-xl font-bold mb-1 dark:text-white">Projects</h2>
-        <p className="text-sm italic text-gray-500 dark:text-gray-400 mb-4 max-w-xl">
-          Apps, agents, bots, and devices I vibe code — sometimes to entertain myself, sometimes to amuse my friends.
-        </p>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          {projects.map((project, index) => (
-            <SeesawCard
-              key={index}
-              className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-            >
-              <div className="flex gap-4 items-start">
-                <div className="flex-shrink-0">
-                  {renderIcon(project.iconName)}
-                </div>
-                <div className="flex-1">
-                  <h3 className="text-lg font-semibold mb-2 dark:text-white">{project.title}</h3>
-                  <p className="text-gray-600 dark:text-gray-300 text-sm mb-2">{project.description}</p>
-
-                  {/* Tech Stack Tags */}
-                  <div className="flex flex-wrap gap-1 mb-2">
-                    {project.techStack.map((tech, techIndex) => (
-                      <span
-                        key={techIndex}
-                        className="px-1.5 py-0.5 rounded text-[11px] font-medium transition-colors tech-tag"
-                      >
-                        {tech}
-                      </span>
-                    ))}
-                  </div>
-
-                  <a
-                    href={project.link}
-                    onClick={(e) => handleProjectClick(e, project)}
-                    className="text-blue-600 hover:text-blue-800 transition-colors text-sm"
-                    aria-label={project.ariaLabel}
-                  >
-                    View Project →
-                  </a>
-                </div>
-              </div>
-            </SeesawCard>
-          ))}
+        <div className={deckFade}>
+          <h2 className="text-xl font-bold mb-1 dark:text-white">Projects</h2>
+          <p className="text-sm italic text-gray-500 dark:text-gray-400 mb-4 max-w-xl">
+            Apps, agents, bots, and devices I vibe code — sometimes to entertain myself, sometimes to amuse my friends.
+          </p>
         </div>
+        <ProjectCardsGrid cookieId={cookieId} onExitingChange={setIsDeckExiting} />
       </div>
 
       {/* Two Column Layout for Gallery and Playlist */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4" style={{minHeight: "0"}}>
+      <div className={`grid grid-cols-1 sm:grid-cols-2 gap-4 ${deckFade}`} style={{minHeight: "0"}}>
         {/* Gallery Column */}
         <div>
           <h2 className="text-xl font-bold mb-4 dark:text-white">Mood</h2>
@@ -320,7 +248,7 @@ export function ModernLayout({
         </div>
       </div>
 
-      <footer className="border-t border-gray-100 dark:border-gray-800 py-6 mt-8">
+      <footer className={`border-t border-gray-100 dark:border-gray-800 py-6 mt-8 ${deckFade}`}>
         <div className="max-w-4xl mx-auto px-4">
           <div className="flex flex-col md:flex-row justify-between items-center gap-4">
             <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300">
