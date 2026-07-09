@@ -55,7 +55,38 @@ export const projects: Project[] = [
     ariaLabel: "View Kinetic.email website",
     requiresPassword: false,
     status: "Prod",
-    techStack: ["React", "TypeScript", "Vite", "Tailwind CSS", "Supabase", "Claude API", "OpenAI API", "Pinecone", "Resend", "Vercel"]
+    techStack: ["React", "TypeScript", "Vite", "Tailwind CSS", "Supabase", "Claude API", "OpenAI API", "Pinecone", "Resend", "Vercel"],
+    modalContent: {
+      overview: "Kinetic.email's AI Playground uses a Retrieval-Augmented Generation (RAG) system to generate production-ready kinetic emails. Instead of relying solely on AI training data, it retrieves proven examples from a curated knowledge base and uses them as reference for generating new emails — so every generated email follows best practices, uses proper HTML email structure, and implements working lightswitch fallbacks for maximum compatibility.",
+      keyFeatures: [
+        "RAG pipeline grounded in proven kinetic email examples rather than raw model knowledge",
+        "Hybrid search in Pinecone combining semantic similarity with metadata filters (technique, complexity, email purpose), gated by a 70% similarity threshold",
+        "Dual-index architecture: every example is embedded with both OpenAI embedding models (text-embedding-3-small and -large) in parallel Pinecone indexes, enabling production A/B testing without re-indexing the knowledge base",
+        "Generation instructed to copy the checkbox hack, :checked selector patterns, lightswitch fallbacks, and MSO conditional structure exactly from retrieved examples",
+        "AI auto-tagging in the admin portal: uploaded examples get suggested descriptions, technique types, purpose, complexity, and best-practice tags automatically",
+        "Negative examples (anti-patterns) are stored but excluded from retrieval — the system learns what NOT to do without polluting generation",
+        "Literal merge-tag placeholders ({{UUID}}, {{SEND_ID}}, {{EMAIL_NAME}}, and more) emitted by the model and substituted server-side at save and send time",
+        "Knowledge base growth improves generation quality continuously, with no retraining required"
+      ],
+      technicalDetails: "Generation runs on Anthropic Claude Sonnet 4.6 with Claude Haiku 4.5 handling fast paths. Prompts are embedded with OpenAI's text-embedding-3-small (1,536 dimensions, fast and cost-effective) and text-embedding-3-large (3,072 dimensions, higher semantic accuracy), stored in parallel Pinecone indexes queried with cosine similarity and metadata filtering. The backend runs on Vercel serverless functions with lazy-loaded dependencies and environment-based configuration, alongside a React/Vite/Tailwind front end with Supabase-backed auth and role-based access.",
+      specialSections: [
+        {
+          title: "How a prompt becomes an email",
+          content: "1) Your prompt is converted into a vector embedding. 2) Pinecone hybrid search retrieves the top 10 most semantically similar positive examples above the similarity threshold. 3) Retrieved examples are assembled into a rich context block — full working HTML plus critical pattern instructions. 4) Claude generates pure HTML using those examples as the primary reference for structure and patterns, adapted to your specific request.",
+          highlightColor: "blue"
+        }
+      ],
+      callToAction: {
+        primary: {
+          label: "Try the AI Playground",
+          url: "https://www.kinetic.email/"
+        },
+        secondary: {
+          label: "Get in touch",
+          url: "mailto:sean.munley@protonmail.com"
+        }
+      }
+    }
   },
   {
     title: "Money Never Sleeps",
