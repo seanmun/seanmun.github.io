@@ -6,10 +6,7 @@ import { Resend } from 'resend';
 
 const MAX_LENGTHS = { name: 100, email: 200, projectType: 50, message: 5000 };
 
-// Resend testing mode only delivers to the account owner's address. To route
-// inquiries elsewhere (e.g. protonmail), verify seanmun.com at
-// resend.com/domains and switch `from` to that domain.
-const INQUIRY_RECIPIENT = 'smunley13@gmail.com';
+const INQUIRY_RECIPIENT = 'sean.munley@protonmail.com';
 
 export async function POST(request: Request) {
   let body: Record<string, unknown>;
@@ -49,8 +46,7 @@ export async function POST(request: Request) {
   try {
     const resend = new Resend(process.env.RESEND_API_KEY);
     const { error } = await resend.emails.send({
-      // Swap for a verified seanmun.com sender once the domain is set up in Resend
-      from: 'Portfolio Inquiry <onboarding@resend.dev>',
+      from: 'Portfolio Inquiry <inquiries@seanmun.com>',
       to: INQUIRY_RECIPIENT,
       replyTo: email,
       subject: `New project inquiry from ${name}${projectType ? ` — ${projectType}` : ''}`,
