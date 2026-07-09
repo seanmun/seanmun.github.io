@@ -2,12 +2,12 @@ import type { Metadata } from 'next'
 import './globals.css'
 
 export const metadata: Metadata = {
-  title: 'Sean Munley | CRM Strategist',
-  description: 'Digital marketing strategist and developer, specializing in CRM and marketing performance optimization through improvements to devops, data management, testing, and reporting insights.',
+  title: 'Sean Munley | Product Builder & AI Consultant',
+  description: 'I turn wild ideas into working products — sites, apps, AI systems, and devices. A decade of enterprise CRM and martech expertise, available for consulting and builds.',
   metadataBase: new URL('https://seanmun.com'),
   openGraph: {
-    title: 'Sean Munley | CRM Strategist',
-    description: 'Digital marketing strategist and developer, specializing in CRM and marketing performance optimization',
+    title: 'Sean Munley | Product Builder & AI Consultant',
+    description: 'I turn wild ideas into working products — sites, apps, AI systems, and devices. Available for consulting and builds.',
     url: 'https://seanmun.com',
     siteName: 'Sean Munley',
     images: [
@@ -23,8 +23,8 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Sean Munley | CRM Strategist',
-    description: 'Digital marketing strategist and developer',
+    title: 'Sean Munley | Product Builder & AI Consultant',
+    description: 'I turn wild ideas into working products — sites, apps, AI systems, and devices.',
     images: ['/profile/smunley2019.png'],
   },
   robots: {
@@ -38,7 +38,7 @@ export const metadata: Metadata = {
       'max-snippet': -1,
     },
   },
-  keywords: ['CRM Strategy', 'Digital Marketing', 'Marketing Automation', 'Email Marketing', 'Marketing Technology', 'DevOps', 'Data Management', 'Performance Optimization', 'Kinetic Email', 'AMP4Email', 'SFMC', 'Salesforce Marketing Cloud', 
+  keywords: ['AI Consulting', 'Product Development', 'MVP Development', 'AI Integration', 'RAG Systems', 'CRM Strategy', 'Digital Marketing', 'Marketing Automation', 'Email Marketing', 'Marketing Technology', 'DevOps', 'Data Management', 'Performance Optimization', 'Kinetic Email', 'AMP4Email', 'SFMC', 'Salesforce Marketing Cloud',
     'Salesforce Trailblazer', 'Eloqua', 'Iterable', 'Sean Munley', '@Seanmun', "Email AI"
   ],
   authors: [{ name: 'Sean Munley' }],

@@ -1,5 +1,5 @@
 'use client';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
 import { Orbitron } from 'next/font/google';
 
@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { BandReveal } from '@/components/ui/BandReveal';
 import { ProjectCardsGrid } from '@/components/ProjectCardsGrid';
+import { WorkWithMe } from '@/components/WorkWithMe';
 
 interface ModernLayoutProps {
   cookieId: string;
@@ -49,6 +50,23 @@ export function ModernLayout({
   // While the project cards tumble off-screen, everything else fades out
   const [isDeckExiting, setIsDeckExiting] = useState(false);
   const deckFade = `transition-opacity duration-500 ${isDeckExiting ? 'opacity-0' : 'opacity-100'}`;
+
+  // Content mounts client-side, so anchor deep links (e.g. /#work-with-me
+  // from a project feature page) need a manual scroll once we're rendered
+  useEffect(() => {
+    const hash = window.location.hash;
+    if (hash === '#work-with-me' || hash === '#projects') {
+      const timer = setTimeout(() => {
+        document.querySelector(hash)?.scrollIntoView({ behavior: 'smooth' });
+      }, 150);
+      return () => clearTimeout(timer);
+    }
+  }, []);
+
+  const scrollTo = (e: React.MouseEvent, id: string) => {
+    e.preventDefault();
+    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
+  };
 
   return (
     <div className="max-w-4xl mx-auto p-4">
@@ -97,12 +115,34 @@ export function ModernLayout({
             </h1>
 
             <p className="hero-spring-3 text-xs uppercase tracking-[0.18em] text-gray-500 dark:text-gray-400 mb-3">
-              CRM strategist · developer · marketer
+              product builder · AI systems · CRM &amp; martech
+            </p>
+
+            <p className="hero-spring-4 text-xl font-semibold leading-snug text-gray-900 dark:text-white mb-2 max-w-xl">
+              I turn wild ideas into working products.
             </p>
 
             <p className="hero-spring-4 text-base leading-relaxed text-gray-700 dark:text-gray-300 mb-4 max-w-xl">
-              Decade-plus designing data-driven CRM systems, interactive email experiences, and AI-driven solutions for enterprise marketing teams.
+              Sites, apps, AI systems, and devices — a decade of enterprise CRM discipline, now pointed at anything you can imagine.
             </p>
+
+            <div className="hero-spring-4 flex flex-wrap gap-3 mb-5">
+              <a
+                href="#work-with-me"
+                onClick={(e) => scrollTo(e, 'work-with-me')}
+                style={{ backgroundColor: 'var(--accent)', color: 'white' }}
+                className="px-5 py-2.5 rounded-lg font-medium hover:opacity-90 transition-opacity"
+              >
+                Work with me
+              </a>
+              <a
+                href="#projects"
+                onClick={(e) => scrollTo(e, 'projects')}
+                className="px-5 py-2.5 rounded-lg font-medium border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+              >
+                See projects
+              </a>
+            </div>
 
             {/* Navigation Icons */}
             <nav className="hero-spring-5 flex gap-2 items-start">
@@ -173,12 +213,17 @@ export function ModernLayout({
         </div>
       </div>
 
+      {/* Work With Me Section */}
+      <div className={deckFade}>
+        <WorkWithMe />
+      </div>
+
       {/* Projects Section - Two Columns */}
-      <div className="mb-8">
+      <div id="projects" className="mb-8 scroll-mt-6">
         <div className={deckFade}>
           <h2 className="text-xl font-bold mb-1 dark:text-white">Projects</h2>
           <p className="text-sm italic text-gray-500 dark:text-gray-400 mb-4 max-w-xl">
-            Apps, agents, bots, and devices I vibe code — sometimes to entertain myself, sometimes to amuse my friends.
+            Apps, agents, bots, and devices I&apos;ve designed and shipped end-to-end — proof that no idea is too weird to build.
           </p>
         </div>
         <ProjectCardsGrid cookieId={cookieId} onExitingChange={setIsDeckExiting} />

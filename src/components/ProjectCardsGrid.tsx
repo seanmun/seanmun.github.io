@@ -2,8 +2,8 @@
 // File: src/components/ProjectCardsGrid.tsx
 // Purpose: Project card grid with "deck drop" exit choreography.
 // Clicking a card lifts it while the rest tumble off-screen like a dropped
-// deck, then navigates to the project's feature page where the lifted card
-// morphs into the hero. Returning home deals the cards back in.
+// deck, then the frosted card expands to the feature-page hero position
+// before navigating. Returning home deals the cards back in.
 
 import React, { useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';

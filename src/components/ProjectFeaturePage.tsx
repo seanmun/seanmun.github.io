@@ -6,6 +6,7 @@
 
 import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import Image from 'next/image';
 import { ArrowLeft, ChevronLeft, ChevronRight, ExternalLink, X } from 'lucide-react';
 import { Project, statusConfig } from '@/data/projects';
@@ -468,8 +469,28 @@ export function ProjectFeaturePage({ project }: ProjectFeaturePageProps) {
 
         {/* Bottom CTA */}
         <div {...rise()}>
-          <div className="border-t border-gray-100 dark:border-gray-800 pt-8 pb-12">
+          <div className="border-t border-gray-100 dark:border-gray-800 pt-8 pb-8">
             {ctaButtons}
+          </div>
+        </div>
+
+        {/* Hire CTA */}
+        <div {...rise()}>
+          <div className="p-6 sm:p-8 bg-gray-50 dark:bg-gray-800 rounded-lg mb-12">
+            <h2 className="text-xl font-bold mb-2 dark:text-white">
+              Want something like this built?
+            </h2>
+            <p className="text-gray-600 dark:text-gray-300 mb-4 max-w-xl">
+              I take on client work — sites, apps, AI systems, and devices.
+              Tell me what you&apos;re imagining and I&apos;ll tell you how I&apos;d build it.
+            </p>
+            <Link
+              href="/#work-with-me"
+              style={{ backgroundColor: 'var(--accent)', color: 'white' }}
+              className="inline-block px-6 py-3 rounded-lg font-medium hover:opacity-90 transition-opacity"
+            >
+              Work with me →
+            </Link>
           </div>
         </div>
       </div>
