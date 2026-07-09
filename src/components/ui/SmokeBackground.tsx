@@ -8,8 +8,9 @@
 // Amber mode uses warm tones only — no blue light.
 //
 // Requires WebGL2 + EXT_color_buffer_float; renders nothing without them.
-// Static haze under prefers-reduced-motion; pauses when the tab is hidden;
-// resolution scales down on small screens.
+// Static haze under prefers-reduced-motion; pauses when the tab is hidden.
+// Disabled entirely on mobile (coarse pointer or narrow screen): there's no
+// cursor to stir it and the sim is too heavy for phones.
 
 import React, { useEffect, useRef } from 'react';
 
@@ -249,6 +250,9 @@ export function SmokeBackground() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
+    // No smoke on mobile: no cursor to stir it, and the sim is too slow there
+    if (window.matchMedia('(pointer: coarse)').matches || window.innerWidth < 768) return;
+
     const canvas = canvasRef.current;
     if (!canvas) return;
     const gl = canvas.getContext('webgl2', {
@@ -334,14 +338,11 @@ export function SmokeBackground() {
     let divergence: FBO, curl: FBO;
 
     const dprCap = () => Math.min(window.devicePixelRatio, 2);
-    // Scale the simulation down on small screens
-    const simRes = () => (window.innerWidth < 768 ? 112 : CONFIG.SIM_RES);
-    const dyeRes = () => (window.innerWidth < 768 ? 448 : CONFIG.DYE_RES);
 
     const initBuffers = () => {
       const aspect = canvas.width / canvas.height;
-      const simH = simRes(), simW = Math.max(8, Math.round(simH * aspect));
-      const dyeH = dyeRes(), dyeW = Math.max(8, Math.round(dyeH * aspect));
+      const simH = CONFIG.SIM_RES, simW = Math.max(8, Math.round(simH * aspect));
+      const dyeH = CONFIG.DYE_RES, dyeW = Math.max(8, Math.round(dyeH * aspect));
       velocity = createDoubleFBO(simW, simH, gl.RG16F, gl.RG);
       pressure = createDoubleFBO(simW, simH, gl.R16F, gl.RED);
       divergence = createFBO(simW, simH, gl.R16F, gl.RED);
