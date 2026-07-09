@@ -22,6 +22,7 @@ import { AIModal } from './modals/AIModal';
 
 import Image from 'next/image';
 import { AccessibilityMenu } from './AccessibilityMenu';
+import { SmokeBackground } from './ui/SmokeBackground';
 
 const shuffleArray = (array: string[]) => {
   let currentIndex = array.length, randomIndex;
@@ -224,6 +225,8 @@ const PersonalWebsite = ({ galleryImages }: PersonalWebsiteProps) => {
     <div className="min-h-screen bg-white dark:bg-gray-900 transition-colors" style={{
         backgroundColor: settings.theme === 'amber' ? 'var(--bg-primary)' : ''
       }}>
+        {/* Ambient smoke background: GPU fluid sim stirred by the cursor */}
+        <SmokeBackground />
         <AccessibilityMenu />
 
         {/* Amber Mode Modal */}

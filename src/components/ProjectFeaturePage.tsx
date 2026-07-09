@@ -11,6 +11,7 @@ import Image from 'next/image';
 import { ArrowLeft, ChevronLeft, ChevronRight, ExternalLink, X } from 'lucide-react';
 import { Project, statusConfig } from '@/data/projects';
 import { ProjectIcon } from '@/components/ui/ProjectIcon';
+import { SmokeBackground } from '@/components/ui/SmokeBackground';
 import { HERO_FLIP_KEY, DEAL_IN_KEY } from '@/components/ProjectCardsGrid';
 
 interface ProjectFeaturePageProps {
@@ -236,7 +237,9 @@ export function ProjectFeaturePage({ project }: ProjectFeaturePageProps) {
 
   return (
     <div className="min-h-screen bg-white dark:bg-gray-900 transition-colors">
-      <div className="max-w-4xl mx-auto p-4">
+      {/* Ambient smoke background: GPU fluid sim stirred by the cursor */}
+      <SmokeBackground />
+      <div className="relative max-w-4xl mx-auto p-4">
         {/* Back to all projects */}
         <button
           onClick={goHome}
