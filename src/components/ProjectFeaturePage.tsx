@@ -254,7 +254,7 @@ export function ProjectFeaturePage({ project }: ProjectFeaturePageProps) {
         {/* Hero — the frosted card expands into this, then bursts clear */}
         <div
           ref={heroRef}
-          className="relative p-6 sm:p-8 bg-gray-50 dark:bg-gray-800 rounded-lg mb-8"
+          className="relative p-6 sm:p-8 bg-gray-50 dark:bg-gray-800 rounded-lg mb-8 shadow dark:shadow-gray-950/50"
         >
           {/* Burst glow ring — animated at the moment the blur clears */}
           <div
@@ -321,6 +321,10 @@ export function ProjectFeaturePage({ project }: ProjectFeaturePageProps) {
           </div>
         </div>
 
+        {/* Content card — everything below the hero lives on one card */}
+        <div {...rise()}>
+        <div className="p-6 sm:p-8 bg-gray-50 dark:bg-gray-800 rounded-lg mb-8 shadow dark:shadow-gray-950/50">
+
         {/* Overview */}
         <div {...rise()}>
           <p className="text-lg leading-relaxed text-gray-700 dark:text-gray-300 mb-8">
@@ -331,7 +335,7 @@ export function ProjectFeaturePage({ project }: ProjectFeaturePageProps) {
         {/* Image carousel */}
         {images.length > 0 && (
           <div {...rise()}>
-            <div className="relative bg-gray-50 dark:bg-gray-800 rounded-lg overflow-hidden mb-8">
+            <div className="relative bg-white dark:bg-gray-900 rounded-lg overflow-hidden mb-8">
               <div
                 className="relative h-64 md:h-[28rem] cursor-pointer"
                 onClick={() => setFullscreenImage(images[currentImageIndex].src)}
@@ -472,14 +476,18 @@ export function ProjectFeaturePage({ project }: ProjectFeaturePageProps) {
 
         {/* Bottom CTA */}
         <div {...rise()}>
-          <div className="border-t border-gray-100 dark:border-gray-800 pt-8 pb-8">
+          <div className="border-t border-gray-200 dark:border-gray-700 pt-6">
             {ctaButtons}
           </div>
         </div>
 
+        </div>
+        </div>
+        {/* End content card */}
+
         {/* Hire CTA */}
         <div {...rise()}>
-          <div className="p-6 sm:p-8 bg-gray-50 dark:bg-gray-800 rounded-lg mb-12">
+          <div className="p-6 sm:p-8 bg-gray-50 dark:bg-gray-800 rounded-lg mb-12 shadow dark:shadow-gray-950/50">
             <h2 className="text-xl font-bold mb-2 dark:text-white">
               Want something like this built?
             </h2>

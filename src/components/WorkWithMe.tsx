@@ -112,7 +112,7 @@ export function WorkWithMe() {
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div
           ref={cardRef}
-          className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg h-full flex flex-col"
+          className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg h-full flex flex-col shadow dark:shadow-gray-950/50"
           onMouseEnter={() => setIsPaused(true)}
           onMouseLeave={() => setIsPaused(false)}
           onFocus={() => setIsPaused(true)}
@@ -144,7 +144,7 @@ export function WorkWithMe() {
           </div>
         </div>
 
-        <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg h-full flex flex-col">
+        <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg h-full flex flex-col shadow dark:shadow-gray-950/50">
           <h3 className="font-semibold mb-1 dark:text-white">
             Tell me what you&apos;re imagining
           </h3>
@@ -174,7 +174,7 @@ export function WorkWithMe() {
         }`}
       >
         <div className="overflow-hidden">
-          <div className="p-4 sm:p-6 bg-gray-50 dark:bg-gray-800 rounded-lg">
+          <div className="p-4 sm:p-6 bg-gray-50 dark:bg-gray-800 rounded-lg shadow dark:shadow-gray-950/50 mb-1">
             <ContactForm />
           </div>
         </div>

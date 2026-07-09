@@ -204,7 +204,7 @@ export function ProjectCardsGrid({ cookieId, onExitingChange }: ProjectCardsGrid
           className="relative cursor-pointer"
           onClick={(e) => handleCardClick(e, project, index)}
         >
-          <SeesawCard className="h-full p-4 bg-gray-50 dark:bg-gray-800 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+          <SeesawCard className="h-full p-4 bg-gray-50 dark:bg-gray-800 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors shadow dark:shadow-gray-950/50">
             <div className="flex gap-4 items-start">
               <div className="flex-shrink-0">
                 <ProjectIcon iconName={project.iconName} />

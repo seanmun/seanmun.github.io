@@ -448,7 +448,8 @@ button:disabled {
   --seesaw-sheen-color: rgba(255, 255, 255, 0.18);
 }
 @media (prefers-reduced-motion: reduce) {
-  .seesaw-card { transform: none !important; box-shadow: none !important; }
+  /* Neutralize the JS tilt only — class-based resting shadows stay */
+  .seesaw-card { transform: none !important; }
   .seesaw-sheen { display: none; }
 }
 /* Project feature page — staggered rise-in for content sections */
