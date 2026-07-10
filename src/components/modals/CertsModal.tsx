@@ -68,6 +68,28 @@ export const CertsModal = ({ isOpen, onClose, settings }: CertsModalProps) => {
                ? 'text-amber-900'
                : 'text-gray-800 dark:text-gray-200'
              }`}>
+             AI / LLM Engineering
+           </h4>
+           <p className="flex flex-wrap gap-2">
+             {[
+               'Anthropic API', 'RAG architecture', 'Embeddings & vector retrieval', 'Prompt engineering', 'Agentic pipelines', 'AI product design'
+             ].map((skill) => (
+               <span
+                 key={skill}
+                 className="px-2 py-1 rounded text-sm tech-tag"
+               >
+                 {skill}
+               </span>
+             ))}
+           </p>
+         </div>
+
+         <div>
+           <h4 className={`text-lg font-medium mb-2
+             ${effectiveTheme === 'amber'
+               ? 'text-amber-900'
+               : 'text-gray-800 dark:text-gray-200'
+             }`}>
              Dev Proficiencies
            </h4>
            <p className="flex flex-wrap gap-2">
@@ -78,6 +100,28 @@ export const CertsModal = ({ isOpen, onClose, settings }: CertsModalProps) => {
                  className="px-2 py-1 rounded text-sm tech-tag"
                >
                  {skill}
+               </span>
+             ))}
+           </p>
+         </div>
+
+         <div>
+           <h4 className={`text-lg font-medium mb-2
+             ${effectiveTheme === 'amber'
+               ? 'text-amber-900'
+               : 'text-gray-800 dark:text-gray-200'
+             }`}>
+             Platforms & Infrastructure
+           </h4>
+           <p className="flex flex-wrap gap-2">
+             {[
+               'Vercel', 'Neon', 'Convex', 'Supabase', 'Clerk'
+             ].map((tool) => (
+               <span
+                 key={tool}
+                 className="px-2 py-1 rounded text-sm tech-tag"
+               >
+                 {tool}
                </span>
              ))}
            </p>
