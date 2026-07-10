@@ -252,7 +252,55 @@ export const projects: Project[] = [
     ariaLabel: "View Buddy Cup website",
     requiresPassword: false,
     status: "MVP",
-    techStack: ["React", "Next.js", "TypeScript", "Drizzle ORM", "Neon Postgres", "Clerk Auth", "Anthropic Claude API", "Tailwind CSS", "Vercel"]
+    techStack: ["Next.js", "TypeScript", "Neon Postgres", "Drizzle ORM", "Clerk Auth", "Claude API", "OpenAI API", "TanStack Query", "Tailwind CSS", "Vercel"],
+    modalContent: {
+      overview: "Run your trip. Crown your champion. Buddy Cup is a multi-tenant Ryder-Cup-style platform that brings real match-play scoring to the buddy golf trip — courses, players, tee times, matchups, live leaderboards, and the surrounding chaos, all managed from one phone.",
+      detailSections: [
+        {
+          heading: "The idea",
+          body: "Every buddy golf trip has the same problem: someone becomes the human spreadsheet. Tee times live in a group text, matchups on a napkin, and nobody can actually score match play with handicaps — so the \"cup\" gets settled by vibes. Buddy Cup replaces all of it. From signed-up to first tee shot in an afternoon: create the trip, invite your buddies, snap your scorecards, schedule your cup, and plan the surrounding chaos — flights, shuttles, dinners, the post-round bar stop — all on one shared, day-by-day timeline next to the golf."
+        },
+        {
+          heading: "Signature features",
+          bullets: [
+            "Real match-play scoring — not stroke-play with a coat of paint. The engine speaks the actual language of the Ryder Cup: DORMIE, AS, 3&2. Handicap strokes are allocated USGA-style against each hole's stroke index, net scores are compared per hole, and closeouts are detected the moment a match becomes mathematically over. Supports singles, 2v2 best ball, two-man aggregate, scramble, and house formats — with multiple handicap methods selectable per match",
+            "AI scorecard reader — adding a course used to mean typing 54+ numbers. Now you photograph the scorecard and Claude's vision model extracts par, stroke index, and per-tee yardage/rating/slope for all 18 holes — with validation that falls back to manual entry rather than ever writing garbage data",
+            "Arcade matchup portraits — players upload a photo and an AI image pipeline returns a 1994-NBA-Jam-digitizer version of them: pixelated, palette-crushed, transparent background, composited onto gold-framed matchup cards with team-color glows, CRT scanlines, and handicap-driven rating bars. Matchup reveals feel like a fight card",
+            "The feed — a team chat built for the trip, not for productivity. Score posts, hole-tagged photos, emoji reactions, and trash talk — auto-moderated by an image-moderation service so admins don't have to babysit",
+            "Live cup scoreboard — broadcast-graphics hierarchy: team total on top (\"8½ – 6½, 6 points left\"), per-match status cards and an individual leaderboard below, updating as holes post",
+            "Lazy-claim roster — the admin seeds every player slot with email, nickname, and handicap; players claim their slot on first login via magic link. The trip is fully operational on day one even if half the group never signs in"
+          ]
+        },
+        {
+          heading: "Build strategy",
+          bullets: [
+            "The scoring engine is a pure-function package: match-play math is the most algorithmically important code in the app, so it lives in its own workspace package with zero database or framework dependencies — inputs in, results out — covered by unit and property-based tests that make exotic formats safe to add",
+            "Multi-tenant data, single-tenant UI: every domain table is trip-scoped from day one, but v1 ships hardcoded for a real 12-man trip. The schema is the cheap insurance, the trip-creation UI is the deferred scope — unlocking \"any group's trip\" is routing and forms, not a rewrite",
+            "Permissions in the application layer: all authorization cascades through one set of helpers — platform admin → trip admin → captain → self — so a permission rule is one function, not a policy scattered across tables",
+            "AI with a safety net: the scorecard reader validates its output and falls back to manual entry, and portrait generation never destroys the source photo. AI accelerates the happy path; it never gatekeeps it",
+            "Polling-first realtime: golf doesn't need millisecond updates. TanStack Query polling keeps the leaderboard live with a fraction of the infrastructure of WebSockets — architecture matched to the actual problem",
+            "Built against a real trip: the whole product is pressure-tested by an actual 12-man, 6-round cup — real handicaps, real tee times, real trash talk. Nothing ships that wouldn't survive contact with 12 opinionated golfers"
+          ]
+        }
+      ],
+      technicalDetails: "Next.js (App Router) with TypeScript and React Server Components — client components only where interactivity demands it. Neon serverless Postgres with Drizzle ORM (schema-as-code as the single source of truth); Clerk magic-link auth with a layered permission model. AI: Anthropic Claude (vision + extended thinking) for scorecard extraction, OpenAI gpt-image-1 for arcade portraits, Sightengine for feed moderation. UI: Tailwind CSS v4, Framer Motion, dnd-kit, and TanStack Query for server state and polling-based live updates. Vercel hosting with Vercel Blob storage, Sharp image processing, and Resend + React Email for delivery.",
+      plannedFeatures: [
+        "Native iOS and Android apps — the scorecard, feed, and live cup standings on true native mobile, with push notifications for match closeouts and dormie alerts",
+        "Apple Watch app — enter hole scores from your wrist mid-round and glance at match status (2 UP, thru 14) without pulling out your phone",
+        "Trip Memoir Engine — every hole-tagged photo, score, and feed post is already structured to fuel AI-generated nightly recaps and a post-trip highlight video (Remotion-based), with narrated audio",
+        "GHIN integration, trophy room, and record book — season-over-season rivalry history"
+      ],
+      callToAction: {
+        primary: {
+          label: "Visit BuddyCup.golf",
+          url: "https://www.buddycup.golf/"
+        },
+        secondary: {
+          label: "Get in touch",
+          url: "mailto:sean.munley@protonmail.com"
+        }
+      }
+    }
   },
   {
     title: "Rocket Pool Tour",
