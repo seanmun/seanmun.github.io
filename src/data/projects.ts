@@ -13,9 +13,19 @@ export interface ProjectCallToAction {
   secondary?: { label: string; url: string };
 }
 
+// A titled block of case-study prose: paragraph(s), optional bullet list,
+// optional closing paragraph after the bullets
+export interface ProjectDetailSection {
+  heading: string;
+  body?: string;
+  bullets?: string[];
+  footer?: string;
+}
+
 export interface ProjectModalContent {
   images?: ProjectImage[];
   overview?: string;
+  detailSections?: ProjectDetailSection[];
   keyFeatures?: string[];
   technicalDetails?: string;
   plannedFeatures?: string[];
@@ -49,33 +59,87 @@ export const projects: Project[] = [
   {
     title: "Kinetic.email",
     slug: "kinetic-email",
-    description: "An open-source platform for interactive kinetic HTML emails that push the boundaries of traditional email design. Features an AI Playground powered by Claude API with a custom RAG system that encodes my expertise as a kinetic email developer into a vector database, allowing users to generate production-ready code based on proven techniques through natural language prompts. Includes comprehensive learning modules with progress tracking, a custom CRM admin portal, and role-based authentication.",
+    description: "AI-powered platform for building interactive emails — learn the techniques, generate production-ready code, and track engagement inside the inbox. Describe an email in plain English and get two parallel production builds (kinetic HTML and AMP4Email) from a staged multi-model Claude pipeline, backed by developer curricula, multi-tenant brand workspaces, and real-time in-email analytics.",
     iconName: "Zap",
     link: "https://www.kinetic.email/",
     ariaLabel: "View Kinetic.email website",
     requiresPassword: false,
     status: "Prod",
-    techStack: ["React", "TypeScript", "Vite", "Tailwind CSS", "Supabase", "Claude API", "OpenAI API", "Pinecone", "Resend", "Vercel"],
+    techStack: ["React", "TypeScript", "Vite", "Tailwind CSS", "Supabase", "Convex", "Claude API", "OpenAI API", "Pinecone", "Mailgun", "Vercel"],
+    // Planned imagery (shoot at 1440px+, GIFs for anything interactive):
+    //  1. Landing page hero with the live interactive demo email mid-action
+    //  2. Playground: prompt on left, iOS Mail simulator preview on right
+    //  3. Same email side-by-side: Kinetic (Apple Mail) vs AMP (Gmail)
+    //  4. Learning module with Monaco editor + live preview
+    //  5. Brand Builder: colors, tone, style-theory picker
+    //  6. Arc campaign canvas with a multi-email flow
+    //  7. Real-time tracking dashboard (GIF: phone tap -> live event)
+    //  8. System architecture diagram (make in Excalidraw/Figma)
+    //  9. Generation pipeline diagram with model annotations
+    // 10. Spritz reader GIF during generation
+    // 11. Station admin: RAG library or token economy config (optional)
     modalContent: {
-      overview: "Kinetic.email's AI Playground uses a Retrieval-Augmented Generation (RAG) system to generate production-ready kinetic emails. Instead of relying solely on AI training data, it retrieves proven examples from a curated knowledge base and uses them as reference for generating new emails — so every generated email follows best practices, uses proper HTML email structure, and implements working lightswitch fallbacks for maximum compatibility.",
-      keyFeatures: [
-        "RAG pipeline grounded in proven kinetic email examples rather than raw model knowledge",
-        "Hybrid search in Pinecone combining semantic similarity with metadata filters (technique, complexity, email purpose), gated by a 70% similarity threshold",
-        "Dual-index architecture: every example is embedded with both OpenAI embedding models (text-embedding-3-small and -large) in parallel Pinecone indexes, enabling production A/B testing without re-indexing the knowledge base",
-        "Generation instructed to copy the checkbox hack, :checked selector patterns, lightswitch fallbacks, and MSO conditional structure exactly from retrieved examples",
-        "AI auto-tagging in the admin portal: uploaded examples get suggested descriptions, technique types, purpose, complexity, and best-practice tags automatically",
-        "Negative examples (anti-patterns) are stored but excluded from retrieval — the system learns what NOT to do without polluting generation",
-        "Literal merge-tag placeholders ({{UUID}}, {{SEND_ID}}, {{EMAIL_NAME}}, and more) emitted by the model and substituted server-side at save and send time",
-        "Knowledge base growth improves generation quality continuously, with no retraining required"
-      ],
-      technicalDetails: "Generation runs on Anthropic Claude Sonnet 4.6 with Claude Haiku 4.5 handling fast paths. Prompts are embedded with OpenAI's text-embedding-3-small (1,536 dimensions, fast and cost-effective) and text-embedding-3-large (3,072 dimensions, higher semantic accuracy), stored in parallel Pinecone indexes queried with cosine similarity and metadata filtering. The backend runs on Vercel serverless functions with lazy-loaded dependencies and environment-based configuration, alongside a React/Vite/Tailwind front end with Supabase-backed auth and role-based access.",
-      specialSections: [
+      overview: "AI-powered platform for building interactive emails — learn the techniques, generate production-ready code, and track engagement inside the inbox. Email is the highest-ROI channel in marketing, but 99% of emails are static brochures. Kinetic.email exists to change that.",
+      detailSections: [
         {
-          title: "How a prompt becomes an email",
-          content: "1) Your prompt is converted into a vector embedding. 2) Pinecone hybrid search retrieves the top 10 most semantically similar positive examples above the similarity threshold. 3) Retrieved examples are assembled into a rich context block — full working HTML plus critical pattern instructions. 4) Claude generates pure HTML using those examples as the primary reference for structure and patterns, adapted to your specific request.",
-          highlightColor: "blue"
+          heading: "The Problem",
+          body: "Interactive (\"kinetic\") email — tabs, carousels, surveys, and carts that work inside the inbox — has existed for a decade, but almost nobody ships it:",
+          bullets: [
+            "It's hard. Interactivity in email relies on CSS :checked hacks and AMP4Email, with a compatibility matrix that varies by client — and zero JavaScript allowed.",
+            "There's no tooling. ESPs don't generate it, templates don't exist for it, and testing it requires sending to a dozen real inboxes.",
+            "Nobody teaches it. The knowledge lives in scattered blog posts and the heads of a few hundred email developers."
+          ],
+          footer: "Kinetic.email solves all three: an education platform that teaches the techniques, an AI generation engine that writes the code, and a workspace where teams manage brands, campaigns, and real engagement analytics."
+        },
+        {
+          heading: "Describe an email → get two production builds",
+          body: "The AI Playground takes a plain-English prompt (or a saved brand profile) and generates two parallel builds of the same email: Kinetic HTML — CSS :checked interactivity for Apple Mail and iOS Mail, with Yahoo/AOL hacks, MSO conditionals, and graceful static fallback for everything else — and AMP4Email, using amp-carousel, amp-form, and amp-bind for dynamic content in Gmail and Yahoo. Both builds share a single design blueprint (palette, typography, spacing, button styles), so the visual experience is identical no matter which client opens it. They ship together as a tri-part MIME bundle — one send, and every inbox gets the best experience it supports."
+        },
+        {
+          heading: "Learn the craft",
+          body: "Six developer modules (the checkbox hack, kinetic lightswitch, tabbed elements, tracking, and more) plus marketing and coding curricula — with in-browser code editors, progress tracking, and badges. The education layer isn't a side feature: it feeds the token economy, and educated users become the platform's advocates."
+        },
+        {
+          heading: "Manage brands and campaigns",
+          body: "Multi-tenant workspaces built for teams:",
+          bullets: [
+            "Brand Builder — colors, fonts, tone, logo, product catalog (manual + CSV/Shopify import), CAN-SPAM details, and one of eight \"style theories\" (editorial-minimal, bold-brutalist, luxe-premium…) that steer how the AI constructs the email, not just what colors it uses",
+            "Projects & Emails — versioned email management with test sends via Mailgun",
+            "Arc — a visual campaign canvas (React Flow) for composing email journeys, shareable with clients via tokenized links",
+            "Brand sharing — invite collaborators with owner/member permissions enforced at the database level"
+          ]
+        },
+        {
+          heading: "Track engagement inside the email",
+          body: "Kinetic emails report interaction without JavaScript: when a :checked selector fires, a CSS background-image tracking pixel loads. AMP versions submit real forms. Both stream into a real-time Convex database — see which tab a subscriber opened, which carousel slide they stopped on, which survey answer they picked, all without a single click-through."
+        },
+        {
+          heading: "The generation pipeline",
+          body: "Email generation is a staged, multi-model pipeline — not a single prompt:",
+          bullets: [
+            "Brief builder (Claude Haiku) turns the user prompt + brand config into a structured brief: audience, copy, component pairings, palette",
+            "Design blueprint (Haiku) emits binding design tokens both builds must obey",
+            "RAG retrieval runs hybrid search over a Pinecone dual-index (1,536- and 3,072-dimension OpenAI embeddings) of proven kinetic/AMP examples and technique write-ups, with technique detection, metadata filtering, and Claude re-ranking to pick the top 7 references",
+            "Parallel generators (Claude Sonnet) produce kinetic HTML and AMP4Email concurrently from the same brief",
+            "Dual QA validators (Haiku) — a 30-check validator for kinetic, 24-check for AMP plus the official amphtml-validator; both must pass",
+            "Curator (Haiku) scores the pair on design, content, interactivity, and uniqueness before approval"
+          ],
+          footer: "The model split is deliberate: Sonnet where code quality matters, Haiku everywhere speed and cost matter. Cheap models validate the expensive model's work."
+        },
+        {
+          heading: "Waiting is a feature",
+          body: "Generation takes a minute-plus, so instead of a spinner, the UI speed-reads the email's copy blueprint back to the user with a Spritz-style RSVP reader (~450 words per minute) while the code generates. Users review the copy in the time it takes Claude to write the code."
+        },
+        {
+          heading: "Engineering details",
+          bullets: [
+            "Multi-tenancy at the database layer: every Supabase table runs Row-Level Security — permissions are Postgres policies, not application code — with SECURITY DEFINER helpers to safely cross tenant boundaries and 100+ numbered SQL migrations tracking the schema's evolution",
+            "Analytics rebuilt from primitives: email clients strip all scripts, so CSS state changes load tracking pixels for kinetic and hidden form fields carry AMP events; everything validates sendId/userId pairs server-side and flags mismatches as suspicious",
+            "Growth loop: a token economy gates AI generation — users earn tokens by signing up, completing courses, and referring friends, so every earn action either educates a user or acquires one; all rewards and costs are tunable live from an admin panel without deploys"
+          ]
         }
       ],
+      technicalDetails: "React 19, TypeScript, Vite, Tailwind, React Flow, and Monaco Editor on the front end; Vercel serverless functions for the API; Claude Sonnet + Haiku for generation and QA with OpenAI embeddings and Pinecone powering RAG; Supabase (Postgres + RLS + OAuth/magic link) for data and auth; Convex for real-time in-email event tracking; Mailgun for tri-part MIME delivery (plain + HTML + AMP). Solo-built: product, design, frontend, backend, prompt engineering, and the database schema.",
       callToAction: {
         primary: {
           label: "Try the AI Playground",
@@ -394,15 +458,58 @@ export const projects: Project[] = [
     }
   },
   {
-    title: "A.I.bert Bot",
+    title: "A.I.bert E.",
     slug: "aibert-bot",
-    description: "A.I.bert is a AI-powered personal data assistant. Used to log sleep, diet, activity, mood, and physical features in a simple Telegram chat, while A.I.bert analyzes trends to help optimize my health and routines.",
+    description: "A self-hosted, AI-native personal health data lake you operate entirely through a text message. Tell A.I.bert about meals, sleep, and moods in plain English — or send selfies, lab PDFs, and smart-ring data — and Claude structures it all into a private time-series on a Raspberry Pi, then answers questions like \"what actually makes me feel worse?\" with evidence.",
     iconName: "Activity",
     link: "https://github.com/seanmun",
-    ariaLabel: "View Telegram bot repo",
+    ariaLabel: "View A.I.bert project details",
     requiresPassword: true,
     status: "MVP",
-    techStack: ["Python", "Venice Token API", "Telegram API", "Railway"]
+    techStack: ["TypeScript", "Node.js", "SQLite", "Drizzle ORM", "grammy", "Claude API", "Oura API", "Bluetooth", "Raspberry Pi"],
+    modalContent: {
+      overview: "A.I.bert E. — powered by LifeLog — is a self-hosted, AI-native personal health data lake you operate entirely through a text message. The point isn't logging: it's answers a spreadsheet could never give you.",
+      detailSections: [
+        {
+          heading: "The idea",
+          body: "Most health apps make you do the work: open the app, tap through forms, pick categories, then hand your most sensitive data to a company that stores, mines, or sells it. I wanted the opposite — a system where I just talk, an AI does the structuring, and every byte lives on hardware I own. So I built A.I.bert, a personal assistant that lives in a Telegram chat. I message it in plain English — \"wore red light glasses before bed,\" \"45 min shoulder workout at gym,\" \"took melatonin and collagen\" — and it turns the mess of daily life into clean, structured, timestamped health data.",
+          footer: "Send a selfie and computer vision tracks facial changes over time. Send a lab PDF and it extracts every biomarker with reference ranges. A smart ring feeds sleep and steps automatically. Then, on demand, it analyzes everything across time to answer the questions I actually care about — like what's driving my episodic facial bloating, treated as a delayed-onset, dose-and-recovery problem rather than a same-day one."
+        },
+        {
+          heading: "How it works",
+          body: "One process runs three subsystems over a single SQLite database:",
+          bullets: [
+            "Ingest — a Telegram bot handles text, photos, and documents: an LLM parses free text into structured entries (food, sleep, mood, routines, environment), a vision model scores selfies for puffiness, skin tone, and appearance trends, and a document model turns bloodwork into a biomarker time-series",
+            "Wearables — automatic ingestion from an Oura ring (OAuth cloud pull with refresh-token rotation) and a COLMi R02 (offline, open-source, Bluetooth — the ring is read directly, no vendor app, no cloud)",
+            "Analysis — an on-demand correlation engine (Claude Opus with adaptive thinking) builds timelines, looks back days for triggers, compares good weeks vs. bad weeks, and proposes elimination tests — always citing dates and separating correlation from causation"
+          ],
+          footer: "A core architectural rule ties it together: capture everything raw before processing. Every inbound message and file is stored verbatim first; the structured layer is derived and always rebuildable. Lose nothing."
+        },
+        {
+          heading: "What it shows",
+          body: "The build is a study in pragmatic engineering decisions:",
+          bullets: [
+            "A flexible schema — typed JSON shapes for common data, free-form for novel things, so logging something new never requires a migration",
+            "Idempotent wearable syncs keyed by day",
+            "Graceful degradation — an unparseable message is still stored, and the user is told it's safe",
+            "A provider-agnostic wearable layer that ingests whichever ring synced most recently"
+          ],
+          footer: "When Anthropic's API deprecated a sampling parameter mid-project, I diagnosed the failure, upgraded the SDK, and moved the analysis engine to adaptive thinking — turning a breakage into an upgrade."
+        },
+        {
+          heading: "The vision",
+          body: "A.I.bert is one instance of a bigger thesis: you should own your data, and AI should do the tedious part of using it. The roadmap is a genuinely personal, private \"quantified self\" that gets smarter the longer it runs — a system that quietly collects for years, runs entirely in your home, never touches the cloud, and can answer \"what actually makes me feel worse?\" with evidence.",
+          footer: "Built on one principle: capture everything, lose nothing, and never give it away."
+        }
+      ],
+      technicalDetails: "TypeScript (strict) and Node.js with SQLite + Drizzle ORM for storage; grammy for the Telegram bot; Anthropic Claude for parsing, vision, document extraction, and correlation analysis; Oura API v2 and an open-source COLMi R02 Bluetooth client for wearables; Hono for the OAuth callback; Zod for validation — all self-hosted on a Raspberry Pi.",
+      callToAction: {
+        secondary: {
+          label: "Get in touch",
+          url: "mailto:sean.munley@protonmail.com"
+        }
+      }
+    }
   },
   {
     title: "Cross-Chain Portfolio Tracker",

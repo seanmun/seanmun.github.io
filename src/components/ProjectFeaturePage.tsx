@@ -405,6 +405,32 @@ export function ProjectFeaturePage({ project }: ProjectFeaturePageProps) {
           </div>
         )}
 
+        {/* Detail Sections — titled case-study blocks */}
+        {content.detailSections?.map((section, index) => (
+          <div key={index} {...rise()}>
+            <div className="mb-8">
+              <h2 className="text-xl font-bold mb-3 dark:text-white">{section.heading}</h2>
+              {section.body && (
+                <p className="leading-relaxed text-gray-700 dark:text-gray-300 mb-3">
+                  {section.body}
+                </p>
+              )}
+              {section.bullets && section.bullets.length > 0 && (
+                <ul className="list-disc pl-5 space-y-2 text-gray-700 dark:text-gray-300 mb-3">
+                  {section.bullets.map((bullet, bulletIndex) => (
+                    <li key={bulletIndex}>{bullet}</li>
+                  ))}
+                </ul>
+              )}
+              {section.footer && (
+                <p className="leading-relaxed text-gray-700 dark:text-gray-300">
+                  {section.footer}
+                </p>
+              )}
+            </div>
+          </div>
+        ))}
+
         {/* Key Features */}
         {content.keyFeatures && content.keyFeatures.length > 0 && (
           <div {...rise()}>
