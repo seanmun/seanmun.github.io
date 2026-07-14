@@ -409,13 +409,60 @@ export const projects: Project[] = [
   {
     title: "Human-Diet.com",
     slug: "human-diet",
-    description: "Explore 300,000 years of human dietary evolution through an interactive horizontal scroll where each pixel represents one year, showcasing the transition from natural diets to modern preservative-laden and seed oil-rich foods.",
+    description: "An interactive data-storytelling experience that visualizes how the human diet stayed remarkably consistent for ~300,000 years — and then transformed almost overnight. Built as a scroll-driven \"camera zoom\" over a truthful, perfectly linear timeline, so the viewer physically feels how tiny the window of modern change really is.",
     iconName: "Beef",
     link: "https://www.human-diet.com/",
-    ariaLabel: "View 1 pixel health project page",
+    ariaLabel: "View Human-Diet.com project page",
     requiresPassword: false,
     status: "Prod",
-    techStack: ["HTML/CSS", "JavaScript", "Vercel"]
+    techStack: ["React", "TypeScript", "Vite", "Canvas", "Framer Motion", "Tailwind CSS", "Vercel"],
+    modalContent: {
+      overview: "An interactive journey through 300,000 years of the human diet — a scroll-driven data story where the scale of time itself is the argument.",
+      detailSections: [
+        {
+          heading: "The idea",
+          body: "Most nutrition charts flatten history to make a point. I wanted to do the opposite: let the scale of time be the argument. The premise of 1-Pixel-Health is simple and a little unsettling — for nearly all of human existence we ate one broadly stable diet, and then in the last ~200 years (seed oils, ultra-processed foods) we rewrote it. The whole design goal was to make someone feel that in their gut, not just read it."
+        },
+        {
+          heading: "The learning goal",
+          body: "I set out to learn honest data storytelling — how to build a narrative experience that's genuinely persuasive without ever distorting the underlying data. That turned into a deeper set of challenges: scroll-driven \"scrollytelling,\" high-performance canvas rendering, and designing a single experience that feels native on both a mouse and a touchscreen."
+        },
+        {
+          heading: "The hardest (and most interesting) problem",
+          body: "The core tension: on a truthful linear timeline, 300,000 years of change lives in the final 0.07% of the axis — so all the drama is invisible, crammed into a couple of pixels. The tempting shortcut is to warp the axis and give recent history more room. I built that version first, then threw it out: warping the axis literally inverts the thesis — it gives the last 200 years the same visual weight as 200,000 years, which is the exact lie the project exists to expose.",
+          footer: "The solution keeps the data completely honest and solves legibility with navigation instead of distortion. The x-axis is always perfectly linear — every year gets equal weight. Scrolling doesn't warp anything; it drives an honest camera zoom toward the present, the way you'd zoom into the corner of a huge photograph. You open on the truthful whole-history frame — a vast flat expanse of \"one diet,\" with the modern era as a hair-thin sliver at the edge — then dive in to watch the change at full detail, with the present always pinned to the right edge. A live \"years on screen\" counter falls from 302,025 → 150 as you zoom, which became the emotional payload of the whole piece."
+        },
+        {
+          heading: "How it's built",
+          bullets: [
+            "React 18 + TypeScript + Vite + Tailwind CSS for the app shell and design system",
+            "Framer Motion links scroll position to the experience; discrete state (active chapter, phase) is decoupled from continuous values so scrolling never triggers unnecessary re-renders",
+            "The visualization is a hand-built canvas streamgraph, not a charting library: it samples the diet composition across the visible year-window and renders stacked, gradient-filled bands driven imperatively through a requestAnimationFrame loop — 60fps while the camera zooms, with zero React renders per frame",
+            "A small time-scale module encapsulates the camera math: an exponential zoom that naturally gives deep prehistory ~half the journey and recent history the other half, while the on-screen axis stays linear",
+            "Responsive by input, not just width: vertical scroll is the native gesture on both touch and mouse; desktop additionally gets a hover-to-inspect readout, and the layout reflows to a swipeable key and repositioned narrative cards on mobile",
+            "Diet composition data is a structured dataset of era-by-era estimates synthesized from anthropological, archaeological, and nutritional sources, with an interpolation layer that produces smooth transitions between periods"
+          ]
+        },
+        {
+          heading: "What it demonstrates",
+          bullets: [
+            "Concept — turning a data set into an argument you can feel: finding the one interaction (a truthful zoom) that makes the point land",
+            "Judgment — recognizing and rejecting the \"easy\" version that would have quietly lied, and engineering a harder solution that keeps the data honest",
+            "Execution — custom canvas rendering, scroll-linked animation, performance discipline, and a cohesive cross-device experience, end to end"
+          ]
+        }
+      ],
+      callToAction: {
+        primary: {
+          label: "Visit Human-Diet.com",
+          url: "https://www.human-diet.com/"
+        },
+        secondary: {
+          label: "Get in touch",
+          url: "mailto:sean.munley@protonmail.com"
+        }
+      }
+    }
   },
   {
     title: "TrustThePick.com",
