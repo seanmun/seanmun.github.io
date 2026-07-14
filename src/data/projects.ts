@@ -421,7 +421,7 @@ export const projects: Project[] = [
       detailSections: [
         {
           heading: "The idea",
-          body: "Most nutrition charts flatten history to make a point. I wanted to do the opposite: let the scale of time be the argument. The premise of 1-Pixel-Health is simple and a little unsettling — for nearly all of human existence we ate one broadly stable diet, and then in the last ~200 years (seed oils, ultra-processed foods) we rewrote it. The whole design goal was to make someone feel that in their gut, not just read it."
+          body: "Most nutrition charts flatten history to make a point. I wanted to do the opposite: let the scale of time be the argument. The premise of Human Diet is simple and a little unsettling — for nearly all of human existence we ate one broadly stable diet, and then in the last ~200 years (seed oils, ultra-processed foods) we rewrote it. The whole design goal was to make someone feel that in their gut, not just read it."
         },
         {
           heading: "The learning goal",
