@@ -15,7 +15,9 @@ import {
   DollarSign,
   Rocket,
   Mic,
-  LandPlot
+  LandPlot,
+  Smile,
+  Clapperboard
 } from 'lucide-react';
 
 const iconMap = {
@@ -32,7 +34,9 @@ const iconMap = {
   DollarSign,
   Rocket,
   Mic,
-  LandPlot
+  LandPlot,
+  Smile,
+  Clapperboard
 };
 
 interface ProjectIconProps {

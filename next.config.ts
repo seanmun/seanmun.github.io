@@ -7,6 +7,21 @@ const nextConfig: NextConfig = {
   },
   // Enable Turbopack (Next.js 16 default)
   turbopack: {},
+  // Retired project slugs from the Agent Army consolidation
+  async redirects() {
+    return [
+      {
+        source: '/projects/fantasy-league-bot',
+        destination: '/projects/agent-army',
+        permanent: true,
+      },
+      {
+        source: '/projects/aibert-bot',
+        destination: '/projects/agent-army',
+        permanent: true,
+      },
+    ];
+  },
   // Add security headers (Vercel-specific)
   async headers() {
     return [

@@ -9,7 +9,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import { ArrowLeft, ChevronLeft, ChevronRight, ExternalLink, X } from 'lucide-react';
-import { Project, statusConfig } from '@/data/projects';
+import { Project, ProjectDetailSection, statusConfig } from '@/data/projects';
 import { ProjectIcon } from '@/components/ui/ProjectIcon';
 import { SmokeBackgroundLazy } from '@/components/ui/SmokeBackgroundLazy';
 import { HERO_FLIP_KEY, DEAL_IN_KEY } from '@/components/ProjectCardsGrid';
@@ -52,6 +52,33 @@ const highlightStyles = {
 const HOLD_MS = 120;
 const BURST_MS = 320;
 const BURST_STRIP_COUNT = 12;
+
+// A titled case-study block: heading, prose, bullets, closing line.
+// compact renders the smaller heading used inside roster bot cards.
+function DetailSectionBlock({ section, compact = false }: { section: ProjectDetailSection; compact?: boolean }) {
+  return (
+    <div>
+      {compact ? (
+        <h3 className="text-lg font-semibold mb-3 dark:text-white">{section.heading}</h3>
+      ) : (
+        <h2 className="text-xl font-bold mb-3 dark:text-white">{section.heading}</h2>
+      )}
+      {section.body && (
+        <p className="leading-relaxed text-gray-700 dark:text-gray-300 mb-3">{section.body}</p>
+      )}
+      {section.bullets && section.bullets.length > 0 && (
+        <ul className="list-disc pl-5 space-y-2 text-gray-700 dark:text-gray-300 mb-3">
+          {section.bullets.map((bullet, bulletIndex) => (
+            <li key={bulletIndex}>{bullet}</li>
+          ))}
+        </ul>
+      )}
+      {section.footer && (
+        <p className="leading-relaxed text-gray-700 dark:text-gray-300">{section.footer}</p>
+      )}
+    </div>
+  );
+}
 
 export function ProjectFeaturePage({ project }: ProjectFeaturePageProps) {
   const router = useRouter();
@@ -409,24 +436,7 @@ export function ProjectFeaturePage({ project }: ProjectFeaturePageProps) {
         {content.detailSections?.map((section, index) => (
           <div key={index} {...rise()}>
             <div className="mb-8">
-              <h2 className="text-xl font-bold mb-3 dark:text-white">{section.heading}</h2>
-              {section.body && (
-                <p className="leading-relaxed text-gray-700 dark:text-gray-300 mb-3">
-                  {section.body}
-                </p>
-              )}
-              {section.bullets && section.bullets.length > 0 && (
-                <ul className="list-disc pl-5 space-y-2 text-gray-700 dark:text-gray-300 mb-3">
-                  {section.bullets.map((bullet, bulletIndex) => (
-                    <li key={bulletIndex}>{bullet}</li>
-                  ))}
-                </ul>
-              )}
-              {section.footer && (
-                <p className="leading-relaxed text-gray-700 dark:text-gray-300">
-                  {section.footer}
-                </p>
-              )}
+              <DetailSectionBlock section={section} />
             </div>
           </div>
         ))}
@@ -510,6 +520,39 @@ export function ProjectFeaturePage({ project }: ProjectFeaturePageProps) {
         </div>
         </div>
         {/* End content card */}
+
+        {/* Roster — multi-tenant pages give each bot/agent its own card */}
+        {content.roster?.map((bot) => (
+          <div key={bot.name} {...rise()}>
+            <div className="p-6 sm:p-8 bg-gray-50 dark:bg-gray-800 rounded-lg mb-8 shadow dark:shadow-gray-950/50">
+              <div className={`flex gap-4 items-start ${bot.sections.length > 0 ? 'mb-6' : ''}`}>
+                <div className="flex-shrink-0">
+                  <ProjectIcon iconName={bot.iconName} className="w-10 h-10 text-blue-600" />
+                </div>
+                <div>
+                  <div className="flex flex-wrap items-center gap-2 mb-1">
+                    <h2 className="text-2xl font-bold dark:text-white">{bot.name}</h2>
+                    {bot.status && (
+                      <span
+                        className={`px-2 py-0.5 rounded-full text-xs font-medium ${statusConfig[bot.status].colorClass}`}
+                      >
+                        {statusConfig[bot.status].label}
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-gray-600 dark:text-gray-300">{bot.tagline}</p>
+                </div>
+              </div>
+              {bot.sections.length > 0 && (
+                <div className="space-y-8">
+                  {bot.sections.map((section, sectionIndex) => (
+                    <DetailSectionBlock key={sectionIndex} section={section} compact />
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        ))}
 
         {/* Hire CTA */}
         <div {...rise()}>
