@@ -244,6 +244,104 @@ export const projects: Project[] = [
     }
   },
   {
+    title: "Agent Army",
+    slug: "agent-army",
+    description: "A growing fleet of Telegram bots and agents, each with one job it does relentlessly: Hinkie runs my fantasy basketball league and channels the Process, A.I.bert turns text messages into a private self-hosted health data lake, and ITYSL Bot drops the perfect sketch clip into any chat. Chat interfaces, real infrastructure, always on duty.",
+    iconName: "Bot",
+    link: "",
+    ariaLabel: "View Agent Army project details",
+    requiresPassword: false,
+    status: "Prod",
+    techStack: ["Python", "TypeScript", "Node.js", "Telegram API", "Claude API", "SQLite", "Railway", "Raspberry Pi"],
+    modalContent: {
+      overview: "One card, many agents. Agent Army is the collection of bots I build, deploy, and keep on duty \u2014 each with a single job, its own infrastructure, and a personality earned in a group chat.",
+      detailSections: [
+        {
+          heading: "Why an army",
+          body: "Bots are the purest form of turning an idea into a working product: a chat interface, a job to do, and no UI to build. Every recruit below runs 24/7 \u2014 some in the cloud on Railway, some on a Raspberry Pi in my house \u2014 and each one taught me something different about building agents people actually use every day."
+        }
+      ],
+      roster: [
+        {
+          name: "Sam Hinkie Bot",
+          tagline: "Digital commissioner and information hub for a fantasy basketball dynasty league",
+          iconName: "Trophy",
+          status: "Prod",
+          sections: [
+            {
+              heading: "What it does",
+              body: "Named after the legendary NBA executive known for his analytics-driven approach, @Sam_Hinkie_bot brings automation and real-time information to league management \u2014 and delivers daily Hinkie-inspired wisdom to keep the league faithful to the Process.",
+              bullets: [
+                "Real-time league standings and statistics on command",
+                "Automated transaction notifications and updates",
+                "Custom commands for league rules and information",
+                "Interactive responses to player mentions and queries",
+                "Scheduled reminders for important league deadlines"
+              ],
+              footer: "Built with Python and deployed on Railway for 24/7 uptime. Integrates with Telegram's Bot API for message handling, uses webhooks for real-time updates, and connects to the league database so every answer is live data."
+            }
+          ]
+        },
+        {
+          name: "A.I.bert E.",
+          tagline: "A self-hosted, AI-native personal health data lake operated entirely through a text message",
+          iconName: "Activity",
+          status: "Prod",
+          sections: [
+            {
+              heading: "What it does",
+              body: "Most health apps make you do the work, then hand your most sensitive data to a company. A.I.bert is the opposite: message it in plain English \u2014 \"wore red light glasses before bed,\" \"45 min shoulder workout at gym,\" \"took melatonin and collagen\" \u2014 and it turns the mess of daily life into clean, structured, timestamped health data on hardware I own. Send a selfie and computer vision tracks facial changes over time; send a lab PDF and it extracts every biomarker with reference ranges; a smart ring feeds sleep and steps automatically."
+            },
+            {
+              heading: "How it works",
+              body: "One process runs three subsystems over a single SQLite database:",
+              bullets: [
+                "Ingest \u2014 a Telegram bot handles text, photos, and documents: an LLM parses free text into structured entries, a vision model scores selfies for appearance trends, and a document model turns bloodwork into a biomarker time-series",
+                "Wearables \u2014 automatic ingestion from an Oura ring (OAuth cloud pull) and a COLMi R02 read directly over Bluetooth \u2014 no vendor app, no cloud",
+                "Analysis \u2014 an on-demand correlation engine (Claude Opus with adaptive thinking) builds timelines, hunts multi-day triggers, and proposes elimination tests \u2014 always citing dates and separating correlation from causation"
+              ],
+              footer: "The core architectural rule: capture everything raw before processing. Every inbound message is stored verbatim first; the structured layer is derived and always rebuildable. TypeScript (strict), Node.js, SQLite + Drizzle ORM, self-hosted on a Raspberry Pi. Built on one principle: capture everything, lose nothing, and never give it away."
+            }
+          ]
+        },
+        {
+          name: "ITYSL Bot",
+          tagline: "A Telegram inline meme bot for I Think You Should Leave clips \u2014 type a quote in any chat, tap the match, posted instantly",
+          iconName: "Clapperboard",
+          status: "Prod",
+          sections: [
+            {
+              heading: "What it does",
+              body: "Type @itysl_bot plus a quote in any chat \u2014 group or DM, without adding the bot \u2014 and a grid of matching clips pops up. Tap one and it posts instantly as you. It fills the hole left when Telegram's GIF search stopped surfacing niche sketch content.",
+              bullets: [
+                "Inline search everywhere \u2014 @itysl_bot sloppy steaks \u2192 animated thumbnail grid \u2192 tap \u2192 posted. Works in any chat because inline bots ride on Telegram itself; the bot never joins your groups",
+                "Fuzzy, ranked matching \u2014 queries match against each clip's quotes (weighted highest, it's what people actually type), then title, then tags. Full phrases (\"who did this\") and loose descriptive words (\"baby award rigged\") both land the right clip",
+                "Zero-friction library growth \u2014 DM the bot a GIF or video with a caption and it's saved and searchable in seconds; no redeploys, no file editing",
+                "Private by design \u2014 only the admin's account (locked by Telegram user id) can DM it or add clips; everyone else can only use inline search"
+              ]
+            },
+            {
+              heading: "How it works",
+              bullets: [
+                "Telegram hosts all media \u2014 each clip is uploaded once and the bot stores only the returned file_id in a JSON library (~128 clips). Results are served as cached inline results: no CDN, no hosting bill, effectively instant",
+                "In-memory fuzzy index \u2014 on boot (and on /reload) the clip library is validated with Zod and indexed with Fuse.js. Inline queries hit only this precomputed index \u2014 no database, no LLM, nothing async in the hot path, because inline results must render as you type",
+                "Two media kinds \u2014 mpeg4gif (silent, looping, shows in the animated mosaic on all platforms) and video (keeps sound, previews on mobile; Telegram Desktop renders titled video results as a plain list \u2014 an API limitation)",
+                "Self-healing long-polling \u2014 the bot polls Telegram outbound-only (runs behind any home router: no public URL, no webhook), and if polling is ever killed it logs and reconnects after 5s instead of dying silently"
+              ],
+              footer: "TypeScript on Node 20+, deliberately small: grammY for Telegram, Fuse.js for weighted fuzzy search, Zod for a schema-checked clip library, and a flat JSON file \u2014 git is the database. Supporting ffmpeg scripts handle poster frames, thumbnails, and batch backfills. The design bias throughout: no infrastructure. One process, one JSON file, Telegram as the CDN \u2014 the whole thing runs on a Raspberry Pi."
+            }
+          ]
+        }
+      ],
+      callToAction: {
+        secondary: {
+          label: "Get in touch",
+          url: "mailto:sean.munley@protonmail.com"
+        }
+      }
+    }
+  },
+  {
     title: "To Posterity",
     slug: "to-posterity",
     description: "A voice-first legacy platform that turns spoken stories into polished memoirs, podcast audio, and structured metadata — with zero writing required. The name is drawn from Petrarch's 1350 letter Ad Posteros, and every recording is framed as a sealed letter to readers centuries from now. An end-to-end AI pipeline handles transcription (Deepgram), narrative enhancement (Claude), and narration with optional voice cloning (ElevenLabs). Designed around the \"Bumper Test\" for older adults — radical simplicity, zero tech skills required.",
@@ -306,104 +404,6 @@ export const projects: Project[] = [
           label: "Visit BuddyCup.golf",
           url: "https://www.buddycup.golf/"
         },
-        secondary: {
-          label: "Get in touch",
-          url: "mailto:sean.munley@protonmail.com"
-        }
-      }
-    }
-  },
-  {
-    title: "Agent Army",
-    slug: "agent-army",
-    description: "A growing fleet of Telegram bots and agents, each with one job it does relentlessly: Hinkie runs my fantasy basketball league and channels the Process, A.I.bert turns text messages into a private self-hosted health data lake, and ITYSL Bot drops the perfect sketch clip into any chat. Chat interfaces, real infrastructure, always on duty.",
-    iconName: "Bot",
-    link: "",
-    ariaLabel: "View Agent Army project details",
-    requiresPassword: false,
-    status: "Prod",
-    techStack: ["Python", "TypeScript", "Node.js", "Telegram API", "Claude API", "SQLite", "Railway", "Raspberry Pi"],
-    modalContent: {
-      overview: "One card, many agents. Agent Army is the collection of bots I build, deploy, and keep on duty \u2014 each with a single job, its own infrastructure, and a personality earned in a group chat.",
-      detailSections: [
-        {
-          heading: "Why an army",
-          body: "Bots are the purest form of turning an idea into a working product: a chat interface, a job to do, and no UI to build. Every recruit below runs 24/7 \u2014 some in the cloud on Railway, some on a Raspberry Pi in my house \u2014 and each one taught me something different about building agents people actually use every day."
-        }
-      ],
-      roster: [
-        {
-          name: "Sam Hinkie Bot",
-          tagline: "Digital commissioner and information hub for a fantasy basketball dynasty league",
-          iconName: "Trophy",
-          status: "Prod",
-          sections: [
-            {
-              heading: "What it does",
-              body: "Named after the legendary NBA executive known for his analytics-driven approach, @Sam_Hinkie_bot brings automation and real-time information to league management \u2014 and delivers daily Hinkie-inspired wisdom to keep the league faithful to the Process.",
-              bullets: [
-                "Real-time league standings and statistics on command",
-                "Automated transaction notifications and updates",
-                "Custom commands for league rules and information",
-                "Interactive responses to player mentions and queries",
-                "Scheduled reminders for important league deadlines"
-              ],
-              footer: "Built with Python and deployed on Railway for 24/7 uptime. Integrates with Telegram's Bot API for message handling, uses webhooks for real-time updates, and connects to the league database so every answer is live data."
-            }
-          ]
-        },
-        {
-          name: "A.I.bert E.",
-          tagline: "A self-hosted, AI-native personal health data lake operated entirely through a text message",
-          iconName: "Activity",
-          status: "MVP",
-          sections: [
-            {
-              heading: "What it does",
-              body: "Most health apps make you do the work, then hand your most sensitive data to a company. A.I.bert is the opposite: message it in plain English \u2014 \"wore red light glasses before bed,\" \"45 min shoulder workout at gym,\" \"took melatonin and collagen\" \u2014 and it turns the mess of daily life into clean, structured, timestamped health data on hardware I own. Send a selfie and computer vision tracks facial changes over time; send a lab PDF and it extracts every biomarker with reference ranges; a smart ring feeds sleep and steps automatically."
-            },
-            {
-              heading: "How it works",
-              body: "One process runs three subsystems over a single SQLite database:",
-              bullets: [
-                "Ingest \u2014 a Telegram bot handles text, photos, and documents: an LLM parses free text into structured entries, a vision model scores selfies for appearance trends, and a document model turns bloodwork into a biomarker time-series",
-                "Wearables \u2014 automatic ingestion from an Oura ring (OAuth cloud pull) and a COLMi R02 read directly over Bluetooth \u2014 no vendor app, no cloud",
-                "Analysis \u2014 an on-demand correlation engine (Claude Opus with adaptive thinking) builds timelines, hunts multi-day triggers, and proposes elimination tests \u2014 always citing dates and separating correlation from causation"
-              ],
-              footer: "The core architectural rule: capture everything raw before processing. Every inbound message is stored verbatim first; the structured layer is derived and always rebuildable. TypeScript (strict), Node.js, SQLite + Drizzle ORM, self-hosted on a Raspberry Pi. Built on one principle: capture everything, lose nothing, and never give it away."
-            }
-          ]
-        },
-        {
-          name: "ITYSL Bot",
-          tagline: "A Telegram inline meme bot for I Think You Should Leave clips \u2014 type a quote in any chat, tap the match, posted instantly",
-          iconName: "Clapperboard",
-          status: "Prod",
-          sections: [
-            {
-              heading: "What it does",
-              body: "Type @itysl_bot plus a quote in any chat \u2014 group or DM, without adding the bot \u2014 and a grid of matching clips pops up. Tap one and it posts instantly as you. It fills the hole left when Telegram's GIF search stopped surfacing niche sketch content.",
-              bullets: [
-                "Inline search everywhere \u2014 @itysl_bot sloppy steaks \u2192 animated thumbnail grid \u2192 tap \u2192 posted. Works in any chat because inline bots ride on Telegram itself; the bot never joins your groups",
-                "Fuzzy, ranked matching \u2014 queries match against each clip's quotes (weighted highest, it's what people actually type), then title, then tags. Full phrases (\"who did this\") and loose descriptive words (\"baby award rigged\") both land the right clip",
-                "Zero-friction library growth \u2014 DM the bot a GIF or video with a caption and it's saved and searchable in seconds; no redeploys, no file editing",
-                "Private by design \u2014 only the admin's account (locked by Telegram user id) can DM it or add clips; everyone else can only use inline search"
-              ]
-            },
-            {
-              heading: "How it works",
-              bullets: [
-                "Telegram hosts all media \u2014 each clip is uploaded once and the bot stores only the returned file_id in a JSON library (~128 clips). Results are served as cached inline results: no CDN, no hosting bill, effectively instant",
-                "In-memory fuzzy index \u2014 on boot (and on /reload) the clip library is validated with Zod and indexed with Fuse.js. Inline queries hit only this precomputed index \u2014 no database, no LLM, nothing async in the hot path, because inline results must render as you type",
-                "Two media kinds \u2014 mpeg4gif (silent, looping, shows in the animated mosaic on all platforms) and video (keeps sound, previews on mobile; Telegram Desktop renders titled video results as a plain list \u2014 an API limitation)",
-                "Self-healing long-polling \u2014 the bot polls Telegram outbound-only (runs behind any home router: no public URL, no webhook), and if polling is ever killed it logs and reconnects after 5s instead of dying silently"
-              ],
-              footer: "TypeScript on Node 20+, deliberately small: grammY for Telegram, Fuse.js for weighted fuzzy search, Zod for a schema-checked clip library, and a flat JSON file \u2014 git is the database. Supporting ffmpeg scripts handle poster frames, thumbnails, and batch backfills. The design bias throughout: no infrastructure. One process, one JSON file, Telegram as the CDN \u2014 the whole thing runs on a Raspberry Pi."
-            }
-          ]
-        }
-      ],
-      callToAction: {
         secondary: {
           label: "Get in touch",
           url: "mailto:sean.munley@protonmail.com"
