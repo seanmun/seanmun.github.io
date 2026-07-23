@@ -29,6 +29,7 @@ export interface ProjectRosterBot {
   tagline: string;
   iconName: string;
   status?: 'Dev' | 'MVP' | 'Prod';
+  images?: ProjectImage[];
   sections: ProjectDetailSection[];
 }
 
@@ -267,6 +268,14 @@ export const projects: Project[] = [
           tagline: "Digital commissioner and information hub for a fantasy basketball dynasty league",
           iconName: "Trophy",
           status: "Prod",
+          images: [
+            { src: "/projects/start.png", alt: "Fantasy League Bot welcome screen", caption: "Bot welcome screen showing available commands" },
+            { src: "/projects/standings.png", alt: "Live league standings", caption: "Real-time league standings and statistics" },
+            { src: "/projects/matchup.png", alt: "Weekly matchup information", caption: "Detailed weekly matchup breakdowns" },
+            { src: "/projects/player.png", alt: "Player statistics lookup", caption: "Player stats and information on demand" },
+            { src: "/projects/rules.png", alt: "League rules display", caption: "Quick access to league rules and settings" },
+            { src: "/projects/responds.png", alt: "Bot interaction examples", caption: "Interactive responses to player queries" }
+          ],
           sections: [
             {
               heading: "What it does",
@@ -309,7 +318,18 @@ export const projects: Project[] = [
           tagline: "A Telegram inline meme bot for I Think You Should Leave clips \u2014 type a quote in any chat, tap the match, posted instantly",
           iconName: "Clapperboard",
           status: "Prod",
+          images: [
+            {
+              src: "/projects/itysl_bot.png",
+              alt: "ITYSL Bot inline search in Telegram",
+              caption: "Type @itysl_bot plus a quote — the inline grid surfaces matching clips, tap to post"
+            }
+          ],
           sections: [
+            {
+              heading: "Why I built it",
+              body: "@gif has been part of Telegram for almost a decade. Then Google shut down Tenor's search API, which suffocated ~90% of the GIFs Telegram surfaced and quietly wrecked an experience millions of people used every day. Someone needed to step up. \"Yeah, I'll do it.\" So I rebuilt the chat feature myself \u2014 stocked with the best meme kit from the show I Think You Should Leave."
+            },
             {
               heading: "What it does",
               body: "Type @itysl_bot plus a quote in any chat \u2014 group or DM, without adding the bot \u2014 and a grid of matching clips pops up. Tap one and it posts instantly as you. It fills the hole left when Telegram's GIF search stopped surfacing niche sketch content.",

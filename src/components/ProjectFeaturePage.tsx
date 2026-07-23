@@ -9,7 +9,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import { ArrowLeft, ChevronLeft, ChevronRight, ExternalLink, X } from 'lucide-react';
-import { Project, ProjectDetailSection, statusConfig } from '@/data/projects';
+import { Project, ProjectDetailSection, ProjectImage, statusConfig } from '@/data/projects';
 import { ProjectIcon } from '@/components/ui/ProjectIcon';
 import { SmokeBackgroundLazy } from '@/components/ui/SmokeBackgroundLazy';
 import { HERO_FLIP_KEY, DEAL_IN_KEY } from '@/components/ProjectCardsGrid';
@@ -53,6 +53,88 @@ const HOLD_MS = 120;
 const BURST_MS = 320;
 const BURST_STRIP_COUNT = 12;
 
+// Self-contained image carousel — its own index state so multiple can live
+// on one page (e.g. one per roster bot). Fullscreen is delegated up to the
+// single page-level viewer via onFullscreen.
+function ImageCarousel({
+  images,
+  onFullscreen,
+  heightClass = 'h-64 md:h-[28rem]',
+}: {
+  images: ProjectImage[];
+  onFullscreen: (src: string) => void;
+  heightClass?: string;
+}) {
+  const [index, setIndex] = useState(0);
+  if (images.length === 0) return null;
+
+  const next = () => setIndex((prev) => (prev + 1) % images.length);
+  const prev = () => setIndex((prev) => (prev === 0 ? images.length - 1 : prev - 1));
+  const current = images[index];
+
+  return (
+    <div className="relative bg-white dark:bg-gray-900 rounded-lg overflow-hidden">
+      <div
+        className={`relative ${heightClass} cursor-pointer`}
+        onClick={() => onFullscreen(current.src)}
+      >
+        <Image
+          src={current.src}
+          alt={current.alt}
+          fill
+          className="object-contain"
+          quality={85}
+          priority={index === 0}
+          onError={(e) => {
+            (e.target as HTMLImageElement).style.display = 'none';
+          }}
+        />
+        {images.length > 1 && (
+          <>
+            <button
+              onClick={(e) => { e.stopPropagation(); prev(); }}
+              className="absolute left-2 top-1/2 -translate-y-1/2 p-2 rounded-full bg-black/50 text-white hover:bg-black/70 transition-colors z-10"
+              aria-label="Previous image"
+            >
+              <ChevronLeft className="w-6 h-6" />
+            </button>
+            <button
+              onClick={(e) => { e.stopPropagation(); next(); }}
+              className="absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-full bg-black/50 text-white hover:bg-black/70 transition-colors z-10"
+              aria-label="Next image"
+            >
+              <ChevronRight className="w-6 h-6" />
+            </button>
+          </>
+        )}
+      </div>
+
+      {images.length > 1 && (
+        <div className="flex justify-center gap-2 py-3">
+          {images.map((_, i) => (
+            <button
+              key={i}
+              onClick={() => setIndex(i)}
+              className={`w-2 h-2 rounded-full transition-colors ${
+                i === index
+                  ? 'bg-gray-700 dark:bg-gray-300'
+                  : 'bg-gray-300 dark:bg-gray-600 hover:bg-gray-500 dark:hover:bg-gray-400'
+              }`}
+              aria-label={`Go to image ${i + 1}`}
+            />
+          ))}
+        </div>
+      )}
+
+      {current.caption && (
+        <div className="px-4 pb-3 text-sm text-center text-gray-600 dark:text-gray-400">
+          {current.caption}
+        </div>
+      )}
+    </div>
+  );
+}
+
 // A titled case-study block: heading, prose, bullets, closing line.
 // compact renders the smaller heading used inside roster bot cards.
 function DetailSectionBlock({ section, compact = false }: { section: ProjectDetailSection; compact?: boolean }) {
@@ -89,7 +171,6 @@ export function ProjectFeaturePage({ project }: ProjectFeaturePageProps) {
   // (null = direct visit, no handoff animation)
   const [revealDelayMs, setRevealDelayMs] = useState<number | null>(null);
   const [showBurstStrips, setShowBurstStrips] = useState(false);
-  const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [fullscreenImage, setFullscreenImage] = useState<string | null>(null);
   const [isGateOpen, setIsGateOpen] = useState(false);
   const [gatedUrl, setGatedUrl] = useState('');
@@ -228,10 +309,6 @@ export function ProjectFeaturePage({ project }: ProjectFeaturePageProps) {
       url: 'mailto:sean.munley@protonmail.com',
     };
 
-  const nextImage = () => setCurrentImageIndex((prev) => (prev + 1) % images.length);
-  const prevImage = () =>
-    setCurrentImageIndex((prev) => (prev === 0 ? images.length - 1 : prev - 1));
-
   const ctaButtons = (
     <div className="flex flex-col sm:flex-row gap-3">
       {primaryCta && (
@@ -362,72 +439,8 @@ export function ProjectFeaturePage({ project }: ProjectFeaturePageProps) {
         {/* Image carousel */}
         {images.length > 0 && (
           <div {...rise()}>
-            <div className="relative bg-white dark:bg-gray-900 rounded-lg overflow-hidden mb-8">
-              <div
-                className="relative h-64 md:h-[28rem] cursor-pointer"
-                onClick={() => setFullscreenImage(images[currentImageIndex].src)}
-              >
-                <Image
-                  src={images[currentImageIndex].src}
-                  alt={images[currentImageIndex].alt}
-                  fill
-                  className="object-contain"
-                  quality={85}
-                  priority={currentImageIndex === 0}
-                  onError={(e) => {
-                    const target = e.target as HTMLImageElement;
-                    target.style.display = 'none';
-                  }}
-                />
-
-                {images.length > 1 && (
-                  <>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        prevImage();
-                      }}
-                      className="absolute left-2 top-1/2 -translate-y-1/2 p-2 rounded-full bg-black/50 text-white hover:bg-black/70 transition-colors z-10"
-                      aria-label="Previous image"
-                    >
-                      <ChevronLeft className="w-6 h-6" />
-                    </button>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        nextImage();
-                      }}
-                      className="absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-full bg-black/50 text-white hover:bg-black/70 transition-colors z-10"
-                      aria-label="Next image"
-                    >
-                      <ChevronRight className="w-6 h-6" />
-                    </button>
-                  </>
-                )}
-              </div>
-
-              {images.length > 1 && (
-                <div className="flex justify-center gap-2 py-3">
-                  {images.map((_, index) => (
-                    <button
-                      key={index}
-                      onClick={() => setCurrentImageIndex(index)}
-                      className={`w-2 h-2 rounded-full transition-colors ${
-                        index === currentImageIndex
-                          ? 'bg-gray-700 dark:bg-gray-300'
-                          : 'bg-gray-300 dark:bg-gray-600 hover:bg-gray-500 dark:hover:bg-gray-400'
-                      }`}
-                      aria-label={`Go to image ${index + 1}`}
-                    />
-                  ))}
-                </div>
-              )}
-
-              {images[currentImageIndex].caption && (
-                <div className="px-4 pb-3 text-sm text-center text-gray-600 dark:text-gray-400">
-                  {images[currentImageIndex].caption}
-                </div>
-              )}
+            <div className="mb-8">
+              <ImageCarousel images={images} onFullscreen={setFullscreenImage} />
             </div>
           </div>
         )}
@@ -525,7 +538,7 @@ export function ProjectFeaturePage({ project }: ProjectFeaturePageProps) {
         {content.roster?.map((bot) => (
           <div key={bot.name} {...rise()}>
             <div className="p-6 sm:p-8 bg-gray-50 dark:bg-gray-800 rounded-lg mb-8 shadow dark:shadow-gray-950/50">
-              <div className={`flex gap-4 items-start ${bot.sections.length > 0 ? 'mb-6' : ''}`}>
+              <div className={`flex gap-4 items-start ${bot.sections.length > 0 || (bot.images && bot.images.length > 0) ? 'mb-6' : ''}`}>
                 <div className="flex-shrink-0">
                   <ProjectIcon iconName={bot.iconName} className="w-10 h-10 text-blue-600" />
                 </div>
@@ -543,6 +556,15 @@ export function ProjectFeaturePage({ project }: ProjectFeaturePageProps) {
                   <p className="text-gray-600 dark:text-gray-300">{bot.tagline}</p>
                 </div>
               </div>
+              {bot.images && bot.images.length > 0 && (
+                <div className="mb-6">
+                  <ImageCarousel
+                    images={bot.images}
+                    onFullscreen={setFullscreenImage}
+                    heightClass="h-56 md:h-80"
+                  />
+                </div>
+              )}
               {bot.sections.length > 0 && (
                 <div className="space-y-8">
                   {bot.sections.map((section, sectionIndex) => (
