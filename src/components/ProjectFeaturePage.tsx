@@ -13,9 +13,12 @@ import { Project, ProjectDetailSection, ProjectImage, statusConfig } from '@/dat
 import { ProjectIcon } from '@/components/ui/ProjectIcon';
 import { SmokeBackgroundLazy } from '@/components/ui/SmokeBackgroundLazy';
 import { HERO_FLIP_KEY, DEAL_IN_KEY } from '@/components/ProjectCardsGrid';
+import { GitStatsLine } from '@/components/ui/GitActivity';
+import type { ProjectGitStats } from '@/lib/github-stats';
 
 interface ProjectFeaturePageProps {
   project: Project;
+  gitStats: ProjectGitStats | null;
 }
 
 interface StoredHeroHandoff {
@@ -162,7 +165,7 @@ function DetailSectionBlock({ section, compact = false }: { section: ProjectDeta
   );
 }
 
-export function ProjectFeaturePage({ project }: ProjectFeaturePageProps) {
+export function ProjectFeaturePage({ project, gitStats }: ProjectFeaturePageProps) {
   const router = useRouter();
   const heroRef = useRef<HTMLDivElement>(null);
   const burstRingRef = useRef<HTMLDivElement>(null);
@@ -428,6 +431,14 @@ export function ProjectFeaturePage({ project }: ProjectFeaturePageProps) {
         {/* Content card — everything below the hero lives on one card */}
         <div {...rise()}>
         <div className="p-6 sm:p-8 bg-gray-50 dark:bg-gray-800 rounded-lg mb-8 shadow dark:shadow-gray-950/50">
+
+        {/* Live commit activity from GitHub — kept out of the hero so the
+            card-expand handoff still lands on the hero's measured height */}
+        {gitStats && (
+          <div {...rise()}>
+            <GitStatsLine stats={gitStats} />
+          </div>
+        )}
 
         {/* Overview */}
         <div {...rise()}>

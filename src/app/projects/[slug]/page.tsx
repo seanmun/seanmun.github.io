@@ -5,6 +5,10 @@ import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { projects } from '@/data/projects';
 import { ProjectFeaturePage } from '@/components/ProjectFeaturePage';
+import { getGitStats } from '@/lib/github-stats';
+
+// Refresh GitHub commit stats hourly
+export const revalidate = 3600;
 
 interface ProjectPageProps {
   params: Promise<{ slug: string }>;
@@ -49,5 +53,7 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
   const project = projects.find((p) => p.slug === slug);
   if (!project) notFound();
 
-  return <ProjectFeaturePage project={project} />;
+  const gitStats = await getGitStats();
+
+  return <ProjectFeaturePage project={project} gitStats={gitStats?.byProject[slug] ?? null} />;
 }

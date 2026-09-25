@@ -17,6 +17,8 @@ import {
 import { BandReveal } from '@/components/ui/BandReveal';
 import { ProjectCardsGrid } from '@/components/ProjectCardsGrid';
 import { WorkWithMe } from '@/components/WorkWithMe';
+import { GitSummaryLine } from '@/components/ui/GitActivity';
+import type { GitStatsSnapshot } from '@/lib/github-stats';
 
 interface ModernLayoutProps {
   cookieId: string;
@@ -31,6 +33,7 @@ interface ModernLayoutProps {
   setIsAIModalOpen: (open: boolean) => void;
   setIsPrivacyModalOpen: (open: boolean) => void;
   updateURL: (section: string | null) => void;
+  gitStats: GitStatsSnapshot | null;
 }
 
 export function ModernLayout({
@@ -46,6 +49,7 @@ export function ModernLayout({
   setIsAIModalOpen,
   setIsPrivacyModalOpen,
   updateURL,
+  gitStats,
 }: ModernLayoutProps) {
   // While the project cards tumble off-screen, everything else fades out
   const [isDeckExiting, setIsDeckExiting] = useState(false);
@@ -222,11 +226,16 @@ export function ModernLayout({
       <div id="projects" className="mb-8 scroll-mt-6">
         <div className={deckFade}>
           <h2 className="text-xl font-bold mb-1 dark:text-white">Projects</h2>
-          <p className="text-sm italic text-gray-500 dark:text-gray-400 mb-4 max-w-xl">
+          <p className={`text-sm italic text-gray-500 dark:text-gray-400 max-w-xl ${gitStats ? 'mb-2' : 'mb-4'}`}>
             Apps, agents, bots, and devices I&apos;ve designed and shipped end-to-end — proof that no idea is too weird to build.
           </p>
+          {gitStats && <GitSummaryLine snapshot={gitStats} />}
         </div>
-        <ProjectCardsGrid cookieId={cookieId} onExitingChange={setIsDeckExiting} />
+        <ProjectCardsGrid
+          cookieId={cookieId}
+          onExitingChange={setIsDeckExiting}
+          gitStats={gitStats?.byProject}
+        />
       </div>
 
       {/* Two Column Layout for Gallery and Playlist */}

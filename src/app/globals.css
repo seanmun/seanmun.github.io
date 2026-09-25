@@ -463,3 +463,29 @@ button:disabled {
 @media (prefers-reduced-motion: reduce) {
   .feature-rise { animation: none !important; }
 }
+
+/* Git activity pulse — "recently shipped" dot with a radiating ring */
+.git-pulse-dot {
+  position: relative;
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 9999px;
+  background: #22c55e;
+}
+.git-pulse-dot::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: inherit;
+  animation: git-pulse 2s cubic-bezier(0, 0, 0.2, 1) infinite;
+}
+[data-theme='amber'] .git-pulse-dot { background: var(--accent); }
+@keyframes git-pulse {
+  0%        { transform: scale(1); opacity: 0.7; }
+  75%, 100% { transform: scale(2.8); opacity: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .git-pulse-dot::after { display: none; }
+}

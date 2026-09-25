@@ -5,9 +5,11 @@ import { trackEvent, TrackEvent, getDeviceType, trackModalOpen, trackLinkClick }
 import { X } from "lucide-react";
 import { projects } from '@/data/projects';
 import { ModernLayout } from './layouts/ModernLayout';
+import type { GitStatsSnapshot } from '@/lib/github-stats';
 
 interface PersonalWebsiteProps {
   galleryImages: string[]
+  gitStats: GitStatsSnapshot | null
 }
 
 import { OrdinalFrameModal } from './modals/OrdinalFrameModal';
@@ -34,7 +36,7 @@ const shuffleArray = (array: string[]) => {
   return array;
 };
 
-const PersonalWebsite = ({ galleryImages }: PersonalWebsiteProps) => {
+const PersonalWebsite = ({ galleryImages, gitStats }: PersonalWebsiteProps) => {
   const router = useRouter();
   const searchParams = useSearchParams();
   
@@ -296,6 +298,7 @@ const PersonalWebsite = ({ galleryImages }: PersonalWebsiteProps) => {
             setIsAIModalOpen={setIsAIModalOpen}
             setIsPrivacyModalOpen={setIsPrivacyModalOpen}
             updateURL={updateURL}
+            gitStats={gitStats}
           />
         </div>
 

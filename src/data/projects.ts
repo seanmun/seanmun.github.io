@@ -65,6 +65,8 @@ export interface Project {
   triggerOrdinalFrameModal?: boolean;
   triggerHinkieBotModal?: boolean;
   modalContent?: ProjectModalContent;
+  repos?: string[]; // github.com/seanmun repos whose commits count toward this project
+  showGitStats?: boolean; // false hides this project's commit stats (it still counts toward site totals)
 }
 
 export const projects: Project[] = [
@@ -78,6 +80,7 @@ export const projects: Project[] = [
     requiresPassword: false,
     status: "Prod",
     techStack: ["React", "TypeScript", "Vite", "Tailwind CSS", "Supabase", "Convex", "Claude API", "OpenAI API", "Pinecone", "Mailgun", "Vercel"],
+    repos: ["kinetic-email", "kineticemail", "kinetic-email-factory"],
     // Planned imagery (shoot at 1440px+, GIFs for anything interactive):
     //  1. Landing page hero with the live interactive demo email mid-action
     //  2. Playground: prompt on left, iOS Mail simulator preview on right
@@ -174,6 +177,7 @@ export const projects: Project[] = [
     requiresPassword: false,
     status: "Prod",
     techStack: ["React", "Next.js", "TypeScript", "Firebase", "Tailwind CSS", "Alchemy API", "Telegram API", "Vercel"],
+    repos: ["mns", "mns-fantasy", "mns-ui"],
     modalContent: {
       images: [
         {
@@ -254,6 +258,8 @@ export const projects: Project[] = [
     requiresPassword: false,
     status: "Prod",
     techStack: ["Python", "TypeScript", "Node.js", "Telegram API", "Claude API", "SQLite", "Railway", "Raspberry Pi"],
+    repos: ["HinkieBot", "track-everything"],
+    showGitStats: false,
     modalContent: {
       overview: "One card, many agents. Agent Army is the collection of bots I build, deploy, and keep on duty \u2014 each with a single job, its own infrastructure, and a personality earned in a group chat.",
       detailSections: [
@@ -371,6 +377,7 @@ export const projects: Project[] = [
     requiresPassword: false,
     status: "MVP",
     techStack: ["Next.js", "TypeScript", "Neon Postgres", "Drizzle ORM", "Clerk Auth", "Claude API", "OpenAI API", "TanStack Query", "Tailwind CSS", "Vercel"],
+    repos: ["PERN"],
     modalContent: {
       overview: "Run your trip. Crown your champion. Buddy Cup is a multi-tenant Ryder-Cup-style platform that brings real match-play scoring to the buddy golf trip — courses, players, tee times, matchups, live leaderboards, and the surrounding chaos, all managed from one phone.",
       detailSections: [
@@ -429,7 +436,8 @@ export const projects: Project[] = [
     ariaLabel: "View To Posterity website",
     requiresPassword: false,
     status: "Dev",
-    techStack: ["Next.js", "TypeScript", "Tailwind CSS", "shadcn/ui", "Supabase", "Deepgram", "Claude API", "ElevenLabs", "Zustand", "Vercel"]
+    techStack: ["Next.js", "TypeScript", "Tailwind CSS", "shadcn/ui", "Supabase", "Deepgram", "Claude API", "ElevenLabs", "Zustand", "Vercel"],
+    repos: ["story-vault"],
   },
   {
     title: "Rocket Pool Tour",
@@ -440,7 +448,8 @@ export const projects: Project[] = [
     ariaLabel: "View Rocket Pool Tour website",
     requiresPassword: false,
     status: "Dev",
-    techStack: ["React", "Next.js", "TypeScript", "Tailwind CSS", "Vercel"]
+    techStack: ["React", "Next.js", "TypeScript", "Tailwind CSS", "Vercel"],
+    repos: ["rocket"],
   },
   {
     title: "Amber Mode",
@@ -465,6 +474,8 @@ export const projects: Project[] = [
     isLive: false, // Not publicly launched yet - show modal
     status: "MVP",
     techStack: ["Python", "React", "Raspberry Pi", "JavaScript"],
+    repos: ["ordinalframe"],
+    showGitStats: false,
     modalContent: {
       images: [
         {
@@ -533,7 +544,8 @@ export const projects: Project[] = [
     ariaLabel: "View Rumble Raffle website",
     requiresPassword: false,
     status: "Prod",
-    techStack: ["React", "Typescript", "Next.js", "Express.js", "PostgreSQL", "Node.js", "Vercel"]
+    techStack: ["React", "Typescript", "Next.js", "Express.js", "PostgreSQL", "Node.js", "Vercel"],
+    repos: ["RumbleRaffle"],
   },
   {
     title: "Human-Diet.com",
@@ -545,6 +557,8 @@ export const projects: Project[] = [
     requiresPassword: false,
     status: "Prod",
     techStack: ["React", "TypeScript", "Vite", "Canvas", "Framer Motion", "Tailwind CSS", "Vercel"],
+    repos: ["1-pixel-health"],
+    showGitStats: false,
     modalContent: {
       overview: "An interactive journey through 300,000 years of the human diet — a scroll-driven data story where the scale of time itself is the argument.",
       detailSections: [
@@ -602,7 +616,8 @@ export const projects: Project[] = [
     ariaLabel: "View Trust The Pick website",
     requiresPassword: false,
     status: "Prod",
-    techStack: ["React", "Next.js", "TypeScript", "Tailwind CSS", "Vercel"]
+    techStack: ["React", "Next.js", "TypeScript", "Tailwind CSS", "Vercel"],
+    repos: ["nba-lotto"],
   },
   {
     title: "DraftDayTrades.com",
@@ -613,7 +628,8 @@ export const projects: Project[] = [
     ariaLabel: "View Draft Day Trades website",
     requiresPassword: false,
     status: "Prod",
-    techStack: ["React", "Next.js", "TypeScript", "Firebase", "Tailwind CSS", "Vercel"]
+    techStack: ["React", "Next.js", "TypeScript", "Firebase", "Tailwind CSS", "Vercel"],
+    repos: ["draft"],
   },
   {
     title: "Cross-Chain Portfolio Tracker",
@@ -624,7 +640,9 @@ export const projects: Project[] = [
     ariaLabel: "View Telegram bot repo",
     requiresPassword: true,
     status: "Dev",
-    techStack: ["React", "Next.js", "TypeScript", "Alchemy API", "Web3"]
+    techStack: ["React", "Next.js", "TypeScript", "Alchemy API", "Web3"],
+    repos: ["crypto-portfolio-tracker"],
+    showGitStats: false,
   }
 ];
 

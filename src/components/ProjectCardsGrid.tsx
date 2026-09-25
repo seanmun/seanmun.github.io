@@ -10,6 +10,8 @@ import { useRouter } from 'next/navigation';
 import { projects, Project } from '@/data/projects';
 import { SeesawCard } from '@/components/ui/SeesawCard';
 import { ProjectIcon } from '@/components/ui/ProjectIcon';
+import { UpdatedBadge } from '@/components/ui/GitActivity';
+import type { ProjectGitStats } from '@/lib/github-stats';
 import { trackLinkClick } from '@/lib/track-utils';
 
 // sessionStorage keys shared with ProjectFeaturePage
@@ -19,12 +21,13 @@ export const DEAL_IN_KEY = 'project-deal-in';
 interface ProjectCardsGridProps {
   cookieId: string;
   onExitingChange?: (exiting: boolean) => void;
+  gitStats?: Record<string, ProjectGitStats>;
 }
 
 const prefersReducedMotion = () =>
   window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-export function ProjectCardsGrid({ cookieId, onExitingChange }: ProjectCardsGridProps) {
+export function ProjectCardsGrid({ cookieId, onExitingChange, gitStats }: ProjectCardsGridProps) {
   const router = useRouter();
   const cardRefs = useRef<(HTMLDivElement | null)[]>([]);
   const isExitingRef = useRef(false);
@@ -225,17 +228,20 @@ export function ProjectCardsGrid({ cookieId, onExitingChange }: ProjectCardsGrid
                   ))}
                 </div>
 
-                <a
-                  href={`/projects/${project.slug}`}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleCardClick(e, project, index);
-                  }}
-                  className="text-blue-600 hover:text-blue-800 transition-colors text-sm"
-                  aria-label={project.ariaLabel}
-                >
-                  View Project →
-                </a>
+                <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
+                  <a
+                    href={`/projects/${project.slug}`}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleCardClick(e, project, index);
+                    }}
+                    className="text-blue-600 hover:text-blue-800 transition-colors text-sm"
+                    aria-label={project.ariaLabel}
+                  >
+                    View Project →
+                  </a>
+                  <UpdatedBadge stats={gitStats?.[project.slug]} />
+                </div>
               </div>
             </div>
           </SeesawCard>
