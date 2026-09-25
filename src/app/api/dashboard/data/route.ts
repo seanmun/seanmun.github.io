@@ -20,6 +20,7 @@ export async function GET(request: Request) {
   const url = new URL(request.url);
   const days = Number(url.searchParams.get('days') ?? '45');
   const visitorId = url.searchParams.get('visitorId');
+  const includeMine = url.searchParams.get('includeMine') === '1';
 
   try {
     // Whoever opens the dashboard is an admin — remember them so their own
@@ -100,7 +101,7 @@ export async function GET(request: Request) {
     const visitors = [...summary.values()].sort((a, b) => b.count - a.count);
 
     return NextResponse.json({
-      events: events.filter((event) => !adminIds.has(event.cookieId)),
+      events: includeMine ? events : events.filter((event) => !adminIds.has(event.cookieId)),
       visitors,
     });
   } catch (err) {

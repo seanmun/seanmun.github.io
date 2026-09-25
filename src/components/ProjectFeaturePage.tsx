@@ -14,6 +14,7 @@ import { ProjectIcon } from '@/components/ui/ProjectIcon';
 import { SmokeBackgroundLazy } from '@/components/ui/SmokeBackgroundLazy';
 import { HERO_FLIP_KEY, DEAL_IN_KEY } from '@/components/ProjectCardsGrid';
 import { GitStatsLine } from '@/components/ui/GitActivity';
+import { getDeviceType, getVisitorId, trackEvent } from '@/lib/track-utils';
 import type { ProjectGitStats } from '@/lib/github-stats';
 
 interface ProjectFeaturePageProps {
@@ -252,6 +253,24 @@ export function ProjectFeaturePage({ project, gitStats }: ProjectFeaturePageProp
       );
     }
   }, [project.slug]);
+
+  // Record the visit — without this a project page view is invisible and
+  // only stray clicks on the page ever reach the dashboard
+  useEffect(() => {
+    const cookieId = getVisitorId();
+    if (!cookieId) return;
+    const key = `tracked-project-${project.slug}`;
+    if (sessionStorage.getItem(key)) return; // once per session per project
+    sessionStorage.setItem(key, '1');
+    trackEvent({
+      cookieId,
+      eventType: 'pageview',
+      path: `/projects/${project.slug}`,
+      projectName: project.title,
+      deviceType: getDeviceType(),
+      referrer: document.referrer || 'direct',
+    });
+  }, [project.slug, project.title]);
 
   // Any return to the home page (back button or browser back) deals the cards back in
   useEffect(() => {

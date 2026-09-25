@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { TrendingUp, Users, Monitor, Smartphone, Tablet, Clock, ExternalLink, UserMinus, UserPlus } from 'lucide-react';
 import { getVisitorId } from '@/lib/track-utils';
 
@@ -21,6 +21,10 @@ interface PageView {
   timestamp: Date;
   eventType: 'pageview' | 'project_click' | 'modal_open' | 'link_click';
   path?: string | null;
+  label?: string | null;
+  elementKind?: string | null;
+  section?: string | null;
+  href?: string | null;
   country?: string | null;
   region?: string | null;
   city?: string | null;
@@ -68,6 +72,7 @@ export default function DashboardView() {
   const [visitors, setVisitors] = useState<VisitorSummary[]>([]);
   const [thisBrowser, setThisBrowser] = useState('');
   const [reloadKey, setReloadKey] = useState(0);
+  const [includeMine, setIncludeMine] = useState(false);
 
   useEffect(() => {
     async function fetchData() {
@@ -79,6 +84,7 @@ export default function DashboardView() {
         const visitorId = getVisitorId();
         setThisBrowser(visitorId);
         const params = new URLSearchParams({ days: String(dateRange) });
+        if (includeMine) params.set('includeMine', '1');
         if (visitorId) params.set('visitorId', visitorId);
 
         const res = await fetch(`/api/dashboard/data?${params}`);
@@ -101,7 +107,7 @@ export default function DashboardView() {
 
     setLoading(true);
     fetchData();
-  }, [dateRange, reloadKey]);
+  }, [dateRange, reloadKey, includeMine]);
 
   // Mark a browser as Sean's (or undo it), then refetch so the numbers move
   const setAdminVisitor = async (cookieId: string, isAdmin: boolean) => {
@@ -118,7 +124,6 @@ export default function DashboardView() {
 
   // Filter by event types
   const pageviewsOnly = pageViews.filter(v => v.eventType === 'pageview');
-  const modalOpens = pageViews.filter(v => v.eventType === 'modal_open');
 
   // Unique visitors count
   const uniqueVisitors = new Set(pageviewsOnly.map(view => view.cookieId)).size;
@@ -135,34 +140,6 @@ export default function DashboardView() {
     { name: 'Mobile', value: deviceCounts.mobile || 0, icon: Smartphone },
     { name: 'Tablet', value: deviceCounts.tablet || 0, icon: Tablet }
   ].filter(d => d.value > 0);
-
-  // Modal open stats
-  const modalOpenCounts = modalOpens.reduce((acc, open) => {
-    const modal = open.modalName || 'Unknown';
-    acc[modal] = (acc[modal] || 0) + 1;
-    return acc;
-  }, {} as Record<string, number>);
-
-  const topModals = Object.entries(modalOpenCounts)
-    .map(([name, opens]) => ({ name, opens }))
-    .sort((a, b) => b.opens - a.opens);
-
-  // Visitor frequency (return rate)
-  const visitorFrequency = Object.values(
-    pageViews.reduce((acc, view) => {
-      acc[view.cookieId] = (acc[view.cookieId] || 0) + 1;
-      return acc;
-    }, {} as Record<string, number>)
-  ).reduce((acc, visits) => {
-    const key = visits === 1 ? 'New' : 'Returning';
-    acc[key] = (acc[key] || 0) + 1;
-    return acc;
-  }, {} as Record<string, number>);
-
-  const visitorTypeData = [
-    { name: 'New', value: visitorFrequency['New'] || 0 },
-    { name: 'Returning', value: visitorFrequency['Returning'] || 0 }
-  ];
 
   // Referrer stats
   const referrerCounts = pageviewsOnly.reduce((acc, view) => {
@@ -201,6 +178,59 @@ export default function DashboardView() {
   };
 
   const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042'];
+
+  // Group events into visits: same browser, gaps under 30 minutes. At this
+  // traffic level reading individual visits beats any aggregate chart.
+  const SESSION_GAP_MS = 30 * 60 * 1000;
+  const sessions: {
+    cookieId: string; start: Date; end: Date; place: string; device: string;
+    referrer: string; isAdmin: boolean; steps: { time: Date; kind: string; text: string; href?: string | null }[];
+  }[] = [];
+
+  [...pageViews]
+    .sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime())
+    .forEach((event) => {
+      const open = sessions.find(
+        (session) =>
+          session.cookieId === event.cookieId &&
+          event.timestamp.getTime() - session.end.getTime() < SESSION_GAP_MS
+      );
+      const place = [event.city, event.region].filter(Boolean).join(', ');
+      const step = {
+        time: event.timestamp,
+        kind: event.eventType,
+        text:
+          event.eventType === 'pageview'
+            ? (event.path ?? '/')
+            : event.label ?? event.modalName ?? event.linkName ?? event.eventType,
+        href: event.href ?? event.linkUrl ?? null,
+      };
+
+      if (open) {
+        open.end = event.timestamp;
+        open.place = open.place || place;
+        open.device = open.device || event.deviceType || '';
+        open.steps.push(step);
+      } else {
+        sessions.push({
+          cookieId: event.cookieId,
+          start: event.timestamp,
+          end: event.timestamp,
+          place,
+          device: event.deviceType || '',
+          referrer: event.referrer && event.referrer !== 'direct' ? event.referrer : 'direct',
+          isAdmin: visitors.find((v) => v.cookieId === event.cookieId)?.isAdmin ?? false,
+          steps: [step],
+        });
+      }
+    });
+
+  sessions.reverse();
+
+  const cleanReferrer = (value: string) => {
+    if (!value || value === 'direct') return 'direct';
+    try { return new URL(value).hostname.replace('www.', ''); } catch { return value; }
+  };
 
   return (
     <div className="space-y-6">
@@ -261,6 +291,76 @@ export default function DashboardView() {
         </div>
       </div>
 
+      {/* Visits — the actual story of who came and what they did */}
+      <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
+        <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
+          <div>
+            <h3 className="text-lg font-semibold dark:text-white">Visits</h3>
+            <p className="text-sm text-gray-600 dark:text-gray-400">
+              Each visit in order, newest first — pages opened and things clicked.
+            </p>
+          </div>
+          <label className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={includeMine}
+              onChange={(e) => setIncludeMine(e.target.checked)}
+              className="rounded"
+            />
+            Include my own visits (for testing)
+          </label>
+        </div>
+
+        {sessions.length === 0 ? (
+          <p className="text-sm text-gray-500 dark:text-gray-400">
+            No visits in this range. Your own visits are hidden unless you tick the box above.
+          </p>
+        ) : (
+          <div className="space-y-4 max-h-[36rem] overflow-y-auto">
+            {sessions.slice(0, 40).map((session, index) => {
+              const minutes = Math.round((session.end.getTime() - session.start.getTime()) / 60000);
+              return (
+                <div key={`${session.cookieId}-${index}`} className="border-l-2 border-gray-200 dark:border-gray-700 pl-4">
+                  <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm mb-1">
+                    <span className="font-medium dark:text-white">
+                      {session.start.toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}
+                    </span>
+                    <span className="text-gray-500 dark:text-gray-400">
+                      · {session.place || 'unknown location'} · {session.device || 'unknown device'}
+                      {minutes > 0 && ` · ${minutes} min`}
+                      {` · from ${cleanReferrer(session.referrer)}`}
+                    </span>
+                    {session.isAdmin && (
+                      <span className="px-2 py-0.5 rounded-full text-xs bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300">
+                        you
+                      </span>
+                    )}
+                  </div>
+                  <ol className="space-y-0.5">
+                    {session.steps.map((step, stepIndex) => (
+                      <li key={stepIndex} className="text-sm text-gray-700 dark:text-gray-300 flex gap-2">
+                        <span className="text-gray-400 dark:text-gray-500 tabular-nums text-xs pt-0.5">
+                          {step.time.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}
+                        </span>
+                        <span>
+                          {step.kind === 'pageview' ? (
+                            <>opened <span className="font-mono text-xs bg-gray-100 dark:bg-gray-700 px-1 py-0.5 rounded">{step.text}</span></>
+                          ) : step.kind === 'modal_open' ? (
+                            <>opened the {step.text} panel</>
+                          ) : (
+                            <>clicked &ldquo;{step.text}&rdquo;{step.href?.startsWith('http') ? ' ↗' : ''}</>
+                          )}
+                        </span>
+                      </li>
+                    ))}
+                  </ol>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+
       {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="bg-gradient-to-br from-blue-500 to-blue-700 p-6 rounded-lg shadow-lg text-white">
@@ -292,97 +392,39 @@ export default function DashboardView() {
         </div>
       </div>
 
-      {/* Two column layout for Visitor Types and Device Breakdown */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Visitor Type Distribution */}
-        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
-          <h3 className="text-lg font-semibold mb-4 dark:text-white">Visitor Types</h3>
-          <div className="h-80">
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie
-                  data={visitorTypeData}
-                  cx="50%"
-                  cy="50%"
-                  labelLine={false}
-                  label={({ name, percent }) => `${name} (${(percent * 100).toFixed(0)}%)`}
-                  outerRadius={80}
-                  fill="#8884d8"
-                  dataKey="value"
-                >
-                  {visitorTypeData.map((_, index) => (
-                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                  ))}
-                </Pie>
-                <Tooltip />
-              </PieChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
-
-        {/* Device Breakdown */}
-        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
-          <h3 className="text-lg font-semibold mb-4 dark:text-white">Device Types</h3>
-          <div className="h-80 flex items-center justify-center">
-            <div className="w-full max-w-md space-y-4">
-              {deviceData.map((device, index) => {
-                const Icon = device.icon;
-                const total = deviceData.reduce((sum, d) => sum + d.value, 0);
-                const percentage = ((device.value / total) * 100).toFixed(1);
-                return (
-                  <div key={device.name} className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <Icon className="w-5 h-5 text-gray-600 dark:text-gray-400" />
-                        <span className="text-sm font-medium dark:text-white">{device.name}</span>
-                      </div>
-                      <span className="text-sm font-bold dark:text-white">
-                        {device.value} ({percentage}%)
-                      </span>
-                    </div>
-                    <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2.5">
-                      <div
-                        className="h-2.5 rounded-full transition-all duration-1000"
-                        style={{
-                          width: `${percentage}%`,
-                          backgroundColor: COLORS[index % COLORS.length]
-                        }}
-                      />
-                    </div>
+      {/* Device Breakdown */}
+      <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
+        <h3 className="text-lg font-semibold mb-4 dark:text-white">Device Types</h3>
+        <div className="max-w-md space-y-4">
+          {deviceData.map((device, index) => {
+            const Icon = device.icon;
+            const total = deviceData.reduce((sum, d) => sum + d.value, 0);
+            const percentage = ((device.value / total) * 100).toFixed(1);
+            return (
+              <div key={device.name} className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Icon className="w-5 h-5 text-gray-600 dark:text-gray-400" />
+                    <span className="text-sm font-medium dark:text-white">{device.name}</span>
                   </div>
-                );
-              })}
-            </div>
-          </div>
+                  <span className="text-sm font-bold dark:text-white">
+                    {device.value} ({percentage}%)
+                  </span>
+                </div>
+                <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2.5">
+                  <div
+                    className="h-2.5 rounded-full transition-all duration-1000"
+                    style={{ width: `${percentage}%`, backgroundColor: COLORS[index % COLORS.length] }}
+                  />
+                </div>
+              </div>
+            );
+          })}
         </div>
       </div>
 
-      {/* Engagement Section - Modals and Referrers */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Top Modals */}
-        {topModals.length > 0 && (
-          <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
-            <h3 className="text-lg font-semibold mb-4 dark:text-white">Most Opened Modals</h3>
-            <div className="h-80">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={topModals} layout="vertical">
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis type="number" />
-                  <YAxis
-                    dataKey="name"
-                    type="category"
-                    width={150}
-                    tick={{ fontSize: 12 }}
-                  />
-                  <Tooltip />
-                  <Bar dataKey="opens" fill="#10b981" />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
-        )}
-
-        {/* Top Referrers */}
+      {/* Traffic sources */}
+      <div>
         <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
           <h3 className="text-lg font-semibold mb-4 dark:text-white flex items-center gap-2">
             <ExternalLink className="w-5 h-5" />

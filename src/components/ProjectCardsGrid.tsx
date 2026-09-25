@@ -205,6 +205,7 @@ export function ProjectCardsGrid({ cookieId, onExitingChange, gitStats }: Projec
             cardRefs.current[index] = el;
           }}
           className="relative cursor-pointer"
+          data-track={`${project.title} card`}
           onClick={(e) => handleCardClick(e, project, index)}
         >
           <SeesawCard className="h-full p-4 bg-gray-50 dark:bg-gray-800 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors shadow dark:shadow-gray-950/50">
@@ -236,6 +237,7 @@ export function ProjectCardsGrid({ cookieId, onExitingChange, gitStats }: Projec
                       handleCardClick(e, project, index);
                     }}
                     className="text-blue-600 hover:text-blue-800 transition-colors text-sm"
+                    data-track={`${project.title} — View Project link`}
                     aria-label={project.ariaLabel}
                   >
                     View Project →

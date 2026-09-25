@@ -24,9 +24,13 @@ function describe(target: HTMLElement) {
   );
   const el = interactive ?? target;
 
+  // A container's textContent is the whole card; its heading is the name
+  const heading = !interactive ? el.querySelector('h1, h2, h3, h4')?.textContent : null;
+
   const label =
     el.getAttribute('aria-label') ??
     el.getAttribute('title') ??
+    heading?.replace(/\s+/g, ' ').trim() ??
     (el instanceof HTMLInputElement || el instanceof HTMLTextAreaElement
       ? // deliberately not el.value — never capture what someone typed
         el.getAttribute('placeholder') ?? `${el.tagName.toLowerCase()} field`
@@ -55,6 +59,8 @@ export function ClickTracker() {
 
     let buffer: TrackEvent[] = [];
     let timer: ReturnType<typeof setTimeout> | null = null;
+    let lastSignature = '';
+    let lastAt = 0;
 
     const flush = () => {
       if (timer) {
@@ -75,6 +81,15 @@ export function ClickTracker() {
       const cookieId = getVisitorId();
       if (!cookieId) return;
 
+      // One physical click can bubble through nested handlers (a link inside
+      // a card): same label twice in a moment is the same click
+      const label = describe(target);
+      const signature = `${label}|${window.location.pathname}`;
+      const now = Date.now();
+      if (signature === lastSignature && now - lastAt < 800) return;
+      lastSignature = signature;
+      lastAt = now;
+
       const link = target.closest('a');
       const section = target.closest<HTMLElement>('[id]')?.id;
 
@@ -82,7 +97,7 @@ export function ClickTracker() {
         cookieId,
         eventType: 'click',
         path: window.location.pathname,
-        label: describe(target),
+        label,
         elementKind: kindOf(target),
         section: section ? section.slice(0, 60) : undefined,
         href: link?.getAttribute('href')?.slice(0, 300) ?? undefined,
