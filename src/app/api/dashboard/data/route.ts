@@ -73,10 +73,36 @@ export async function GET(request: Request) {
           city: data.city ?? null,
           isBot: data.isBot ?? false,
         };
-      })
-      .filter((event) => !adminIds.has(event.cookieId));
+      });
 
-    return NextResponse.json({ events });
+    // Per-browser summary built BEFORE exclusion, so the dashboard can show
+    // which browsers are filtered and let Sean mark a missed one as his
+    const summary = new Map<
+      string,
+      { cookieId: string; count: number; firstSeen: string; lastSeen: string; devices: string[]; isAdmin: boolean }
+    >();
+    for (const event of events) {
+      const row = summary.get(event.cookieId) ?? {
+        cookieId: event.cookieId,
+        count: 0,
+        firstSeen: event.timestamp,
+        lastSeen: event.timestamp,
+        devices: [] as string[],
+        isAdmin: adminIds.has(event.cookieId),
+      };
+      row.count++;
+      if (event.timestamp < row.firstSeen) row.firstSeen = event.timestamp;
+      if (event.timestamp > row.lastSeen) row.lastSeen = event.timestamp;
+      if (event.deviceType && !row.devices.includes(event.deviceType)) row.devices.push(event.deviceType);
+      summary.set(event.cookieId, row);
+    }
+
+    const visitors = [...summary.values()].sort((a, b) => b.count - a.count);
+
+    return NextResponse.json({
+      events: events.filter((event) => !adminIds.has(event.cookieId)),
+      visitors,
+    });
   } catch (err) {
     console.error('Dashboard data query failed:', err);
     return NextResponse.json({ error: 'Failed to load analytics' }, { status: 500 });

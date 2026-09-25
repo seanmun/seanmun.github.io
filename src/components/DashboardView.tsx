@@ -2,8 +2,18 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
-import { TrendingUp, Users, Monitor, Smartphone, Tablet, Clock, ExternalLink } from 'lucide-react';
+import { TrendingUp, Users, Monitor, Smartphone, Tablet, Clock, ExternalLink, UserMinus, UserPlus } from 'lucide-react';
+import { getVisitorId } from '@/lib/track-utils';
 
+
+interface VisitorSummary {
+  cookieId: string;
+  count: number;
+  firstSeen: string;
+  lastSeen: string;
+  devices: string[];
+  isAdmin: boolean;
+}
 
 interface PageView {
   id: string;
@@ -55,13 +65,19 @@ export default function DashboardView() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [dateRange, setDateRange] = useState<number>(45);
+  const [visitors, setVisitors] = useState<VisitorSummary[]>([]);
+  const [thisBrowser, setThisBrowser] = useState('');
+  const [reloadKey, setReloadKey] = useState(0);
 
   useEffect(() => {
     async function fetchData() {
       try {
         // The server records whoever opens the dashboard as an admin so
-        // these visits are excluded from the numbers
-        const visitorId = localStorage.getItem('visitorId') ?? '';
+        // these visits are excluded from the numbers. getVisitorId creates
+        // the id if this browser has never loaded the site itself —
+        // otherwise this browser would stay uncounted as yours.
+        const visitorId = getVisitorId();
+        setThisBrowser(visitorId);
         const params = new URLSearchParams({ days: String(dateRange) });
         if (visitorId) params.set('visitorId', visitorId);
 
@@ -69,6 +85,7 @@ export default function DashboardView() {
         if (!res.ok) throw new Error(res.status === 401 ? 'Session expired — reload and log in again' : 'Failed to load analytics');
 
         const data = await res.json();
+        setVisitors(data.visitors ?? []);
         setPageViews(
           (data.events as (Omit<PageView, 'timestamp'> & { timestamp: string })[])
             .map((event) => ({ ...event, timestamp: new Date(event.timestamp) }))
@@ -84,7 +101,17 @@ export default function DashboardView() {
 
     setLoading(true);
     fetchData();
-  }, [dateRange]);
+  }, [dateRange, reloadKey]);
+
+  // Mark a browser as Sean's (or undo it), then refetch so the numbers move
+  const setAdminVisitor = async (cookieId: string, isAdmin: boolean) => {
+    await fetch('/api/dashboard/admin-visitors', {
+      method: isAdmin ? 'POST' : 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ visitorId: cookieId }),
+    });
+    setReloadKey((key) => key + 1);
+  };
 
   if (loading) return <div className="text-white">Loading analytics data...</div>;
   if (error) return <div className="text-white">Error loading analytics: {error}</div>;
@@ -380,7 +407,59 @@ export default function DashboardView() {
         </div>
       </div>
 
-
+      {/* Whose visits count — exclusion is per browser, so a device that has
+          never opened the dashboard shows up here as an ordinary visitor */}
+      <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
+        <h3 className="text-lg font-semibold mb-1 dark:text-white">Browsers seen</h3>
+        <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+          Excluded browsers are yours and are already filtered out of every number above.
+          If one of your own devices is listed as a visitor, mark it.
+        </p>
+        <div className="space-y-2 max-h-96 overflow-y-auto">
+          {visitors.map((visitor) => {
+            const days = Math.max(
+              0,
+              Math.round((new Date(visitor.lastSeen).getTime() - new Date(visitor.firstSeen).getTime()) / 86400000)
+            );
+            return (
+              <div
+                key={visitor.cookieId}
+                className="flex items-center justify-between gap-3 py-2 border-b border-gray-100 dark:border-gray-700 last:border-0"
+              >
+                <div className="min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="font-mono text-sm dark:text-white">{visitor.cookieId.slice(0, 10)}</span>
+                    {visitor.isAdmin && (
+                      <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300">
+                        excluded — yours
+                      </span>
+                    )}
+                    {visitor.cookieId === thisBrowser && (
+                      <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300">
+                        this browser
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                    {visitor.count} events over {days} day{days === 1 ? '' : 's'}
+                    {visitor.devices.length > 0 && ` · ${visitor.devices.join(', ')}`}
+                  </p>
+                </div>
+                <button
+                  onClick={() => setAdminVisitor(visitor.cookieId, !visitor.isAdmin)}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
+                >
+                  {visitor.isAdmin ? (
+                    <><UserPlus className="w-3.5 h-3.5" /> Count as visitor</>
+                  ) : (
+                    <><UserMinus className="w-3.5 h-3.5" /> This is me</>
+                  )}
+                </button>
+              </div>
+            );
+          })}
+        </div>
+      </div>
     </div>
   );
 }
