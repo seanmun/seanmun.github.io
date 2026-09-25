@@ -25,7 +25,6 @@ export async function generateMetadata({ params }: ProjectPageProps): Promise<Me
 
   const description =
     project.modalContent?.overview?.slice(0, 160) ?? project.description.slice(0, 160);
-  const image = project.modalContent?.images?.[0]?.src ?? '/profile/smunley2019.png';
 
   return {
     title: `${project.title} | Sean Munley`,
@@ -35,7 +34,6 @@ export async function generateMetadata({ params }: ProjectPageProps): Promise<Me
       description,
       url: `https://seanmun.com/projects/${project.slug}`,
       siteName: 'Sean Munley',
-      images: [{ url: image, alt: project.title }],
       locale: 'en-US',
       type: 'website',
     },
@@ -43,7 +41,6 @@ export async function generateMetadata({ params }: ProjectPageProps): Promise<Me
       card: 'summary_large_image',
       title: `${project.title} | Sean Munley`,
       description,
-      images: [image],
     },
   };
 }

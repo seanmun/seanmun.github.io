@@ -161,8 +161,8 @@ export const projects: Project[] = [
           url: "https://www.kinetic.email/"
         },
         secondary: {
-          label: "Get in touch",
-          url: "mailto:sean.munley@protonmail.com"
+          label: "Work with me",
+          url: "/#work-with-me"
         }
       }
     }
@@ -242,8 +242,8 @@ export const projects: Project[] = [
           url: "https://mns-dusky.vercel.app/"
         },
         secondary: {
-          label: "Get in touch",
-          url: "mailto:sean.munley@protonmail.com"
+          label: "Work with me",
+          url: "/#work-with-me"
         }
       }
     }
@@ -361,8 +361,8 @@ export const projects: Project[] = [
       ],
       callToAction: {
         secondary: {
-          label: "Get in touch",
-          url: "mailto:sean.munley@protonmail.com"
+          label: "Work with me",
+          url: "/#work-with-me"
         }
       }
     }
@@ -421,8 +421,8 @@ export const projects: Project[] = [
           url: "https://www.buddycup.golf/"
         },
         secondary: {
-          label: "Get in touch",
-          url: "mailto:sean.munley@protonmail.com"
+          label: "Work with me",
+          url: "/#work-with-me"
         }
       }
     }
@@ -518,8 +518,8 @@ export const projects: Project[] = [
           url: "https://github.com/seanmun/ordinalframe"
         },
         secondary: {
-          label: "Get in touch",
-          url: "mailto:sean.munley@protonmail.com"
+          label: "Work with me",
+          url: "/#work-with-me"
         }
       },
       specialSections: [
@@ -601,8 +601,8 @@ export const projects: Project[] = [
           url: "https://www.human-diet.com/"
         },
         secondary: {
-          label: "Get in touch",
-          url: "mailto:sean.munley@protonmail.com"
+          label: "Work with me",
+          url: "/#work-with-me"
         }
       }
     }

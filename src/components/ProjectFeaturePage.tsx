@@ -325,10 +325,12 @@ export function ProjectFeaturePage({ project, gitStats }: ProjectFeaturePageProp
     return null;
   })();
 
+  // Inquiries go to the form on the home page, not a raw mailto: the form
+  // reaches the Resend pipeline and keeps the address off the page
   const secondaryCta =
     content.callToAction?.secondary ?? {
-      label: 'Get in touch',
-      url: 'mailto:sean.munley@protonmail.com',
+      label: 'Work with me',
+      url: '/#work-with-me',
     };
 
   const ctaButtons = (
