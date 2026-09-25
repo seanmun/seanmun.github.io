@@ -11,14 +11,6 @@ export const metadata: Metadata = {
     description: 'I turn wild ideas into working products — sites, apps, AI systems, and devices. Available for consulting and builds.',
     url: 'https://seanmun.com',
     siteName: 'Sean Munley',
-    images: [
-      {
-        url: '/profile/smunley2019.png',
-        width: 800,
-        height: 600,
-        alt: 'Sean Munley',
-      },
-    ],
     locale: 'en-US',
     type: 'website',
   },
@@ -26,7 +18,6 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'Sean Munley | Product Builder & AI Consultant',
     description: 'I turn wild ideas into working products — sites, apps, AI systems, and devices.',
-    images: ['/profile/smunley2019.png'],
   },
   robots: {
     index: true,

@@ -357,7 +357,7 @@ const PersonalWebsite = ({ galleryImages, gitStats }: PersonalWebsiteProps) => {
             ? 'text-amber-900'
             : 'text-gray-600 dark:text-gray-300'
         }`}>
-          <p>Last updated: February 27, 2026</p>
+          <p>Last updated: September 25, 2026</p>
 
           <section className="space-y-2">
             <h4 className={`text-lg font-medium
@@ -380,12 +380,14 @@ const PersonalWebsite = ({ galleryImages, gitStats }: PersonalWebsiteProps) => {
               }`}>
               Information Collected
             </h4>
-            <p>Collection and process for the following types of information:</p>
+            <p>The following information is collected and processed:</p>
             <ul className="list-disc pl-5 space-y-1">
-              <li>Accessibility preferences (stored locally on your device)</li>
-              <li>Basic analytics data (page view counts, traffic sources)</li>
-              <li>Email addresses (when voluntarily provided)</li>
-              <li>General usage statistics to improve user experience</li>
+              <li>Accessibility preferences such as theme and font size (stored on your device, never sent anywhere)</li>
+              <li>Pages visited, and which links and buttons are clicked, along with the referring site</li>
+              <li>Approximate location — city, region and country — derived from your IP address by the hosting provider. The IP address itself is never stored</li>
+              <li>Device type and browser information</li>
+              <li>A random identifier stored in your browser, used to recognise repeat visits. It contains no personal information and is not linked to any other data</li>
+              <li>Your name, email address and message, if you choose to submit the contact form</li>
             </ul>
           </section>
 
@@ -414,7 +416,7 @@ const PersonalWebsite = ({ galleryImages, gitStats }: PersonalWebsiteProps) => {
               Cookies
             </h4>
             <p>
-              Cookies used to store your accessibility preferences and analyze website traffic. These cookies are necessary for the website to function properly and provide you with a better experience.
+              This site sets no advertising or third-party tracking cookies. Your accessibility preferences and the random visit identifier are kept in your browser&rsquo;s local storage. Analytics are recorded by this site&rsquo;s own server and are never shared with or sold to anyone.
             </p>
           </section>
 
@@ -424,10 +426,10 @@ const PersonalWebsite = ({ galleryImages, gitStats }: PersonalWebsiteProps) => {
                 ? 'text-amber-900'
                 : 'text-gray-800 dark:text-gray-200'
               }`}>
-              Experimental
+              Questions or removal
             </h4>
             <p>
-              This is all for experiments and getting used to playing with this sort of data.  
+              To ask what has been recorded about your visits, or to have it deleted, use the contact form on this site and it will be handled promptly.
             </p>
           </section>
         </div>
