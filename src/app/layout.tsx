@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import './globals.css'
+import { ClickTracker } from '@/components/ClickTracker'
 
 export const metadata: Metadata = {
   title: 'Sean Munley | Product Builder & AI Consultant',
@@ -99,7 +100,10 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body suppressHydrationWarning>{children}</body>
+      <body suppressHydrationWarning>
+        {children}
+        <ClickTracker />
+      </body>
     </html>
   )
 }

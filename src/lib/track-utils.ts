@@ -6,7 +6,7 @@
 
 export type TrackEvent = {
   cookieId: string;
-  eventType: 'pageview' | 'project_click' | 'modal_open' | 'link_click';
+  eventType: 'pageview' | 'project_click' | 'modal_open' | 'link_click' | 'click';
   timestamp?: Date; // set server-side; kept for call-site compatibility
   path?: string;
   projectName?: string;
@@ -17,6 +17,27 @@ export type TrackEvent = {
   userAgent?: string; // read from the request server-side
   referrer?: string;
   timeOnSite?: number; // in seconds
+  // 'click' events (see ClickTracker): what was clicked and where
+  label?: string;
+  elementKind?: string;
+  section?: string;
+  href?: string;
+  xPercent?: number;
+  yPercent?: number;
+}
+
+// Stable per-browser id, shared with the rest of the tracking
+export function getVisitorId(): string {
+  if (typeof window === 'undefined') return '';
+  try {
+    const existing = localStorage.getItem('visitorId');
+    if (existing) return existing;
+    const created = Math.random().toString(36).substring(2);
+    localStorage.setItem('visitorId', created);
+    return created;
+  } catch {
+    return '';
+  }
 }
 
 export function getDeviceType(): 'mobile' | 'tablet' | 'desktop' {
@@ -40,6 +61,33 @@ function send(event: TrackEvent) {
   const payload = JSON.stringify({
     ...event,
     path: event.path ?? window.location.pathname,
+  });
+
+  try {
+    if (navigator.sendBeacon) {
+      navigator.sendBeacon('/api/track', new Blob([payload], { type: 'application/json' }));
+      return;
+    }
+    void fetch('/api/track', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: payload,
+      keepalive: true,
+    }).catch(() => {});
+  } catch {
+    // Never let analytics surface an error to a visitor
+  }
+}
+
+// Several events in one request — the click tracker buffers and flushes
+export function sendEvents(events: TrackEvent[]) {
+  if (typeof window === 'undefined' || events.length === 0) return;
+
+  const payload = JSON.stringify({
+    events: events.map((event) => ({
+      ...event,
+      path: event.path ?? window.location.pathname,
+    })),
   });
 
   try {

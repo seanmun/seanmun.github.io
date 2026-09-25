@@ -1,0 +1,24 @@
+// Firebase Security Rules for Firestore — seanmun.com (project seanmun-c4888)
+//
+// CURRENT (published 2026-09-25): the browser never touches Firestore.
+// Visitor events are written by /api/track and the dashboard reads through
+// /api/dashboard/data, both using the Admin SDK — which bypasses these rules
+// entirely. So everything a client could ask for is denied.
+//
+// This replaced a ruleset that allowed validated creates and PUBLIC READS on
+// /pageviews and /admin_visitors (see firestore.rules.previous). The public
+// read existed only because the old dashboard queried Firestore from the
+// browser; it also meant anyone with the public web API key — which ships in
+// every page — could download the whole analytics collection.
+//
+// The event validation those rules enforced now lives in src/app/api/track/route.ts.
+// To roll back: Firebase Console -> Firestore -> Rules -> History.
+
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
