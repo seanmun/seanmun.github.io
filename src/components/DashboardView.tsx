@@ -2,8 +2,6 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
-import { db } from '@/lib/firebase';
-import { collection, query, where, orderBy, getDocs, Timestamp, setDoc, doc } from 'firebase/firestore';
 import { TrendingUp, Users, Monitor, Smartphone, Tablet, Clock, ExternalLink } from 'lucide-react';
 
 
@@ -12,10 +10,11 @@ interface PageView {
   cookieId: string;
   timestamp: Date;
   eventType: 'pageview' | 'project_click' | 'modal_open' | 'link_click';
-  geolocation: {
-    latitude: number;
-    longitude: number;
-  } | null;
+  path?: string | null;
+  country?: string | null;
+  region?: string | null;
+  city?: string | null;
+  isBot?: boolean;
   projectName?: string;
   modalName?: string;
   linkName?: string;
@@ -57,95 +56,24 @@ export default function DashboardView() {
   const [error, setError] = useState<string | null>(null);
   const [dateRange, setDateRange] = useState<number>(45);
 
-  // Track this visitor as an admin (dashboard viewer)
-  useEffect(() => {
-    async function trackAdminVisitor() {
-      if (typeof window === 'undefined') return;
-
-      const visitorId = localStorage.getItem('visitorId');
-      if (visitorId) {
-        try {
-          // Store this visitor ID in a separate collection for exclusion
-          await setDoc(doc(db, 'admin_visitors', visitorId), {
-            visitorId,
-            firstSeen: new Date(),
-            lastSeen: new Date()
-          }, { merge: true });
-        } catch (err) {
-          console.error('Error tracking admin visitor:', err);
-        }
-      }
-    }
-    trackAdminVisitor();
-  }, []);
-
   useEffect(() => {
     async function fetchData() {
       try {
-        // Fetch admin visitor IDs
-        const adminVisitorsRef = collection(db, 'admin_visitors');
-        const adminSnapshot = await getDocs(adminVisitorsRef);
-        const adminIds = new Set(adminSnapshot.docs.map(doc => doc.data().visitorId));
+        // The server records whoever opens the dashboard as an admin so
+        // these visits are excluded from the numbers
+        const visitorId = localStorage.getItem('visitorId') ?? '';
+        const params = new URLSearchParams({ days: String(dateRange) });
+        if (visitorId) params.set('visitorId', visitorId);
 
-        const pageviewsRef = collection(db, 'pageviews');
-        let q;
+        const res = await fetch(`/api/dashboard/data?${params}`);
+        if (!res.ok) throw new Error(res.status === 401 ? 'Session expired — reload and log in again' : 'Failed to load analytics');
 
-        if (dateRange === 0) {
-          // All time - no date filter
-          q = query(
-            pageviewsRef,
-            orderBy('timestamp', 'desc')
-          );
-        } else {
-          // Filtered by date range
-          const startDate = new Date();
-          startDate.setDate(startDate.getDate() - dateRange);
-          q = query(
-            pageviewsRef,
-            where('timestamp', '>=', Timestamp.fromDate(startDate)),
-            orderBy('timestamp', 'desc')
-          );
-        }
-
-        const snapshot = await getDocs(q);
-        const views: PageView[] = snapshot.docs.map(doc => {
-          const data = doc.data();
-
-          // Handle different timestamp formats
-          let timestamp: Date;
-          if (data.timestamp?.toDate) {
-            timestamp = data.timestamp.toDate();
-          } else if (data.timestamp instanceof Date) {
-            timestamp = data.timestamp;
-          } else if (data.createdAt?.toDate) {
-            timestamp = data.createdAt.toDate();
-          } else if (data.createdAt instanceof Date) {
-            timestamp = data.createdAt;
-          } else {
-            timestamp = new Date();
-          }
-
-          return {
-            id: doc.id,
-            cookieId: data.cookieId,
-            timestamp,
-            eventType: data.eventType || 'pageview',
-            geolocation: data.geolocation,
-            projectName: data.projectName,
-            modalName: data.modalName,
-            linkName: data.linkName,
-            linkUrl: data.linkUrl,
-            deviceType: data.deviceType,
-            userAgent: data.userAgent,
-            referrer: data.referrer,
-            timeOnSite: data.timeOnSite,
-          };
-        });
-
-        // Filter out admin visits (anyone who has ever accessed the dashboard)
-        const filteredViews = views.filter(view => !adminIds.has(view.cookieId));
-
-        setPageViews(filteredViews);
+        const data = await res.json();
+        setPageViews(
+          (data.events as (Omit<PageView, 'timestamp'> & { timestamp: string })[])
+            .map((event) => ({ ...event, timestamp: new Date(event.timestamp) }))
+            .filter((event) => !event.isBot)
+        );
       } catch (err) {
         console.error('Error fetching data:', err);
         setError(err instanceof Error ? err.message : 'An error occurred');
@@ -154,6 +82,7 @@ export default function DashboardView() {
       }
     }
 
+    setLoading(true);
     fetchData();
   }, [dateRange]);
 

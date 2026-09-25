@@ -1,21 +1,20 @@
 // src/lib/track-utils.ts
-import { db } from './firebase';
-import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+// Events are posted to /api/track, which writes them with the Admin SDK.
+// The browser no longer talks to Firestore, so the database can deny all
+// client access. Sends are fire-and-forget: tracking must never block a
+// click or delay navigation.
 
 export type TrackEvent = {
   cookieId: string;
   eventType: 'pageview' | 'project_click' | 'modal_open' | 'link_click';
-  timestamp?: Date;  // Make it optional since we'll use serverTimestamp
-  geolocation?: {
-    latitude: number;
-    longitude: number;
-  };
+  timestamp?: Date; // set server-side; kept for call-site compatibility
+  path?: string;
   projectName?: string;
   modalName?: string;
   linkName?: string;
   linkUrl?: string;
   deviceType?: 'mobile' | 'tablet' | 'desktop';
-  userAgent?: string;
+  userAgent?: string; // read from the request server-side
   referrer?: string;
   timeOnSite?: number; // in seconds
 }
@@ -33,58 +32,58 @@ export function getDeviceType(): 'mobile' | 'tablet' | 'desktop' {
   return 'desktop';
 }
 
-export async function trackEvent(event: TrackEvent) {
+// keepalive lets the request outlive the page, so events sent while the
+// visitor is leaving still arrive
+function send(event: TrackEvent) {
+  if (typeof window === 'undefined') return;
+
+  const payload = JSON.stringify({
+    ...event,
+    path: event.path ?? window.location.pathname,
+  });
+
   try {
-    console.log('Attempting to track event:', event); // Debug log
-    await addDoc(collection(db, 'pageviews'), {
-      ...event,
-      timestamp: serverTimestamp(),
-      createdAt: new Date(),
-    });
-    console.log('Successfully tracked event'); // Debug log
-    return { success: true };
-  } catch (error) {
-    console.error('Error tracking event:', error);
-    return { success: false, error };
+    if (navigator.sendBeacon) {
+      navigator.sendBeacon('/api/track', new Blob([payload], { type: 'application/json' }));
+      return;
+    }
+    void fetch('/api/track', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: payload,
+      keepalive: true,
+    }).catch(() => {});
+  } catch {
+    // Never let analytics surface an error to a visitor
   }
+}
+
+export async function trackEvent(event: TrackEvent) {
+  send(event);
+  return { success: true };
 }
 
 // Helper function to track modal opens
 export async function trackModalOpen(cookieId: string, modalName: string) {
   if (!cookieId) return;
-
-  try {
-    await trackEvent({
-      cookieId,
-      eventType: 'modal_open',
-      modalName,
-      deviceType: getDeviceType(),
-      userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : undefined,
-      timestamp: new Date()
-    });
-  } catch (err) {
-    console.error('Error tracking modal open:', err);
-  }
+  send({
+    cookieId,
+    eventType: 'modal_open',
+    modalName,
+    deviceType: getDeviceType(),
+  });
 }
 
-// Helper function to track link clicks (fire and forget - non-blocking)
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
+// Helper function to track link clicks — sendBeacon hands the event to the
+// browser and returns immediately, so navigation is never delayed (the old
+// Firestore version blocked clicks on mobile)
 export function trackLinkClick(cookieId: string, linkName: string, linkUrl: string) {
-  // Disabled for now to prevent mobile click-through issues
-  return;
-
-  // if (!cookieId) return;
-
-  // // Fire and forget - don't block navigation
-  // trackEvent({
-  //   cookieId,
-  //   eventType: 'link_click',
-  //   linkName,
-  //   linkUrl,
-  //   deviceType: getDeviceType(),
-  //   userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : undefined,
-  //   timestamp: new Date()
-  // }).catch(err => {
-  //   console.error('Error tracking link click:', err);
-  // });
+  if (!cookieId) return;
+  send({
+    cookieId,
+    eventType: 'link_click',
+    linkName,
+    linkUrl,
+    deviceType: getDeviceType(),
+  });
 }
