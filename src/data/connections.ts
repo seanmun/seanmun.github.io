@@ -46,6 +46,10 @@ export const connectionTypeConfig: Record<ConnectionType, {
   },
 };
 
+// Source and target must match a project title in projects.ts exactly. The
+// graph skips (rather than crashes on) a link to a missing project, but a
+// skipped link is a silent gap — update this file when projects are merged
+// or renamed.
 export const connections: Connection[] = [
   // Business/Strategic
   { source: 'Kinetic.email', target: 'Money Never Sleeps', type: 'business', label: 'Email platform for league communications' },
@@ -53,7 +57,7 @@ export const connections: Connection[] = [
   { source: 'Kinetic.email', target: 'DraftDayTrades.com', type: 'business', label: 'Email notifications' },
   { source: 'Kinetic.email', target: 'TrustThePick.com', type: 'business', label: 'Email integration for draft lottery' },
   { source: 'Kinetic.email', target: 'Human-Diet.com', type: 'business', label: 'Email platform for health updates' },
-  { source: 'Kinetic.email', target: 'A.I.bert Bot', type: 'business', label: 'Email alerts from bot insights' },
+  { source: 'Kinetic.email', target: 'Agent Army', type: 'business', label: 'Email alerts from agent insights' },
   { source: 'Kinetic.email', target: 'Cross-Chain Portfolio Tracker', type: 'business', label: 'Portfolio email notifications' },
   { source: 'Kinetic.email', target: 'OrdinalFrame', type: 'business', label: 'Email updates for ordinal activity' },
   { source: 'Kinetic.email', target: 'Rocket Pool Tour', type: 'business', label: 'Email platform for tour updates' },
@@ -63,7 +67,7 @@ export const connections: Connection[] = [
   { source: 'Money Never Sleeps', target: 'TrustThePick.com', type: 'fantasy-sports', label: 'Draft lottery for MNS league' },
   { source: 'Money Never Sleeps', target: 'DraftDayTrades.com', type: 'fantasy-sports', label: 'Draft day prediction pools' },
   { source: 'TrustThePick.com', target: 'DraftDayTrades.com', type: 'fantasy-sports', label: 'Draft ecosystem tools' },
-  { source: 'Money Never Sleeps', target: 'Fantasy League Bot', type: 'fantasy-sports', label: 'Bot serves MNS league' },
+  { source: 'Money Never Sleeps', target: 'Agent Army', type: 'fantasy-sports', label: 'Sam Hinkie Bot runs the MNS league' },
 
   // Blockchain/Web3
   { source: 'Money Never Sleeps', target: 'Cross-Chain Portfolio Tracker', type: 'blockchain', label: 'Shared blockchain/Alchemy API' },
@@ -71,18 +75,17 @@ export const connections: Connection[] = [
   { source: 'OrdinalFrame', target: 'Cross-Chain Portfolio Tracker', type: 'blockchain', label: 'Bitcoin Ordinals and portfolio tracking' },
 
   // Telegram Bots
-  { source: 'Fantasy League Bot', target: 'A.I.bert Bot', type: 'telegram-bots', label: 'Shared Telegram bot architecture' },
-  { source: 'Fantasy League Bot', target: 'Money Never Sleeps', type: 'telegram-bots', label: 'Bot notifications for MNS' },
-  { source: 'A.I.bert Bot', target: 'Money Never Sleeps', type: 'telegram-bots', label: 'Health tracking for league members' },
+  { source: 'Agent Army', target: 'Money Never Sleeps', type: 'telegram-bots', label: 'League updates delivered in Telegram' },
 
   // Health/Wellness
-  { source: 'Human-Diet.com', target: 'A.I.bert Bot', type: 'health-wellness', label: 'Dietary data meets health tracking' },
+  { source: 'Human-Diet.com', target: 'Agent Army', type: 'health-wellness', label: "A.I.bert's health data lake meets the diet timeline" },
   { source: 'Human-Diet.com', target: 'Amber Mode', type: 'health-wellness', label: 'Health-conscious projects' },
-  { source: 'A.I.bert Bot', target: 'Amber Mode', type: 'health-wellness', label: 'Wellness optimization' },
+  { source: 'Agent Army', target: 'Amber Mode', type: 'health-wellness', label: 'Wellness optimization' },
 
   // Shared Tech Stack (selective)
   { source: 'Money Never Sleeps', target: 'DraftDayTrades.com', type: 'shared-tech', label: 'React, Next.js, Firebase, Tailwind' },
   { source: 'TrustThePick.com', target: 'Rocket Pool Tour', type: 'shared-tech', label: 'React, Next.js, TypeScript, Tailwind' },
   { source: 'Money Never Sleeps', target: 'Cross-Chain Portfolio Tracker', type: 'shared-tech', label: 'React, Next.js, Alchemy API' },
-  { source: 'Fantasy League Bot', target: 'A.I.bert Bot', type: 'shared-tech', label: 'Python, Telegram API, Railway' },
+  { source: 'Kinetic.email', target: 'Buddy Cup', type: 'shared-tech', label: 'Claude + OpenAI API pipelines' },
+  { source: 'Kinetic.email', target: 'To Posterity', type: 'shared-tech', label: 'Claude API content pipeline' },
 ];

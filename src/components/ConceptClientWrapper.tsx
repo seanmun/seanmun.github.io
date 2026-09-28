@@ -1,5 +1,6 @@
 'use client';
 import dynamic from 'next/dynamic';
+import type { ProjectGitStats } from '@/lib/github-stats';
 
 const ConceptGraph = dynamic(() => import('@/components/ConceptGraph'), {
   ssr: false,
@@ -10,6 +11,6 @@ const ConceptGraph = dynamic(() => import('@/components/ConceptGraph'), {
   ),
 });
 
-export default function ConceptClientWrapper() {
-  return <ConceptGraph />;
+export default function ConceptClientWrapper({ activity }: { activity: Record<string, ProjectGitStats> }) {
+  return <ConceptGraph activity={activity} />;
 }

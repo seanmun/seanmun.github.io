@@ -1,6 +1,7 @@
 'use client';
 import React from 'react';
-import { X, ExternalLink } from 'lucide-react';
+import Link from 'next/link';
+import { X, ExternalLink, ArrowRight } from 'lucide-react';
 import { Connection, connectionTypeConfig } from '@/data/connections';
 
 interface InfoPanelProps {
@@ -11,6 +12,9 @@ interface InfoPanelProps {
     status: string;
     techStack: string[];
     link: string;
+    slug: string;
+    recentCommits: number;
+    lastCommitAt: string | null;
   };
   connections: Connection[];
   onClose: () => void;
@@ -21,6 +25,13 @@ const statusColors: Record<string, string> = {
   MVP: '#eab308',
   Prod: '#22c55e',
 };
+
+function daysAgo(iso: string) {
+  const days = Math.floor((Date.now() - new Date(iso).getTime()) / 86400000);
+  if (days < 1) return 'today';
+  if (days < 2) return 'yesterday';
+  return `${days} days ago`;
+}
 
 export default function ConceptInfoPanel({ node, connections, onClose }: InfoPanelProps) {
   return (
@@ -48,6 +59,13 @@ export default function ConceptInfoPanel({ node, connections, onClose }: InfoPan
         <p className="text-white/70 text-sm leading-relaxed line-clamp-4">
           {node.description}
         </p>
+
+        {node.recentCommits > 0 && node.lastCommitAt && (
+          <p className="flex items-center gap-2 text-sm text-white/70">
+            <span className="git-pulse-dot" aria-hidden="true" />
+            {node.recentCommits} commit{node.recentCommits === 1 ? '' : 's'} in the last 90 days · last {daysAgo(node.lastCommitAt)}
+          </p>
+        )}
 
         <div>
           <h3 className="text-white/50 text-xs uppercase tracking-wider mb-2">
@@ -86,6 +104,16 @@ export default function ConceptInfoPanel({ node, connections, onClose }: InfoPan
           </div>
         </div>
 
+        {/* Into the case study — the graph should lead somewhere, not dead-end */}
+        <Link
+          href={`/projects/${node.slug}`}
+          className="flex items-center gap-2 px-4 py-2 rounded-lg
+                     bg-white/10 hover:bg-white/20 text-white text-sm font-medium
+                     transition-colors w-full justify-center mt-4"
+        >
+          Read the case study <ArrowRight className="w-4 h-4" />
+        </Link>
+
         {node.link && node.link.startsWith('http') && (
           <a
             href={node.link}
@@ -93,7 +121,7 @@ export default function ConceptInfoPanel({ node, connections, onClose }: InfoPan
             rel="noopener noreferrer"
             className="flex items-center gap-2 px-4 py-2 rounded-lg
                        bg-blue-600 hover:bg-blue-500 text-white text-sm font-medium
-                       transition-colors w-full justify-center mt-4"
+                       transition-colors w-full justify-center mt-2"
           >
             Visit Project <ExternalLink className="w-4 h-4" />
           </a>

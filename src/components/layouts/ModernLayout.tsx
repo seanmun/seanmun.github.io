@@ -1,6 +1,7 @@
 'use client';
 import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
+import Link from 'next/link';
 import { Orbitron } from 'next/font/google';
 
 const orbitron = Orbitron({
@@ -225,7 +226,15 @@ export function ModernLayout({
       {/* Projects Section - Two Columns */}
       <div id="projects" className="mb-8 scroll-mt-6">
         <div className={deckFade}>
-          <h2 className="text-xl font-bold mb-1 dark:text-white">Projects</h2>
+          <div className="flex items-baseline justify-between gap-3 mb-1">
+            <h2 className="text-xl font-bold dark:text-white">Projects</h2>
+            <Link
+              href="/ecosystem"
+              className="text-sm text-blue-600 hover:text-blue-800 transition-colors whitespace-nowrap"
+            >
+              See how they connect →
+            </Link>
+          </div>
           <p className={`text-sm italic text-gray-500 dark:text-gray-400 max-w-xl ${gitStats ? 'mb-2' : 'mb-4'}`}>
             Apps, agents, bots, and devices I&apos;ve designed and shipped end-to-end — proof that no idea is too weird to build.
           </p>

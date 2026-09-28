@@ -13,6 +13,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
 
   return [
     { url: SITE, lastModified: now, changeFrequency: 'weekly', priority: 1 },
+    { url: `${SITE}/ecosystem`, lastModified: now, changeFrequency: 'monthly', priority: 0.6 },
     ...projects.map((project) => ({
       url: `${SITE}/projects/${project.slug}`,
       lastModified: now,

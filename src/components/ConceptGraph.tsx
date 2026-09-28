@@ -2,11 +2,29 @@
 import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import ForceGraph3D from 'react-force-graph-3d';
 import * as THREE from 'three';
-import { projects } from '@/data/projects';
-import { connections, connectionTypeConfig, ConnectionType } from '@/data/connections';
-import ConceptInfoPanel from './ConceptInfoPanel';
 import { ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
+import { projects } from '@/data/projects';
+import { connections, connectionTypeConfig, ConnectionType } from '@/data/connections';
+import type { ProjectGitStats } from '@/lib/github-stats';
+import ConceptInfoPanel from './ConceptInfoPanel';
+
+const DAY_MS = 86400000;
+const FRESH_DAYS = 14;
+
+// A link naming a project that no longer exists (renamed, merged, retired)
+// makes the force simulation throw "node not found" and every node collapses
+// into one pile at the origin. Drop those links instead of crashing — the
+// project list changes more often than this file gets edited.
+const projectTitles = new Set(projects.map((p) => p.title));
+const liveConnections = connections.filter(
+  (c) => projectTitles.has(c.source) && projectTitles.has(c.target) && c.source !== c.target
+);
+if (process.env.NODE_ENV !== 'production') {
+  connections
+    .filter((c) => !liveConnections.includes(c))
+    .forEach((c) => console.warn(`Ecosystem link skipped — no project named "${c.source}" or "${c.target}"`));
+}
 
 interface GraphNode {
   id: string;
@@ -15,7 +33,12 @@ interface GraphNode {
   status: string;
   techStack: string[];
   link: string;
+  slug: string;
   connectionCount: number;
+  recentCommits: number; // last 90 days, from GitHub
+  lastCommitAt: string | null;
+  activity: number; // 0..1, log-scaled against the busiest project
+  fresh: boolean; // committed to within FRESH_DAYS
   x?: number;
   y?: number;
   z?: number;
@@ -55,8 +78,33 @@ function getThemeColors() {
   }
 }
 
-export default function ConceptGraph() {
+// Soft round falloff used for every activity halo, tinted per node
+function makeGlowTexture() {
+  const size = 128;
+  const canvas = document.createElement('canvas');
+  canvas.width = size;
+  canvas.height = size;
+  const ctx = canvas.getContext('2d')!;
+  const gradient = ctx.createRadialGradient(size / 2, size / 2, 0, size / 2, size / 2, size / 2);
+  gradient.addColorStop(0, 'rgba(255,255,255,1)');
+  gradient.addColorStop(0.35, 'rgba(255,255,255,0.45)');
+  gradient.addColorStop(1, 'rgba(255,255,255,0)');
+  ctx.fillStyle = gradient;
+  ctx.fillRect(0, 0, size, size);
+  return new THREE.CanvasTexture(canvas);
+}
+
+export default function ConceptGraph({ activity }: { activity: Record<string, ProjectGitStats> }) {
   const fgRef = useRef<any>(null);
+  // Live halos, keyed by node id; the pulse loop animates their opacity
+  const halosRef = useRef(new Map<string, { material: THREE.SpriteMaterial; base: number; fresh: boolean; phase: number }>());
+  const glowTexture = useMemo(() => makeGlowTexture(), []);
+  const [reduceMotion] = useState(() => window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+  const [introReady, setIntroReady] = useState(reduceMotion);
+  // Halo brightness multiplier: surges as the burst starts, then settles to 1
+  const surgeRef = useRef(1);
+  const burstStartedRef = useRef(false);
+  const animationRef = useRef({ timers: [] as ReturnType<typeof setTimeout>[], burst: 0, flash: 0 });
   const [selectedNode, setSelectedNode] = useState<GraphNode | null>(null);
   const [dimensions, setDimensions] = useState({ width: 800, height: 600 });
   const [themeColors, setThemeColors] = useState(getThemeColors);
@@ -83,22 +131,33 @@ export default function ConceptGraph() {
   const graphData: GraphData = useMemo(() => {
     const counts: Record<string, number> = {};
     projects.forEach(p => { counts[p.title] = 0; });
-    connections.forEach(c => {
+    liveConnections.forEach(c => {
       counts[c.source] = (counts[c.source] || 0) + 1;
       counts[c.target] = (counts[c.target] || 0) + 1;
     });
 
-    const nodes: GraphNode[] = projects.map(p => ({
-      id: p.title,
-      title: p.title,
-      description: p.description,
-      status: p.status,
-      techStack: p.techStack,
-      link: p.link,
-      connectionCount: counts[p.title] || 0,
-    }));
+    const busiest = Math.max(1, ...Object.values(activity).map(s => s.recentCommits));
 
-    const links: GraphLink[] = connections.map(c => ({
+    const nodes: GraphNode[] = projects.map(p => {
+      const stats = activity[p.slug];
+      const recent = stats?.recentCommits ?? 0;
+      return {
+        id: p.title,
+        title: p.title,
+        description: p.description,
+        status: p.status,
+        techStack: p.techStack,
+        link: p.link,
+        slug: p.slug,
+        connectionCount: counts[p.title] || 0,
+        recentCommits: recent,
+        lastCommitAt: stats?.lastCommitAt ?? null,
+        activity: recent > 0 ? Math.log1p(recent) / Math.log1p(busiest) : 0,
+        fresh: !!stats && Date.now() - new Date(stats.lastCommitAt).getTime() < FRESH_DAYS * DAY_MS,
+      };
+    });
+
+    const links: GraphLink[] = liveConnections.map(c => ({
       source: c.source,
       target: c.target,
       type: c.type,
@@ -107,7 +166,16 @@ export default function ConceptGraph() {
     }));
 
     return { nodes, links };
-  }, []);
+  }, [activity]);
+
+  const nodeById = useMemo(() => new Map(graphData.nodes.map(n => [n.id, n])), [graphData.nodes]);
+
+  // A link carries as much traffic as its busier end
+  const linkActivity = useCallback((link: GraphLink) => {
+    const s = typeof link.source === 'string' ? nodeById.get(link.source) : link.source;
+    const t = typeof link.target === 'string' ? nodeById.get(link.target) : link.target;
+    return Math.max(s?.activity ?? 0, t?.activity ?? 0);
+  }, [nodeById]);
 
   // Precompute link curvature for duplicate edges
   const linkCurvatures = useMemo(() => {
@@ -216,17 +284,125 @@ export default function ConceptGraph() {
       });
     }
 
-    // Push camera way back to see the full universe
-    setTimeout(() => {
-      fg.cameraPosition({ x: 0, y: 500, z: 3500 });
-    }, 100);
-  }, []);
+    const animation = animationRef.current;
+    if (reduceMotion) {
+      animation.timers.push(setTimeout(() => fg.cameraPosition({ x: 0, y: 500, z: 3500 }), 100));
+    }
+
+    return () => {
+      animation.timers.forEach(clearTimeout);
+      cancelAnimationFrame(animation.burst);
+      cancelAnimationFrame(animation.flash);
+    };
+  }, [reduceMotion]);
+
+  // Big bang. Runs on the first engine tick, because that is the first moment
+  // the layout has actually settled — node coordinates exist earlier, but
+  // they are only starting positions. Pin every node at the centre and fly
+  // each one out to its settled spot: the same burst every time, onto a
+  // layout known to read well.
+  const startBurst = useCallback(() => {
+    const fg = fgRef.current;
+    if (!fg || burstStartedRef.current) return;
+    burstStartedRef.current = true;
+    type Pinned = GraphNode & { fx?: number; fy?: number; fz?: number };
+    const nodes = graphData.nodes as Pinned[]; // the graph animates these objects
+    const targets = nodes.map(n => ({ x: n.x ?? 0, y: n.y ?? 0, z: n.z ?? 0 }));
+    const animation = animationRef.current;
+
+    nodes.forEach(n => {
+      n.fx = 0;
+      n.fy = 0;
+      n.fz = 0;
+    });
+    fg.cameraPosition({ x: 0, y: 150, z: 1400 }, { x: 0, y: 0, z: 0 });
+    setIntroReady(true);
+
+    const burstStart = performance.now() + 250;
+    const burst = (now: number) => {
+      const progress = Math.max(0, Math.min(1, (now - burstStart) / 1900));
+      const eased = 1 - Math.pow(1 - progress, 4);
+      nodes.forEach((n, i) => {
+        n.fx = targets[i].x * eased;
+        n.fy = targets[i].y * eased;
+        n.fz = targets[i].z * eased;
+      });
+      if (progress < 1) {
+        animation.burst = requestAnimationFrame(burst);
+      } else {
+        // Hand the nodes back to the simulation where they landed
+        nodes.forEach(n => {
+          n.fx = undefined;
+          n.fy = undefined;
+          n.fz = undefined;
+        });
+      }
+    };
+    animation.burst = requestAnimationFrame(burst);
+    animation.timers.push(
+      setTimeout(() => fg.cameraPosition({ x: 0, y: 500, z: 3500 }, { x: 0, y: 0, z: 0 }, 2600), 250)
+    );
+
+    // The flash: halos surge as the projects fly out, then settle
+    const flashStart = performance.now();
+    const settle = (now: number) => {
+      const progress = Math.min(1, (now - flashStart) / 2200);
+      surgeRef.current = 1 + 1.6 * Math.pow(1 - progress, 2);
+      if (progress < 1) animation.flash = requestAnimationFrame(settle);
+    };
+    animation.flash = requestAnimationFrame(settle);
+  }, [graphData]);
+
+  const handleEngineTick = useCallback(() => {
+    if (!reduceMotion) startBurst();
+  }, [reduceMotion, startBurst]);
+
+  // The engine-tick event alone proved unreliable — on repeat visits it often
+  // never fired, and the canvas stayed hidden. So: also start the burst the
+  // moment the layout has visibly spread (starting positions sit within ~100
+  // units of the centre; the settled layout spans thousands), and reveal the
+  // canvas after 1.5s no matter what. Worst case a visitor misses the burst —
+  // never a blank page.
+  useEffect(() => {
+    if (reduceMotion) return;
+    let frame = 0;
+    const started = performance.now();
+    const watch = () => {
+      if (burstStartedRef.current) return;
+      const spread = Math.max(0, ...graphData.nodes.map(n => Math.hypot(n.x ?? 0, n.y ?? 0, n.z ?? 0)));
+      if (spread > 400) startBurst();
+      else if (performance.now() - started < 3000) frame = requestAnimationFrame(watch);
+    };
+    frame = requestAnimationFrame(watch);
+    const failsafe = setTimeout(() => setIntroReady(true), 1500);
+    return () => {
+      cancelAnimationFrame(frame);
+      clearTimeout(failsafe);
+    };
+  }, [reduceMotion, graphData, startBurst]);
+
+  // Pulse: recently active projects breathe; the rest hold a steady glow
+  useEffect(() => {
+    if (reduceMotion) return;
+    let frame = 0;
+    const tick = (now: number) => {
+      halosRef.current.forEach(halo => {
+        const breath = halo.fresh ? 0.65 + 0.35 * Math.sin(now / 520 + halo.phase) : 1;
+        halo.material.opacity = Math.min(1, halo.base * breath * surgeRef.current);
+      });
+      frame = requestAnimationFrame(tick);
+    };
+    frame = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(frame);
+  }, [reduceMotion]);
 
   // Node click - fly to node
   const handleNodeClick = useCallback((node: GraphNode) => {
     setSelectedNode(prev => prev?.id === node.id ? null : node);
     if (fgRef.current && node.x !== undefined) {
-      const distance = 80;
+      // Cards grow with their connection count (60 units wide per link), so
+      // a fixed distance flew the camera inside the big hubs
+      const distance = Math.max(220, 60 * (node.connectionCount || 1) * 1.5);
       const dist = Math.hypot(node.x, node.y || 0, node.z || 0);
       const ratio = 1 + distance / (dist || 1);
       fgRef.current.cameraPosition(
@@ -250,7 +426,7 @@ export default function ConceptGraph() {
   const highlightNodes = useMemo(() => {
     if (!selectedNode) return null;
     const set = new Set<string>([selectedNode.id]);
-    connections.forEach(c => {
+    liveConnections.forEach(c => {
       if (c.source === selectedNode.id) set.add(c.target);
       if (c.target === selectedNode.id) set.add(c.source);
     });
@@ -402,8 +578,28 @@ export default function ConceptGraph() {
     const edges = new THREE.LineSegments(edgeGeo, edgeMat);
     group.add(edges);
 
+    // Activity halo: brighter and wider the more this project is being worked on
+    halosRef.current.delete(n.id);
+    if (n.activity > 0) {
+      const base = (0.14 + 0.36 * n.activity) * (isHighlighted ? 1 : 0.15);
+      const material = new THREE.SpriteMaterial({
+        map: glowTexture,
+        color: new THREE.Color(statusColorMap[n.status] || themeColors.nodeColor),
+        transparent: true,
+        opacity: base,
+        blending: THREE.AdditiveBlending,
+        depthWrite: false,
+      });
+      const halo = new THREE.Sprite(material);
+      const spread = 1.22 + 0.3 * n.activity;
+      halo.scale.set(width * spread, height * spread * 1.25, 1);
+      halo.renderOrder = 1;
+      group.add(halo);
+      halosRef.current.set(n.id, { material, base, fresh: n.fresh, phase: Math.random() * Math.PI * 2 });
+    }
+
     return group;
-  }, [highlightNodes, themeColors, createCardTexture]);
+  }, [highlightNodes, themeColors, createCardTexture, glowTexture]);
 
   const linkOpacity = useCallback((link: GraphLink) => {
     if (!selectedNode) return 0.4;
@@ -438,7 +634,9 @@ export default function ConceptGraph() {
         <p className="text-white/40 text-xs mt-1">Scroll to zoom &middot; Drag to orbit &middot; Click a node to explore</p>
       </div>
 
-      {/* 3D Graph */}
+      {/* 3D Graph — hidden until the burst starts so the settled layout never
+          flashes on screen first */}
+      <div style={{ opacity: introReady ? 1 : 0, transition: 'opacity 300ms ease-out' }}>
       <ForceGraph3D
         ref={fgRef}
         graphData={graphData}
@@ -455,24 +653,27 @@ export default function ConceptGraph() {
           const idx = graphData.links.indexOf(link as GraphLink);
           return idx >= 0 ? linkCurvatures[idx] : 0;
         }}
-        linkDirectionalParticles={3}
-        linkDirectionalParticleWidth={2}
-        linkDirectionalParticleSpeed={0.005}
+        linkDirectionalParticles={(link: object) =>
+          reduceMotion ? 0 : 1 + Math.round(4 * linkActivity(link as GraphLink))}
+        linkDirectionalParticleWidth={(link: object) => 1.5 + 2 * linkActivity(link as GraphLink)}
+        linkDirectionalParticleSpeed={(link: object) => 0.002 + 0.008 * linkActivity(link as GraphLink)}
         linkDirectionalParticleColor={(link: any) => (link as GraphLink).color}
         d3AlphaDecay={0.01}
         d3VelocityDecay={0.2}
         warmupTicks={100}
         cooldownTicks={200}
+        onEngineTick={handleEngineTick}
         enableNodeDrag={false}
         onBackgroundClick={() => setSelectedNode(null)}
         controlType="orbit"
       />
+      </div>
 
       {/* Info panel */}
       {selectedNode && (
         <ConceptInfoPanel
           node={selectedNode}
-          connections={connections.filter(
+          connections={liveConnections.filter(
             c => c.source === selectedNode.id || c.target === selectedNode.id
           )}
           onClose={() => setSelectedNode(null)}
@@ -538,6 +739,7 @@ export default function ConceptGraph() {
           </div>
           <div className="mt-3 pt-2 border-t border-white/10">
             <p className="text-white/40 text-[10px]">Node size = number of connections</p>
+            <p className="text-white/40 text-[10px] mt-0.5">Glow &amp; flow = commits in the last 90 days</p>
             <p className="text-white/40 text-[10px] mt-0.5">
               <span className="inline-block w-2 h-2 rounded-full mr-1" style={{backgroundColor: '#22c55e'}}></span>Prod
               <span className="inline-block w-2 h-2 rounded-full ml-2 mr-1" style={{backgroundColor: '#eab308'}}></span>MVP
