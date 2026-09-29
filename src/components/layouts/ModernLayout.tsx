@@ -19,6 +19,7 @@ import { BandReveal } from '@/components/ui/BandReveal';
 import { ProjectCardsGrid } from '@/components/ProjectCardsGrid';
 import { WorkWithMe } from '@/components/WorkWithMe';
 import { GitSummaryLine } from '@/components/ui/GitActivity';
+import { SpinningMarkLazy } from '@/components/ui/SpinningMarkLazy';
 import type { GitStatsSnapshot } from '@/lib/github-stats';
 
 interface ModernLayoutProps {
@@ -77,7 +78,7 @@ export function ModernLayout({
     <div className="max-w-4xl mx-auto p-4">
       {/* Bio Section */}
       <div className={`mb-6 spring-active ${deckFade}`}>
-        <div className="flex flex-col sm:flex-row gap-4 items-start">
+        <div className="grid grid-cols-[auto_1fr] sm:grid-cols-[auto_1fr_auto] gap-4 items-start">
           <div className="relative w-40 h-40 flex-shrink-0 sm:mt-3">
             {/* Animated blobs (ambient halo — visible throughout) */}
             <div className="absolute w-48 h-48 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
@@ -114,7 +115,8 @@ export function ModernLayout({
               </BandReveal>
             </div>
           </div>
-          <div>
+          <SpinningMarkLazy className="justify-self-end mr-12 w-28 h-40 sm:mr-0 sm:mt-12 sm:order-3 sm:w-40 sm:h-60" />
+          <div className="col-span-2 sm:col-span-1 sm:order-2">
             <h1 className={`hero-spring-2 text-5xl font-black mb-2 leading-relaxed tracking-wide ${orbitron.className}`}>
               <span className="name-bright bg-gradient-to-r bg-clip-text text-transparent">SeanMun</span><span className="name-dull bg-gradient-to-r bg-clip-text text-transparent">ley</span>
             </h1>

@@ -489,3 +489,16 @@ button:disabled {
 @media (prefers-reduced-motion: reduce) {
   .git-pulse-dot::after { display: none; }
 }
+
+/* 3D porcelain S — fades in once the model has loaded */
+.spinning-mark {
+  opacity: 0;
+  transition: opacity 700ms ease-out;
+  border-radius: 12px;
+  outline: none;
+}
+.spinning-mark[data-loaded='true'] { opacity: 1; }
+.spinning-mark:focus-visible { box-shadow: 0 0 0 2px var(--accent); }
+@media (prefers-reduced-motion: reduce) {
+  .spinning-mark { transition: none; }
+}

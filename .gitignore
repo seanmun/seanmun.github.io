@@ -53,3 +53,5 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+# Raw 3D exports (tens of MB) — the web-optimized copy lives in public/models
+/public/meshy/
