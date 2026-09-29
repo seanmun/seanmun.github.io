@@ -25,7 +25,10 @@ const MAX_TILT = 0.45;
 const RESUME_IDLE_MS = 2500;
 const FOV = 30;
 
-export function SpinningMark({ className = '' }: { className?: string }) {
+// decorative: a repeat appearance (e.g. the footer signature). Hidden from
+// assistive tech and out of the tab order — the hero instance already
+// carries the label — but still spinnable by pointer.
+export function SpinningMark({ className = '', decorative = false }: { className?: string; decorative?: boolean }) {
   const hostRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -193,6 +196,10 @@ export function SpinningMark({ className = '' }: { className?: string }) {
       canvas.remove();
     };
   }, []);
+
+  if (decorative) {
+    return <div ref={hostRef} aria-hidden="true" className={`spinning-mark ${className}`} />;
+  }
 
   return (
     <div

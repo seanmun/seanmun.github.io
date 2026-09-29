@@ -316,10 +316,13 @@ export function ModernLayout({
       <footer className={`border-t border-gray-100 dark:border-gray-800 py-6 mt-8 ${deckFade}`}>
         <div className="max-w-4xl mx-auto px-4">
           <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-            <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300">
-              <span>&copy; 2026 seanmun.com</span>
-              <span className="px-2">•</span>
-              <span className="flex items-center gap-1">
+            <div className="flex flex-wrap items-center justify-center gap-x-2 gap-y-1 text-sm text-gray-600 dark:text-gray-300">
+              <span className="flex items-center gap-2 whitespace-nowrap">
+                <SpinningMarkLazy decorative whenVisible className="w-6 h-10 flex-shrink-0" />
+                &copy; 2026 seanmun.com
+              </span>
+              <span className="hidden sm:inline px-2">•</span>
+              <span className="whitespace-nowrap">
                 Designed and built by Sean Munley
               </span>
             </div>
