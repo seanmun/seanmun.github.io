@@ -151,7 +151,9 @@ export function SpinningMark({ className = '', decorative = false }: { className
     let frame = 0;
     let last = performance.now();
     const tick = (now: number) => {
-      const dt = Math.min(0.05, (now - last) / 1000);
+      // Never negative: a frame timestamp can land slightly before the loop
+      // started, and FRICTION ** (negative) would grow the spin, not slow it
+      const dt = THREE.MathUtils.clamp((now - last) / 1000, 0, 0.05);
       last = now;
       if (!dragging) {
         if (!reduceMotion && now - lastInteraction > RESUME_IDLE_MS) {

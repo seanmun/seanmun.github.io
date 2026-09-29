@@ -20,6 +20,7 @@ import { ProjectCardsGrid } from '@/components/ProjectCardsGrid';
 import { WorkWithMe } from '@/components/WorkWithMe';
 import { GitSummaryLine } from '@/components/ui/GitActivity';
 import { SpinningMarkLazy } from '@/components/ui/SpinningMarkLazy';
+import { LivingPortraitLazy } from '@/components/ui/LivingPortraitLazy';
 import type { GitStatsSnapshot } from '@/lib/github-stats';
 
 interface ModernLayoutProps {
@@ -113,6 +114,7 @@ export function ModernLayout({
                   quality={75}
                 />
               </BandReveal>
+              <LivingPortraitLazy className="absolute inset-0 bg-white dark:bg-gray-800 amber-bg" />
             </div>
           </div>
           <SpinningMarkLazy className="justify-self-end mr-12 w-28 h-40 sm:mr-0 sm:mt-12 sm:order-3 sm:w-40 sm:h-60" />

@@ -502,3 +502,13 @@ button:disabled {
 @media (prefers-reduced-motion: reduce) {
   .spinning-mark { transition: none; }
 }
+
+/* 3D portrait — covers the flat photo once the model has loaded */
+.living-portrait {
+  opacity: 0;
+  transition: opacity 900ms ease-out;
+}
+.living-portrait[data-loaded='true'] { opacity: 1; }
+@media (prefers-reduced-motion: reduce) {
+  .living-portrait { transition: none; }
+}

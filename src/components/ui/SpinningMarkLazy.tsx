@@ -6,8 +6,9 @@
 // near the viewport (the footer signature: most visitors never get there).
 // A second instance reuses the model from the browser's HTTP cache.
 
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useRef } from 'react';
 import dynamic from 'next/dynamic';
+import { useDeferredMount } from '@/hooks/useDeferredMount';
 
 const SpinningMark = dynamic(() => import('./SpinningMark').then((m) => m.SpinningMark), { ssr: false });
 
@@ -20,39 +21,8 @@ export function SpinningMarkLazy({
   decorative?: boolean;
   whenVisible?: boolean;
 }) {
-  const [enabled, setEnabled] = useState(false);
   const placeholderRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (whenVisible) {
-      const box = placeholderRef.current;
-      if (!box) return;
-      const observer = new IntersectionObserver(
-        ([entry]) => {
-          if (entry.isIntersecting) {
-            setEnabled(true);
-            observer.disconnect();
-          }
-        },
-        { rootMargin: '300px' }
-      );
-      observer.observe(box);
-      return () => observer.disconnect();
-    }
-
-    let idleId: number | null = null;
-    let timeoutId: ReturnType<typeof setTimeout> | null = null;
-    const enable = () => setEnabled(true);
-    if ('requestIdleCallback' in window) {
-      idleId = window.requestIdleCallback(enable, { timeout: 2000 });
-    } else {
-      timeoutId = setTimeout(enable, 400);
-    }
-    return () => {
-      if (idleId !== null && 'cancelIdleCallback' in window) window.cancelIdleCallback(idleId);
-      if (timeoutId !== null) clearTimeout(timeoutId);
-    };
-  }, [whenVisible]);
+  const enabled = useDeferredMount(placeholderRef, whenVisible);
 
   return enabled ? (
     <SpinningMark className={className} decorative={decorative} />
