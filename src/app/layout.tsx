@@ -54,38 +54,33 @@ export default function RootLayout({
         <script
           dangerouslySetInnerHTML={{
             __html: `
+              // Runs before first paint so the page starts in the visitor's
+              // theme instead of flashing light first. Mirrors
+              // useAccessibilitySettings exactly — same storage key, same
+              // dark-device default, same font sizes.
               (function() {
+                var root = document.documentElement;
+                var theme = 'default';
+                var fontSize = null;
                 try {
-                  const stored = localStorage.getItem('accessibility-settings');
+                  var stored = localStorage.getItem('accessibilitySettings');
                   if (stored) {
-                    const settings = JSON.parse(stored);
-                    const theme = settings.theme || 'default';
-
-                    // Apply theme class
-                    document.documentElement.classList.add(theme);
-
-                    // Apply data-theme attribute
-                    document.documentElement.setAttribute('data-theme', theme);
-
-                    // Apply font size
-                    if (settings.fontSize) {
-                      document.documentElement.classList.add('text-' + settings.fontSize);
-                    }
-
-                    // Apply line height
-                    if (settings.lineHeight) {
-                      document.documentElement.classList.add('leading-' + settings.lineHeight);
-                    }
-                  } else {
-                    // Default theme
-                    document.documentElement.classList.add('default');
-                    document.documentElement.setAttribute('data-theme', 'default');
+                    var settings = JSON.parse(stored);
+                    theme = settings.theme || 'default';
+                    fontSize = settings.fontSize || null;
+                  } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                    theme = 'dark';
                   }
+                  // MySpace, Windows 98 and Ecosystem are pages as much as
+                  // themes: they only apply on their own route
+                  var pageThemes = { myspace: '/myspace', windows98: '/windows98', ecosystem: '/ecosystem' };
+                  if (pageThemes[theme] && location.pathname !== pageThemes[theme]) theme = 'default';
                 } catch (e) {
-                  // Fallback to default
-                  document.documentElement.classList.add('default');
-                  document.documentElement.setAttribute('data-theme', 'default');
+                  theme = 'default';
                 }
+                root.classList.add(theme);
+                root.setAttribute('data-theme', theme);
+                if (fontSize) root.style.fontSize = { small: '15px', medium: '16px', large: '19px' }[fontSize] || '';
               })();
             `,
           }}
