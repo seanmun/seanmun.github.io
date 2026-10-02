@@ -119,7 +119,7 @@ export function ModernLayout({
           </div>
           <SpinningMarkLazy className="justify-self-end mr-12 w-28 h-40 sm:mr-0 sm:mt-12 sm:order-3 sm:w-40 sm:h-60" />
           <div className="col-span-2 sm:col-span-1 sm:order-2">
-            <h1 className={`hero-spring-2 text-5xl font-black mb-2 leading-relaxed tracking-wide ${orbitron.className}`}>
+            <h1 className={`hero-spring-2 text-[length:clamp(2rem,calc((100vw_-_2rem)/7.4),3rem)] font-black mb-2 leading-relaxed tracking-wide ${orbitron.className}`}>
               <span className="name-bright bg-gradient-to-r bg-clip-text text-transparent">SeanMun</span><span className="name-dull bg-gradient-to-r bg-clip-text text-transparent">ley</span>
             </h1>
 
