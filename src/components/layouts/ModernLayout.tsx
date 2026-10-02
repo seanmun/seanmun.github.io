@@ -79,7 +79,7 @@ export function ModernLayout({
     <div className="max-w-4xl mx-auto p-4">
       {/* Bio Section */}
       <div className={`mb-6 spring-active ${deckFade}`}>
-        <div className="grid grid-cols-[auto_1fr] sm:grid-cols-[auto_1fr_auto] gap-4 items-start">
+        <div className="grid grid-cols-[auto_minmax(0,1fr)] sm:grid-cols-[auto_minmax(0,1fr)_auto] gap-x-3 gap-y-4 sm:gap-4 items-start">
           <div className="relative w-40 h-40 flex-shrink-0 sm:mt-3">
             {/* Animated blobs (ambient halo — visible throughout) */}
             <div className="absolute w-48 h-48 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
@@ -117,14 +117,14 @@ export function ModernLayout({
               <LivingPortraitLazy className="absolute inset-0 bg-white dark:bg-gray-800 amber-bg" />
             </div>
           </div>
-          <SpinningMarkLazy className="justify-self-end mr-12 w-28 h-40 sm:mr-0 sm:mt-12 sm:order-3 sm:w-40 sm:h-60" />
+          <SpinningMarkLazy className="justify-self-start self-center w-24 h-36 sm:justify-self-end sm:self-start sm:mt-12 sm:order-3 sm:w-40 sm:h-60" />
           <div className="col-span-2 sm:col-span-1 sm:order-2">
             <h1 className={`hero-spring-2 text-[length:clamp(2rem,calc((100vw_-_2rem)/7.4),3rem)] font-black mb-2 leading-relaxed tracking-wide ${orbitron.className}`}>
               <span className="name-bright bg-gradient-to-r bg-clip-text text-transparent">SeanMun</span><span className="name-dull bg-gradient-to-r bg-clip-text text-transparent">ley</span>
             </h1>
 
             <p className="hero-spring-3 text-xs uppercase tracking-[0.18em] text-gray-500 dark:text-gray-400 mb-3">
-              product builder · AI systems · CRM &amp; martech
+              product builder · AI systems · CRM&nbsp;&amp;&nbsp;martech
             </p>
 
             <p className="hero-spring-4 text-xl font-semibold leading-snug text-gray-900 dark:text-white mb-2 max-w-xl">
@@ -154,7 +154,7 @@ export function ModernLayout({
             </div>
 
             {/* Navigation Icons */}
-            <nav className="hero-spring-5 flex gap-2 items-start">
+            <nav className="hero-spring-5 flex gap-1 min-[360px]:gap-2 items-start">
               <a
                 href="https://github.com/seanmun"
                 target="_blank"
