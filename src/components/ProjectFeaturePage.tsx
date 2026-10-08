@@ -14,6 +14,7 @@ import { ProjectIcon } from '@/components/ui/ProjectIcon';
 import { SmokeBackgroundLazy } from '@/components/ui/SmokeBackgroundLazy';
 import { HERO_FLIP_KEY, DEAL_IN_KEY } from '@/components/ProjectCardsGrid';
 import { GitStatsLine } from '@/components/ui/GitActivity';
+import { FeatureMedia } from '@/components/ui/FeatureMedia';
 import { getDeviceType, getVisitorId, trackEvent } from '@/lib/track-utils';
 import type { ProjectGitStats } from '@/lib/github-stats';
 
@@ -151,6 +152,18 @@ function DetailSectionBlock({ section, compact = false }: { section: ProjectDeta
       )}
       {section.body && (
         <p className="leading-relaxed text-gray-700 dark:text-gray-300 mb-3">{section.body}</p>
+      )}
+      {/* Two or more visuals sit side by side from md up, so a pair (e.g.
+          "describe it" + "it runs in Gmail") reads as one idea instead of a
+          long stack; phones still stack them */}
+      {section.media && section.media.length > 1 ? (
+        <div className="grid md:grid-cols-2 gap-4 my-6 items-start">
+          {section.media.map((media, mediaIndex) => (
+            <FeatureMedia key={mediaIndex} media={media} inGrid />
+          ))}
+        </div>
+      ) : (
+        section.media?.map((media, mediaIndex) => <FeatureMedia key={mediaIndex} media={media} />)
       )}
       {section.bullets && section.bullets.length > 0 && (
         <ul className="list-disc pl-5 space-y-2 text-gray-700 dark:text-gray-300 mb-3">
@@ -452,6 +465,15 @@ export function ProjectFeaturePage({ project, gitStats }: ProjectFeaturePageProp
         {/* Content card — everything below the hero lives on one card */}
         <div {...rise()}>
         <div className="p-6 sm:p-8 bg-gray-50 dark:bg-gray-800 rounded-lg mb-8 shadow dark:shadow-gray-950/50">
+
+        {/* Hero media (e.g. a sizzle loop) leads the content card */}
+        {content.heroMedia && (
+          <div {...rise()}>
+            <div className="-mt-2 mb-6">
+              <FeatureMedia media={content.heroMedia} eager />
+            </div>
+          </div>
+        )}
 
         {/* Live commit activity from GitHub — kept out of the hero so the
             card-expand handoff still lands on the hero's measured height */}

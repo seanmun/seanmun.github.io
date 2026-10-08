@@ -512,3 +512,7 @@ button:disabled {
 @media (prefers-reduced-motion: reduce) {
   .living-portrait { transition: none; }
 }
+
+/* Kinetic pipeline diagram — rail and step dots in the site's accent */
+.pipeline-rail { background: var(--accent); opacity: 0.35; }
+.pipeline-step { background: var(--accent); box-shadow: 0 0 0 4px var(--bg-primary, #fff); }

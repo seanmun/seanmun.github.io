@@ -55,3 +55,6 @@ yarn-error.log*
 next-env.d.ts
 # Raw 3D exports (tens of MB) — the web-optimized copy lives in public/models
 /public/meshy/
+
+# Raw video exports — web-encoded copies live in public/media
+/public/videos/

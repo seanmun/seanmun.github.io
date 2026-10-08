@@ -13,11 +13,29 @@ export interface ProjectCallToAction {
   secondary?: { label: string; url: string };
 }
 
-// A titled block of case-study prose: paragraph(s), optional bullet list,
-// optional closing paragraph after the bullets
+// A visual inside a case-study section. Videos are silent loops that play
+// only while on screen; srcMobile / posterMobile swap in a vertical cut on
+// phones. width/height reserve the box so nothing jumps as media loads.
+export interface ProjectMedia {
+  type: 'video' | 'image' | 'diagram';
+  src?: string;
+  poster?: string;
+  srcMobile?: string;
+  posterMobile?: string;
+  width?: number;
+  height?: number;
+  alt: string;
+  caption?: string;
+  diagram?: 'kinetic-pipeline';
+}
+
+// A titled block of case-study prose: paragraph(s), optional media (shown
+// after the opening paragraph), optional bullet list, optional closing
+// paragraph after the bullets
 export interface ProjectDetailSection {
   heading: string;
   body?: string;
+  media?: ProjectMedia[];
   bullets?: string[];
   footer?: string;
 }
@@ -34,6 +52,7 @@ export interface ProjectRosterBot {
 }
 
 export interface ProjectModalContent {
+  heroMedia?: ProjectMedia; // shown at the top of the content card, above the overview
   images?: ProjectImage[];
   overview?: string;
   detailSections?: ProjectDetailSection[];
@@ -81,19 +100,24 @@ export const projects: Project[] = [
     status: "Prod",
     techStack: ["React", "TypeScript", "Vite", "Tailwind CSS", "Supabase", "Convex", "Claude API", "OpenAI API", "Pinecone", "Mailgun", "Vercel"],
     repos: ["kinetic-email", "kineticemail", "kinetic-email-factory"],
-    // Planned imagery (shoot at 1440px+, GIFs for anything interactive):
-    //  1. Landing page hero with the live interactive demo email mid-action
-    //  2. Playground: prompt on left, iOS Mail simulator preview on right
-    //  3. Same email side-by-side: Kinetic (Apple Mail) vs AMP (Gmail)
-    //  4. Learning module with Monaco editor + live preview
-    //  5. Brand Builder: colors, tone, style-theory picker
-    //  6. Arc campaign canvas with a multi-email flow
-    //  7. Real-time tracking dashboard (GIF: phone tap -> live event)
-    //  8. System architecture diagram (make in Excalidraw/Figma)
-    //  9. Generation pipeline diagram with model annotations
-    // 10. Spritz reader GIF during generation
-    // 11. Station admin: RAG library or token economy config (optional)
+    // Media lives in public/media/kinetic (silent H.264 loops, see
+    // FeatureMedia). Still to capture — add each as a `media` entry on its
+    // section: Apple Mail (kinetic) vs Gmail (AMP) side-by-side of one email
+    // [Describe an email]; a module with the code editor open [Learn the
+    // craft]; Brand Builder with style theories + the Arc canvas [Manage
+    // brands]; a ~5s loop clicking a tab while the tracking console updates
+    // [Track engagement]; a ~4s loop of the speed reader [Waiting].
     modalContent: {
+      heroMedia: {
+        type: "video",
+        src: "/media/kinetic/sizzle.mp4",
+        poster: "/media/kinetic/sizzle-poster.jpg",
+        srcMobile: "/media/kinetic/sizzle-vertical.mp4",
+        posterMobile: "/media/kinetic/sizzle-vertical-poster.jpg",
+        width: 1280,
+        height: 720,
+        alt: "Kinetic.email sizzle reel: describing an email and getting an interactive build, AMP running in Gmail, Kineticize, the team workspace and the Campaign Companion"
+      },
       overview: "AI-powered platform for building interactive emails — learn the techniques, generate production-ready code, and track engagement inside the inbox. Email is the highest-ROI channel in marketing, but 99% of emails are static brochures. Kinetic.email exists to change that.",
       detailSections: [
         {
@@ -104,11 +128,32 @@ export const projects: Project[] = [
             "There's no tooling. ESPs don't generate it, templates don't exist for it, and testing it requires sending to a dozen real inboxes.",
             "Nobody teaches it. The knowledge lives in scattered blog posts and the heads of a few hundred email developers."
           ],
-          footer: "Kinetic.email solves all three: an education platform that teaches the techniques, an AI generation engine that writes the code, and a workspace where teams manage brands, campaigns, and real engagement analytics."
+          footer: "Kinetic.email solves all three: an education platform that teaches the techniques, an AI generation engine that writes the code, and a workspace where teams manage brands, campaigns, and real engagement analytics.",
+          media: [
+            { type: "image", src: "/media/kinetic/problem.jpg", width: 1280, height: 720, alt: "Static. Flat. Ignored. Every inbox looks the same." }
+          ]
         },
         {
           heading: "Describe an email → get two production builds",
-          body: "The AI Playground takes a plain-English prompt (or a saved brand profile) and generates two parallel builds of the same email: Kinetic HTML — CSS :checked interactivity for Apple Mail and iOS Mail, with Yahoo/AOL hacks, MSO conditionals, and graceful static fallback for everything else — and AMP4Email, using amp-carousel, amp-form, and amp-bind for dynamic content in Gmail and Yahoo. Both builds share a single design blueprint (palette, typography, spacing, button styles), so the visual experience is identical no matter which client opens it. They ship together as a tri-part MIME bundle — one send, and every inbox gets the best experience it supports."
+          body: "The AI Playground takes a plain-English prompt (or a saved brand profile) and generates two parallel builds of the same email: Kinetic HTML — CSS :checked interactivity for Apple Mail and iOS Mail, with Yahoo/AOL hacks, MSO conditionals, and graceful static fallback for everything else — and AMP4Email, using amp-carousel, amp-form, and amp-bind for dynamic content in Gmail and Yahoo. Both builds share a single design blueprint (palette, typography, spacing, button styles), so the visual experience is identical no matter which client opens it. They ship together as a tri-part MIME bundle — one send, and every inbox gets the best experience it supports. Kinetic.email is an approved AMP sender for Gmail and Yahoo Mail, so the AMP version renders live in their inboxes with no setup for the recipient.",
+          media: [
+            { type: "video", src: "/media/kinetic/generate.mp4", poster: "/media/kinetic/generate.jpg", width: 1100, height: 826, alt: "Describing an email in the AI Playground and getting an interactive build", caption: "Describe it, get an interactive email." },
+            { type: "video", src: "/media/kinetic/amp.mp4", poster: "/media/kinetic/amp.jpg", width: 1100, height: 890, alt: "The AMP version of an email running interactively in Gmail", caption: "Real AMP, right in the inbox." }
+          ]
+        },
+        {
+          heading: "Kineticize: make existing emails interactive",
+          body: "Most teams already have years of emails. Paste one in — a newsletter, a promo, a receipt — and Kineticize rebuilds it as an interactive kinetic + AMP pair while keeping what makes it yours. The design is read from the source itself, by role (its hero, buttons, body and footer), instead of being swapped for a generic template. In evals on ten real production emails, the copy came through 96–100% intact, with every link and image preserved.",
+          media: [
+            { type: "video", src: "/media/kinetic/kineticize.mp4", poster: "/media/kinetic/kineticize.jpg", width: 1100, height: 720, alt: "Kineticize turning an existing email into an interactive version", caption: "Got old emails? Kineticize them." }
+          ]
+        },
+        {
+          heading: "Campaign Companion",
+          body: "A campaign strategist built into the workspace. Tell it what you're launching and it plans the campaign from the brand's industry, audience and sending platform, writing in the voice of the email you've starred as your best. It ends with ready-to-generate prompts, so a plan becomes built emails without rewriting a brief. Part of Premium and Enterprise.",
+          media: [
+            { type: "video", src: "/media/kinetic/companion.mp4", poster: "/media/kinetic/companion.jpg", width: 1100, height: 764, alt: "The Campaign Companion planning a campaign and handing off prompts to build", caption: "It plans the campaign. You hit build." }
+          ]
         },
         {
           heading: "Learn the craft",
@@ -117,11 +162,15 @@ export const projects: Project[] = [
         {
           heading: "Manage brands and campaigns",
           body: "Multi-tenant workspaces built for teams:",
+          media: [
+            { type: "video", src: "/media/kinetic/workspace.mp4", poster: "/media/kinetic/workspace.jpg", width: 1100, height: 758, alt: "A shared Enterprise workspace with brands, projects and tracking databases", caption: "Your whole team. One shared workspace." }
+          ],
           bullets: [
             "Brand Builder — colors, fonts, tone, logo, product catalog (manual + CSV/Shopify import), CAN-SPAM details, and one of eight \"style theories\" (editorial-minimal, bold-brutalist, luxe-premium…) that steer how the AI constructs the email, not just what colors it uses",
             "Projects & Emails — versioned email management with test sends via Mailgun",
             "Arc — a visual campaign canvas (React Flow) for composing email journeys, shareable with clients via tokenized links",
-            "Brand sharing — invite collaborators with owner/member permissions enforced at the database level"
+            "Enterprise workspaces — a shared workspace for a team or agency: owner, admin and member roles, email invites, and one shared credit pool, with nothing leaking between workspaces (enforced at the database level)",
+            "Plans — Premium adds the Campaign Companion and higher limits (10,000 emails, 500 projects, 10 tracking databases); Enterprise brings all of it to every member of a team workspace"
           ]
         },
         {
@@ -131,6 +180,9 @@ export const projects: Project[] = [
         {
           heading: "The generation pipeline",
           body: "Email generation is a staged, multi-model pipeline — not a single prompt:",
+          media: [
+            { type: "diagram", diagram: "kinetic-pipeline", alt: "Generation pipeline: brief, blueprint, RAG, parallel kinetic and AMP builds, QA, curator" }
+          ],
           bullets: [
             "Brief builder (Claude Haiku) turns the user prompt + brand config into a structured brief: audience, copy, component pairings, palette",
             "Design blueprint (Haiku) emits binding design tokens both builds must obey",
@@ -148,7 +200,7 @@ export const projects: Project[] = [
         {
           heading: "Engineering details",
           bullets: [
-            "Multi-tenancy at the database layer: every Supabase table runs Row-Level Security — permissions are Postgres policies, not application code — with SECURITY DEFINER helpers to safely cross tenant boundaries and 100+ numbered SQL migrations tracking the schema's evolution",
+            "Multi-tenancy at the database layer: every Supabase table runs Row-Level Security — permissions are Postgres policies, not application code — with SECURITY DEFINER helpers to safely cross tenant boundaries and 150+ numbered SQL migrations tracking the schema's evolution",
             "Analytics rebuilt from primitives: email clients strip all scripts, so CSS state changes load tracking pixels for kinetic and hidden form fields carry AMP events; everything validates sendId/userId pairs server-side and flags mismatches as suspicious",
             "Growth loop: a token economy gates AI generation — users earn tokens by signing up, completing courses, and referring friends, so every earn action either educates a user or acquires one; all rewards and costs are tunable live from an admin panel without deploys"
           ]
