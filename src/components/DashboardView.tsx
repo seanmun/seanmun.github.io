@@ -189,6 +189,15 @@ export default function DashboardView() {
   const [thisBrowser, setThisBrowser] = useState('');
   const [reloadKey, setReloadKey] = useState(0);
   const [includeMine, setIncludeMine] = useState(false);
+  const [highlightedVisit, setHighlightedVisit] = useState<number | null>(null);
+
+  // From the preview at the top to the visit's full trail in the feed below,
+  // flashed briefly so the eye lands on it
+  const jumpToVisit = (index: number) => {
+    document.getElementById(`visit-${index}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    setHighlightedVisit(index);
+    window.setTimeout(() => setHighlightedVisit((current) => (current === index ? null : current)), 2200);
+  };
   const isDark = useIsDark();
 
   useEffect(() => {
@@ -391,6 +400,60 @@ export default function DashboardView() {
         <StatTile label="Avg. visit" value={formatDuration(view.stats.avgDuration)} />
       </div>
 
+      {/* At a glance: the latest visits as one-line headlines, beside what got clicked */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-start">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-5">
+          <div className="flex items-center justify-between gap-3 mb-3">
+            <h3 className="text-sm font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+              Recent visits
+            </h3>
+            {view.sessions.length > 0 && (
+              <button
+                onClick={() => document.getElementById('recent-visits')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+                className="text-sm text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
+              >
+                See all {view.sessions.length} →
+              </button>
+            )}
+          </div>
+          {view.sessions.length === 0 ? (
+            <p className="text-sm text-gray-500 dark:text-gray-400">No visits in this range.</p>
+          ) : (
+            <ul className="divide-y divide-gray-100 dark:divide-gray-700">
+              {view.sessions.slice(0, 8).map((session, index) => (
+                <li key={`${session.cookieId}-${index}`}>
+                  <button
+                    onClick={() => jumpToVisit(index)}
+                    className="w-full text-left flex flex-wrap items-center gap-x-2 py-2 px-2 -mx-2 rounded text-sm hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
+                    title="Show this visit's full trail"
+                  >
+                    <span className="font-medium text-gray-900 dark:text-white whitespace-nowrap">
+                      {session.start.toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}
+                    </span>
+                    <span className="text-gray-500 dark:text-gray-400">
+                      · {session.place || 'unknown location'} · {session.device || 'unknown device'} · from {hostOf(session.referrer)}
+                    </span>
+                    {session.isAdmin && (
+                      <span className="px-2 py-0.5 rounded-full text-xs bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300">
+                        you
+                      </span>
+                    )}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+
+        <BarPanel
+          title="Click activity"
+          subtitle="Every element clicked, most clicked first"
+          rows={view.charts.clicks}
+          empty="No clicks recorded in this range yet."
+          isDark={isDark}
+        />
+      </div>
+
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-5">
         <h3 className="text-sm font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-4">
           Visits per day
@@ -445,14 +508,6 @@ export default function DashboardView() {
         </div>
       </div>
 
-      <BarPanel
-        title="Click activity"
-        subtitle="Every element clicked, most clicked first"
-        rows={view.charts.clicks}
-        empty="No clicks recorded in this range yet."
-        isDark={isDark}
-      />
-
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <BarPanel title="Pages" rows={view.charts.pages} empty="No page views in this range." isDark={isDark} />
         <BarPanel title="Traffic sources" rows={view.charts.sources} empty="No traffic in this range." isDark={isDark} />
@@ -462,7 +517,7 @@ export default function DashboardView() {
       </div>
 
       {/* Individual visits: at a few visits a day, reading them beats any chart */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-5">
+      <div id="recent-visits" className="bg-white dark:bg-gray-800 rounded-lg shadow p-5 scroll-mt-4">
         <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
           <div>
             <h3 className="text-sm font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
@@ -492,7 +547,15 @@ export default function DashboardView() {
             {view.sessions.slice(0, 40).map((session, index) => {
               const minutes = Math.round((session.end.getTime() - session.start.getTime()) / 60000);
               return (
-                <div key={`${session.cookieId}-${index}`} className="border-l-2 border-gray-200 dark:border-gray-700 pl-4">
+                <div
+                  key={`${session.cookieId}-${index}`}
+                  id={`visit-${index}`}
+                  className={`border-l-2 pl-4 py-1 rounded-r transition-colors duration-700 ${
+                    highlightedVisit === index
+                      ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/30'
+                      : 'border-gray-200 dark:border-gray-700'
+                  }`}
+                >
                   <div className="flex flex-wrap items-center gap-x-2 text-sm mb-1">
                     <span className="font-medium dark:text-white">
                       {session.start.toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}
