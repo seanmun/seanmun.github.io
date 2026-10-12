@@ -504,6 +504,18 @@ export const projects: Project[] = [
     repos: ["rocket"],
   },
   {
+    title: "HomeTown HotSpots",
+    slug: "hometown-hotspots",
+    description: "A website for HomeTown HotSpots, a small business that films and shares the local people, places, and stories that bring hometowns to life. The owners run it themselves without touching code: an admin studio lets them publish blog posts, featured businesses, events, and merch with photo uploads right in the browser. Featured spots drop onto an interactive Explore map, the shop links each product to its own checkout, and contact, nomination, and newsletter forms land straight in their inbox.",
+    iconName: "MapPin",
+    link: "https://hometown-sand.vercel.app/",
+    ariaLabel: "View HomeTown HotSpots website",
+    requiresPassword: false,
+    status: "MVP",
+    techStack: ["React", "Next.js", "TypeScript", "Sanity CMS", "Leaflet", "Resend", "Tailwind CSS", "Vercel"],
+    repos: ["hometown"],
+  },
+  {
     title: "Amber Mode",
     slug: "amber-mode",
     description: "Amber Mode is a custom screen theme designed to reduce blue light exposure and support healthy circadian rhythms. By shifting to warm amber tones, it minimizes melatonin disruption during evening use while maintaining readability and visual comfort. Try it yourself using the accessibility settings menu above!",
