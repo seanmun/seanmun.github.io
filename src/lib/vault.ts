@@ -34,7 +34,7 @@ function secret() {
   return process.env.VAULT_PASSWORD ?? '';
 }
 
-// "LOBSTER  bisque!" → "lobster bisque": case, spacing and punctuation don't matter
+// "OPEN  Sesame!" → "open sesame": case, spacing and punctuation don't matter
 export function normalizeAnswer(value: unknown) {
   return typeof value === 'string'
     ? value.toLowerCase().replace(/[^a-z0-9\s]/g, '').replace(/\s+/g, ' ').trim()
