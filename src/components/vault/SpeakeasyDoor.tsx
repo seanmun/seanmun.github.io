@@ -302,7 +302,7 @@ export function SpeakeasyDoor() {
     <div className="speakeasy-scene min-h-screen relative overflow-hidden flex flex-col items-center px-4 pb-16">
       <Link
         href="/"
-        className="absolute top-4 left-4 z-20 flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-amber-100/70 hover:text-amber-50 hover:bg-white/5 transition-colors"
+        className="absolute top-4 left-4 z-20 flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-blue-100/70 hover:text-blue-50 hover:bg-white/5 transition-colors"
       >
         <ArrowLeft className="w-4 h-4" />
         All projects

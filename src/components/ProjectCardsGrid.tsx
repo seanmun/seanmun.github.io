@@ -286,16 +286,16 @@ export function ProjectCardsGrid({ cookieId, onExitingChange, gitStats }: Projec
         <SeesawCard className="classified-card h-full p-4 rounded-lg transition-colors shadow dark:shadow-gray-950/50">
           <div className="flex gap-4 items-start">
             <div className="flex-shrink-0">
-              <EyeOff className="w-8 h-8 text-amber-300/80" aria-hidden="true" />
+              <EyeOff className="w-8 h-8 text-blue-300/80" aria-hidden="true" />
             </div>
             <div className="flex-1">
               <div className="flex flex-wrap items-center gap-2 mb-2">
-                <h3 className="text-lg font-semibold text-amber-50">Classified</h3>
+                <h3 className="text-lg font-semibold text-blue-50">Classified</h3>
                 <span className="px-1.5 py-0.5 rounded border border-red-400/60 text-red-300 text-[10px] font-bold tracking-[0.2em]">
                   TOP SECRET
                 </span>
               </div>
-              <p className="text-sm mb-3 text-amber-100/80">
+              <p className="text-sm mb-3 text-blue-100/80">
                 Projects that aren&apos;t ready for daylight. Knock, and know the password.
               </p>
               <div className="space-y-1.5 mb-3" aria-hidden="true">
@@ -309,7 +309,7 @@ export function ProjectCardsGrid({ cookieId, onExitingChange, gitStats }: Projec
                   e.stopPropagation();
                   handleCardClick(e, CLASSIFIED, projects.length, true);
                 }}
-                className="text-sm text-amber-300 hover:text-amber-200 transition-colors"
+                className="text-sm text-blue-300 hover:text-blue-200 transition-colors"
                 data-track="Classified — Knock link"
               >
                 Knock →
