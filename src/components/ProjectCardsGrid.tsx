@@ -13,6 +13,7 @@ import { ProjectIcon } from '@/components/ui/ProjectIcon';
 import { UpdatedBadge } from '@/components/ui/GitActivity';
 import type { ProjectGitStats } from '@/lib/github-stats';
 import { trackLinkClick } from '@/lib/track-utils';
+import { EyeOff } from 'lucide-react';
 
 // sessionStorage keys shared with ProjectFeaturePage
 export const HERO_FLIP_KEY = 'project-hero-flip';
@@ -23,6 +24,9 @@ interface ProjectCardsGridProps {
   onExitingChange?: (exiting: boolean) => void;
   gitStats?: Record<string, ProjectGitStats>;
 }
+
+// The last card leads to the speakeasy door, not a feature page
+const CLASSIFIED = { slug: 'classified', title: 'Classified' };
 
 const prefersReducedMotion = () =>
   window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -37,6 +41,7 @@ export function ProjectCardsGrid({ cookieId, onExitingChange, gitStats }: Projec
     projects.forEach((project) => {
       router.prefetch(`/projects/${project.slug}`);
     });
+    router.prefetch(`/projects/${CLASSIFIED.slug}`);
 
     // Deal the cards back in when arriving from a feature page
     if (sessionStorage.getItem(DEAL_IN_KEY)) {
@@ -62,7 +67,12 @@ export function ProjectCardsGrid({ cookieId, onExitingChange, gitStats }: Projec
     }
   }, [router]);
 
-  const handleCardClick = (e: React.MouseEvent, project: Project, index: number) => {
+  const handleCardClick = (
+    e: React.MouseEvent,
+    project: Pick<Project, 'slug' | 'title'>,
+    index: number,
+    toDoor = false
+  ) => {
     e.preventDefault();
     if (isExitingRef.current) return;
     isExitingRef.current = true;
@@ -125,6 +135,20 @@ export function ProjectCardsGrid({ cookieId, onExitingChange, gitStats }: Projec
       const clicked = cardRefs.current[index];
       if (!clicked) {
         router.push(target);
+        return;
+      }
+
+      if (toDoor) {
+        // The classified card doesn't become a hero: it goes dark, and the
+        // door is waiting in the dark
+        const fade = clicked.animate(
+          [
+            { opacity: 1, filter: 'brightness(1)' },
+            { opacity: 0, filter: 'brightness(0)' },
+          ],
+          { duration: 420, easing: 'ease-in', fill: 'forwards' }
+        );
+        Promise.allSettled([fade.finished]).then(() => router.push(target));
         return;
       }
 
@@ -249,6 +273,51 @@ export function ProjectCardsGrid({ cookieId, onExitingChange, gitStats }: Projec
           </SeesawCard>
         </div>
       ))}
+
+      {/* Classified: knock, and know the password */}
+      <div
+        ref={(el) => {
+          cardRefs.current[projects.length] = el;
+        }}
+        className="relative cursor-pointer"
+        data-track="Classified card"
+        onClick={(e) => handleCardClick(e, CLASSIFIED, projects.length, true)}
+      >
+        <SeesawCard className="classified-card h-full p-4 rounded-lg transition-colors shadow dark:shadow-gray-950/50">
+          <div className="flex gap-4 items-start">
+            <div className="flex-shrink-0">
+              <EyeOff className="w-8 h-8 text-amber-300/80" aria-hidden="true" />
+            </div>
+            <div className="flex-1">
+              <div className="flex flex-wrap items-center gap-2 mb-2">
+                <h3 className="text-lg font-semibold text-amber-50">Classified</h3>
+                <span className="px-1.5 py-0.5 rounded border border-red-400/60 text-red-300 text-[10px] font-bold tracking-[0.2em]">
+                  TOP SECRET
+                </span>
+              </div>
+              <p className="text-sm mb-3 text-amber-100/80">
+                Projects that aren&apos;t ready for daylight. Knock, and know the password.
+              </p>
+              <div className="space-y-1.5 mb-3" aria-hidden="true">
+                <span className="classified-redacted w-11/12" />
+                <span className="classified-redacted w-9/12" />
+                <span className="classified-redacted w-7/12" />
+              </div>
+              <a
+                href={`/projects/${CLASSIFIED.slug}`}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleCardClick(e, CLASSIFIED, projects.length, true);
+                }}
+                className="text-sm text-amber-300 hover:text-amber-200 transition-colors"
+                data-track="Classified — Knock link"
+              >
+                Knock →
+              </a>
+            </div>
+          </div>
+        </SeesawCard>
+      </div>
     </div>
   );
 }

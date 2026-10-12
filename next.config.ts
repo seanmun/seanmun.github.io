@@ -20,6 +20,12 @@ const nextConfig: NextConfig = {
         destination: '/projects/agent-army',
         permanent: true,
       },
+      // Moved behind the speakeasy door
+      {
+        source: '/projects/cross-chain-portfolio-tracker',
+        destination: '/projects/classified',
+        permanent: false,
+      },
     ];
   },
   // Add security headers (Vercel-specific)

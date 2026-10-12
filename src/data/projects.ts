@@ -682,19 +682,6 @@ export const projects: Project[] = [
     status: "Prod",
     techStack: ["React", "Next.js", "TypeScript", "Firebase", "Tailwind CSS", "Vercel"],
     repos: ["draft"],
-  },
-  {
-    title: "Cross-Chain Portfolio Tracker",
-    slug: "cross-chain-portfolio-tracker",
-    description: "A privacy-first, real-time dashboard for tracking crypto holdings across Bitcoin, Ethereum, Pulsechain, Base, Solana, and more. Users simply enter their wallet addresses—no sign-in or wallet connection required. The app pulls token balances, NFTs, and Ordinals, then calculates total USD value using decentralized price feeds like Uniswap, 0x, and PulseX.",
-    iconName: "Banknote",
-    link: "https://github.com/seanmun",
-    ariaLabel: "View Telegram bot repo",
-    requiresPassword: true,
-    status: "Dev",
-    techStack: ["React", "Next.js", "TypeScript", "Alchemy API", "Web3"],
-    repos: ["crypto-portfolio-tracker"],
-    showGitStats: false,
   }
 ];
 
