@@ -17,8 +17,7 @@ import {
   Mic,
   LandPlot,
   Smile,
-  Clapperboard,
-  MapPin
+  Clapperboard
 } from 'lucide-react';
 
 const iconMap = {
@@ -37,8 +36,7 @@ const iconMap = {
   Mic,
   LandPlot,
   Smile,
-  Clapperboard,
-  MapPin
+  Clapperboard
 };
 
 interface ProjectIconProps {

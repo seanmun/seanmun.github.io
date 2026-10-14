@@ -60,7 +60,6 @@ export const connections: Connection[] = [
   { source: 'Kinetic.email', target: 'Agent Army', type: 'business', label: 'Email alerts from agent insights' },
   { source: 'Kinetic.email', target: 'OrdinalFrame', type: 'business', label: 'Email updates for ordinal activity' },
   { source: 'Kinetic.email', target: 'Rocket Pool Tour', type: 'business', label: 'Email platform for tour updates' },
-  { source: 'Rocket Pool Tour', target: 'HomeTown HotSpots', type: 'business', label: 'Client websites for small businesses' },
   { source: 'RumbleRaffle.com', target: 'Money Never Sleeps', type: 'business', label: 'Gaming league crossover' },
 
   // Fantasy Sports Ecosystem
@@ -84,7 +83,6 @@ export const connections: Connection[] = [
   { source: 'Money Never Sleeps', target: 'DraftDayTrades.com', type: 'shared-tech', label: 'React, TypeScript, Tailwind' },
   { source: 'Money Never Sleeps', target: 'Buddy Cup', type: 'shared-tech', label: 'Clerk, Neon + Drizzle, and the same native iOS shell' },
   { source: 'TrustThePick.com', target: 'Rocket Pool Tour', type: 'shared-tech', label: 'React, Next.js, TypeScript, Tailwind' },
-  { source: 'HomeTown HotSpots', target: 'Buddy Cup', type: 'shared-tech', label: 'Resend email delivery' },
   { source: 'Kinetic.email', target: 'Buddy Cup', type: 'shared-tech', label: 'Claude + OpenAI API pipelines' },
   { source: 'Kinetic.email', target: 'To Posterity', type: 'shared-tech', label: 'Claude API content pipeline' },
 ];

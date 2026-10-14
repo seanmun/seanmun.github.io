@@ -26,6 +26,11 @@ const nextConfig: NextConfig = {
         destination: '/projects/classified',
         permanent: false,
       },
+      {
+        source: '/projects/hometown-hotspots',
+        destination: '/projects/classified',
+        permanent: false,
+      },
     ];
   },
   // Add security headers (Vercel-specific)
