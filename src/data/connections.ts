@@ -81,7 +81,8 @@ export const connections: Connection[] = [
   { source: 'Agent Army', target: 'Amber Mode', type: 'health-wellness', label: 'Wellness optimization' },
 
   // Shared Tech Stack (selective)
-  { source: 'Money Never Sleeps', target: 'DraftDayTrades.com', type: 'shared-tech', label: 'React, Next.js, Firebase, Tailwind' },
+  { source: 'Money Never Sleeps', target: 'DraftDayTrades.com', type: 'shared-tech', label: 'React, TypeScript, Tailwind' },
+  { source: 'Money Never Sleeps', target: 'Buddy Cup', type: 'shared-tech', label: 'Clerk, Neon + Drizzle, and the same native iOS shell' },
   { source: 'TrustThePick.com', target: 'Rocket Pool Tour', type: 'shared-tech', label: 'React, Next.js, TypeScript, Tailwind' },
   { source: 'HomeTown HotSpots', target: 'Buddy Cup', type: 'shared-tech', label: 'Resend email delivery' },
   { source: 'Kinetic.email', target: 'Buddy Cup', type: 'shared-tech', label: 'Claude + OpenAI API pipelines' },

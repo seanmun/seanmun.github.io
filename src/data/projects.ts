@@ -222,76 +222,104 @@ export const projects: Project[] = [
   {
     title: "Money Never Sleeps",
     slug: "money-never-sleeps",
-    description: "A sophisticated fantasy basketball dynasty league platform that brings real NBA salary cap management to fantasy sports. Navigate actual NBA cap rules with apron thresholds, manage keeper contracts with advancing rounds, and make strategic financial decisions with real monetary consequences. Track live blockchain investments where penalties and fees fuel a prize pool—sweat your matchups and your portfolio, because money never sleeps.",
+    description: "A fantasy sports platform for groups who take it seriously: an NBA and WNBA dynasty on real contracts, NFL pick'em, fantasy golf, and March Madness, all in one app with one login. Every player carries his actual NBA deal, with a real salary cap and aprons that cost you. Bump, an AI general manager you talk to out loud, sets lineups, works the wire, and runs the trade math. The native iPhone app is in beta, with Android close behind.",
     iconName: "DollarSign",
-    link: "https://mns-dusky.vercel.app/",
-    ariaLabel: "View Money Never Sleeps website",
+    link: "https://mnsfantasy.com/",
+    ariaLabel: "View MNS Fantasy website",
     requiresPassword: false,
     status: "Prod",
-    techStack: ["React", "Next.js", "TypeScript", "Firebase", "Tailwind CSS", "Alchemy API", "Telegram API", "Vercel"],
-    repos: ["mns", "mns-fantasy", "mns-ui"],
+    techStack: ["React", "TypeScript", "Vite", "Tailwind CSS", "Clerk", "Neon Postgres", "Drizzle ORM", "Claude API", "ElevenLabs", "SwiftUI", "Kotlin", "Alchemy API", "CoinGecko API", "Resend", "Vercel"],
+    repos: ["mns", "mns-fantasy", "mns-ui", "bball-mns-fantasy", "nfl-mns-fantasy", "golf-mns-fantasy", "ncaa-mns-fantasy"],
+    // Media lives in public/media/mns: section crops of the live
+    // mnsfantasy.com landing, the keeper planner (from the mns-fantasy
+    // preview-shots), and a loop of Bump's sample carousel. Still wanted:
+    // iPhone screenshots (Bump voice mode, a league Home) for the app section.
     modalContent: {
-      images: [
+      heroMedia: {
+        type: "image",
+        src: "/media/mns/front-office.jpg",
+        width: 1600,
+        height: 1116,
+        alt: "MNS Fantasy home: Run your team like a front office. A sample payroll on real NBA contracts sits $8.5M over the first apron, and Bump proposes a trade to get under it."
+      },
+      overview: "Money Never Sleeps started as one fantasy basketball dynasty league with real NBA salary cap rules and a prize pool held in crypto. It's now MNS Fantasy: a platform where five games share one app, one login, one design system, and one AI general manager. On October 12, 2026 every game moved into mnsfantasy.com in a single cutover, the NBA dynasty opened for its first season, and Bump learned to talk.",
+      detailSections: [
         {
-          src: "/projects/mns-home.png",
-          alt: "Money Never Sleeps home screen",
-          caption: "Home screen login state showing main platform components"
+          heading: "A real league, with real money problems",
+          body: "The NBA dynasty is the flagship. Every player costs what his actual NBA contract pays, so bargains are real bargains and stars come with real consequences. Teams build under a cap ladder that mirrors the NBA's: spend freely under the first apron, pay a one-time fee to cross it, pay per million over the second, and never cross the hard cap.",
+          media: [
+            { type: "image", src: "/media/mns/cap-ladder.jpg", width: 1600, height: 1098, alt: "The NBA dynasty rules: real contracts, nine head-to-head categories, eight keepers priced by round, nightly lineups, and the cap ladder from $0 to the $272M hard cap", caption: "Real contracts, nine categories, and a cap ladder with teeth." }
+          ],
+          bullets: [
+            "Nine-category head-to-head matchups, with lineups set by the night; each player locks at his own tip-off",
+            "Up to eight keepers, each priced by a draft round, with rookies priced by their draft slot",
+            "Rookie draft on the shared draft engine, with traded picks changing hands on the board",
+            "League setup reads the real NBA schedule, light weeks included",
+            "The WNBA runs the same dynasty game on its own calendar, from the same module"
+          ]
         },
         {
-          src: "/projects/mns-prize.png",
-          alt: "Prize pool with blockchain stats",
-          caption: "Live prize pool with real-time stats from Ethereum blockchain"
+          heading: "Keeper season",
+          body: "Before the season, every team plans its keepers with last season's stats on every player, sorted by a category z-score per dollar. Members save competing ideas, submit one, and can change their plan any time until the commissioner locks keepers. The cap meter and the cost of each open spot update as they go.",
+          media: [
+            { type: "image", src: "/media/mns/keepers.jpg", width: 1280, height: 1370, alt: "The keeper planner: a roster table with salary, keeper round and last season's nine-category stats, beside a cap meter and the team's draft rounds", caption: "Plan up to eight keepers against the cap." }
+          ]
         },
         {
-          src: "/projects/mns-teamPage.png",
-          alt: "Team page overview",
-          caption: "Team page showing total salary, fees, players and watch list"
+          heading: "Bump, your AI general manager",
+          body: "Tap the mic and talk the way you'd talk to your GM. Bump answers out loud, streams his thinking as he goes, and puts the exact facts on screen (picks, spreads, salaries, rounds) while he speaks. He knows where your league is in its season, so he won't suggest a waiver claim during keeper season.",
+          media: [
+            { type: "video", src: "/media/mns/bump.mp4", poster: "/media/mns/bump.jpg", width: 900, height: 1280, alt: "Bump cycling through sample requests: a win-now trade, tonight's lineup, a move for more games this week, and a free agent who helps steals", caption: "Ask for a trade, a lineup, or a free agent. He shows his math." }
+          ],
+          bullets: [
+            "Evaluates and proposes trades, running both sides' cap math before anything is sent",
+            "Ranks the waiver wire by value per $1M and checks each claim fits your cap",
+            "Sets a whole week of lineups at once, and saves and submits keeper plans",
+            "In the NFL pool, reads out your picks and puts them on screen",
+            "Acts with your own login, so he can do anything you can and nothing you can't, and reads back every move for your yes first"
+          ],
+          footer: "Voice runs on ElevenLabs with the device voice as a free fallback, and Bump stops talking the moment you talk over him."
         },
         {
-          src: "/projects/mns-draft.png",
-          alt: "Live draft tool",
-          caption: "Interactive live draft tool for league draft day"
+          heading: "Track the pot like a portfolio",
+          body: "The prize pool can sit in cash, crypto, or both. Point MNS at the league's public Ethereum wallet and the pot's live value counts in, priced in real time. Every payout is a share of the pot, so the champion's prize rises and falls with it. It's tracked, never handled: no money moves through MNS, and the commissioner holds the pot the way the league always has.",
+          media: [
+            { type: "image", src: "/media/mns/prize-pool.jpg", width: 1600, height: 1038, alt: "A sample prize pool held in Bitcoin, charted over 30 days, with each payout shown as a share of the pot", caption: "Every payout is a share of a live pot." }
+          ]
         },
         {
-          src: "/projects/mns-freeAgents.png",
-          alt: "Free agent tool",
-          caption: "Free agent acquisition tool complementing the draft system"
+          heading: "One login. Every game.",
+          body: "NBA and WNBA dynasty leagues, NFL pick'em against the spread, PGA fantasy golf with waivers between events, and March Madness picked by seed tier. Each game used to be its own app on its own subdomain. Now each is a module inside one app, and every old link still lands on the same page. Sign in and you land in the league you were in last.",
+          media: [
+            { type: "image", src: "/media/mns/every-game.jpg", width: 1600, height: 772, alt: "The five MNS games: NBA Dynasty, NFL Pick'em, WNBA Dynasty, PGA Fantasy Golf, and March Madness", caption: "Five games, one app." }
+          ],
+          bullets: [
+            "One navigation model everywhere: the same Home · Play · Standings tabs in every game, and one ☰ menu listing your active leagues",
+            "A 60-second rule as a shipping gate: a member finishes the week's action in under a minute, at most two taps from login, or the design doesn't ship",
+            "Built for everyone in the group, with an 18px base, large tap targets, and measured AA contrast in both light and dark themes"
+          ]
         },
         {
-          src: "/projects/mns-inbox.png",
-          alt: "Daily Sam Hinkie quotes inbox",
-          caption: "Daily Sam Hinkie inspired quotes - future home for trades and wagers"
+          heading: "In your pocket",
+          body: "Native iPhone (SwiftUI) and Android (Kotlin + Jetpack Compose) apps share the website's login and cover every game: NFL picks and manager tools, basketball leagues with the keeper planner, matchups and transactions, golf pools, NCAA leagues, and Bump in voice mode. The iPhone app is in beta on TestFlight, with the App Store and Google Play coming soon."
         },
         {
-          src: "/projects/mns-rules.png",
-          alt: "League rules reference",
-          caption: "Comprehensive league rules for members navigating complex regulations"
+          heading: "Engineering details",
+          bullets: [
+            "The Singularity: five separate apps merged into one in a single cutover. Each old subdomain 308-redirects to mnsfantasy.com/<game> with its path and query intact, and its API is rewritten to the game's new endpoint, so open tabs and old links kept working",
+            "Each game is a lazy-loaded module with its own strict TypeScript build and serverless API, so one game's update never ships inside another's code",
+            "One hub owns drafts: a shared draft engine that knows nothing about any sport. Games push an item pool and read picks back",
+            "Basketball is one module serving two sports, with each request scoped to its sport and separate Postgres schemas, so no rows are shared",
+            "mns-ui, a shared design system (tokens, light and dark themes, components) synced into every app, so pages compose and never restyle",
+            "Every commit and build is scanned for secrets before it can ship"
+          ]
         }
       ],
-      overview: "Money Never Sleeps is a cutting-edge fantasy basketball dynasty league platform that merges real NBA salary cap mechanics with blockchain-backed financial consequences. League members navigate authentic cap rules, manage multi-year keeper contracts, and make strategic decisions that affect both their fantasy roster and real-world prize pool funded by blockchain investments.",
-      keyFeatures: [
-        "Real NBA salary cap rules with apron thresholds and luxury tax calculations",
-        "Multi-year keeper contracts with advancing draft round costs",
-        "Live blockchain investment tracking via Alchemy API",
-        "Automated penalty and fee collection that fuels the prize pool",
-        "Real-time league standings and matchup tracking",
-        "Telegram bot integration for notifications and updates",
-        "Financial dashboard showing both fantasy performance and portfolio value",
-        "Dynasty league management with long-term roster building strategy"
-      ],
-      technicalDetails: "Built with Next.js and TypeScript for type-safe development. Firebase powers real-time database syncing for league data and matchup tracking. Alchemy API provides blockchain integration for tracking cryptocurrency investments that fund the prize pool. Telegram API delivers instant notifications for league events, trades, and financial updates. Deployed on Vercel for optimal performance and global CDN distribution.",
-      plannedFeatures: [
-        "Advanced analytics dashboard with historical cap space trends",
-        "Trade analyzer with cap implications calculator",
-        "Mock draft simulator with keeper contract integration",
-        "Mobile app for iOS and Android",
-        "Multi-league support for commissioners managing multiple leagues",
-        "Integration with additional blockchain networks for diverse investment options"
-      ],
+      technicalDetails: "React 19, TypeScript, Vite, Tailwind CSS, TanStack Query, and Framer Motion on the web, with Vercel serverless functions for the API. Clerk for one login across web and native; Neon serverless Postgres with Drizzle ORM, one schema per game. Bump runs on the Claude API with tool use against the same APIs the app calls, and speaks through ElevenLabs. Alchemy reads the league's wallet and CoinGecko prices it, and Resend sends the branded email suite. Native apps in SwiftUI and Kotlin/Jetpack Compose. Solo-built: product, design system, web, native apps, and the AI agent.",
       callToAction: {
         primary: {
-          label: "View Live Site",
-          url: "https://mns-dusky.vercel.app/"
+          label: "Visit MNS Fantasy",
+          url: "https://mnsfantasy.com/"
         },
         secondary: {
           label: "Work with me",

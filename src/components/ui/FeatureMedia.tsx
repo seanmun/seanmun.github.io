@@ -6,7 +6,7 @@
 //   scrolled away; nothing below the fold downloads until it's needed
 //   (preload="none"), and the hero only fetches metadata up front.
 // - On phones, srcMobile swaps in a vertical cut, capped at 75% of the
-//   screen height so it never becomes a wall.
+//   screen height so it never becomes a wall; portrait loops get the same cap.
 // - Reduced motion: no autoplay — the poster shows with native controls.
 // - width/height reserve the box so the page doesn't jump as media loads.
 
@@ -44,9 +44,13 @@ function LoopVideo({ media, eager }: { media: ProjectMedia; eager: boolean }) {
     return () => observer.disconnect();
   }, [isPhone, reduceMotion, src]);
 
+  // A portrait loop gets the same 75%-of-the-screen cap as a vertical cut
+  const portrait = Boolean(media.width && media.height && media.height > media.width);
   const frameStyle: React.CSSProperties = vertical
     ? { aspectRatio: '9 / 16', width: 'min(100%, calc(75vh * 9 / 16))' }
-    : { aspectRatio: media.width && media.height ? `${media.width} / ${media.height}` : '16 / 9', width: '100%' };
+    : portrait
+      ? { aspectRatio: `${media.width} / ${media.height}`, width: `min(100%, calc(75vh * ${media.width} / ${media.height}))` }
+      : { aspectRatio: media.width && media.height ? `${media.width} / ${media.height}` : '16 / 9', width: '100%' };
 
   return (
     <div className="mx-auto rounded-lg overflow-hidden bg-gray-950 shadow dark:shadow-gray-950/50" style={frameStyle}>
