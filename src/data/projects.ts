@@ -26,7 +26,7 @@ export interface ProjectMedia {
   height?: number;
   alt: string;
   caption?: string;
-  diagram?: 'kinetic-pipeline';
+  diagram?: 'kinetic-pipeline' | 'buddycup-trip';
 }
 
 // A titled block of case-study prose: paragraph(s), optional media (shown
@@ -476,6 +476,13 @@ export const projects: Project[] = [
           body: "Every buddy golf trip has the same problem: someone becomes the human spreadsheet. Tee times live in a group text, matchups on a napkin, and nobody can actually score match play with handicaps — so the \"cup\" gets settled by vibes. Buddy Cup replaces all of it. From signed-up to first tee shot in an afternoon: create the trip, invite your buddies, snap your scorecards, schedule your cup, and plan the surrounding chaos — flights, shuttles, dinners, the post-round bar stop — all on one shared, day-by-day timeline next to the golf.",
           media: [
             { type: "image", src: "/media/buddycup/schedule.jpg", width: 1600, height: 1178, alt: "The trip itinerary: a day's hotel check-in, three 2v2 match-play tee times with each player's handicap, and the welcome dinner", caption: "The whole trip on one day-by-day timeline." }
+          ]
+        },
+        {
+          heading: "Inside a trip",
+          body: "Here's what a four-day cup looks like from the inside. Pick a day: the cup score updates through that day, every match shows its result or its live status, and every player's net score for the round sits beside it. Saturday is mid-round, so four singles matches are still live.",
+          media: [
+            { type: "diagram", diagram: "buddycup-trip", alt: "An interactive sample trip with day tabs: the cup score through each day, every match result or live status, and an individual net-to-par leaderboard", caption: "A sample trip. Tap a day." }
           ]
         },
         {

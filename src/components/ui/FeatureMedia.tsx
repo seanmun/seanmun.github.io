@@ -14,6 +14,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import Image from 'next/image';
 import type { ProjectMedia } from '@/data/projects';
 import { KineticPipelineDiagram } from '@/components/ui/KineticPipelineDiagram';
+import { BuddyCupTripDemo } from '@/components/ui/BuddyCupTripDemo';
 
 function LoopVideo({ media, eager }: { media: ProjectMedia; eager: boolean }) {
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -96,6 +97,7 @@ export function FeatureMedia({
         />
       )}
       {media.type === 'diagram' && media.diagram === 'kinetic-pipeline' && <KineticPipelineDiagram />}
+      {media.type === 'diagram' && media.diagram === 'buddycup-trip' && <BuddyCupTripDemo />}
       {media.caption && (
         <figcaption className="mt-2 text-sm text-center text-gray-600 dark:text-gray-400">{media.caption}</figcaption>
       )}
