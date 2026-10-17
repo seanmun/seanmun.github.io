@@ -86,6 +86,7 @@ export interface Project {
   modalContent?: ProjectModalContent;
   repos?: string[]; // github.com/seanmun repos whose commits count toward this project
   showGitStats?: boolean; // false hides this project's commit stats (it still counts toward site totals)
+  comingSoonApps?: ('ios' | 'android')[]; // native apps on the way: "coming soon" store badges under the page's CTAs
 }
 
 export const projects: Project[] = [
@@ -230,6 +231,7 @@ export const projects: Project[] = [
     status: "Prod",
     techStack: ["React", "TypeScript", "Vite", "Tailwind CSS", "Clerk", "Neon Postgres", "Drizzle ORM", "Claude API", "ElevenLabs", "SwiftUI", "Kotlin", "Alchemy API", "CoinGecko API", "Resend", "Vercel"],
     repos: ["mns", "mns-fantasy", "mns-ui", "bball-mns-fantasy", "nfl-mns-fantasy", "golf-mns-fantasy", "ncaa-mns-fantasy"],
+    comingSoonApps: ["ios", "android"],
     // Media lives in public/media/mns: section crops of the live
     // mnsfantasy.com landing, the keeper planner (from the mns-fantasy
     // preview-shots), and a loop of Bump's sample carousel. Still wanted:
@@ -458,6 +460,7 @@ export const projects: Project[] = [
     status: "MVP",
     techStack: ["Next.js", "TypeScript", "Neon Postgres", "Drizzle ORM", "Clerk Auth", "Claude API", "OpenAI API", "TanStack Query", "Tailwind CSS", "SwiftUI", "Vercel"],
     repos: ["PERN"],
+    comingSoonApps: ["ios"],
     // Media lives in public/media/buddycup: section crops of the live
     // buddycup.golf landing. Skip its hero: the golf-ball image behind the
     // logo carries an iStock watermark. Still wanted: iPhone + Watch shots.

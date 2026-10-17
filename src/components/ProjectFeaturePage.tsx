@@ -15,6 +15,7 @@ import { SmokeBackgroundLazy } from '@/components/ui/SmokeBackgroundLazy';
 import { HERO_FLIP_KEY, DEAL_IN_KEY } from '@/components/ProjectCardsGrid';
 import { GitStatsLine } from '@/components/ui/GitActivity';
 import { FeatureMedia } from '@/components/ui/FeatureMedia';
+import { StoreBadge } from '@/components/ui/StoreBadge';
 import { getDeviceType, getVisitorId, trackEvent } from '@/lib/track-utils';
 import type { ProjectGitStats } from '@/lib/github-stats';
 
@@ -458,6 +459,13 @@ export function ProjectFeaturePage({ project, gitStats }: ProjectFeaturePageProp
               </div>
 
               {ctaButtons}
+              {project.comingSoonApps && project.comingSoonApps.length > 0 && (
+                <div className="flex flex-wrap gap-3 mt-3">
+                  {project.comingSoonApps.map((store) => (
+                    <StoreBadge key={store} store={store} />
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         </div>
