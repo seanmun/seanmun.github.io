@@ -450,23 +450,40 @@ export const projects: Project[] = [
   {
     title: "Buddy Cup",
     slug: "buddy-cup",
-    description: "A multi-tenant Ryder-Cup-style platform that brings real match-play scoring to the buddy golf trip. Navigate actual match-play math with handicap strokes auto-allocated by stroke index, dormie tracking, and closeouts (3&2, 4&3) computed the moment the deciding hole posts. Manage your entire trip from one phone — courses, players, tee times, matchups, even the welcome dinner. Snap a scorecard photo and AI reads par and stroke index for all 18 holes. The team feed runs hot with score posts, trash talk, and photos, while team and individual leaderboards update the second a putt drops. Defend the cup.",
+    description: "A multi-tenant Ryder-Cup-style platform that brings real match-play scoring to the buddy golf trip. Navigate actual match-play math with handicap strokes auto-allocated by stroke index, dormie tracking, and closeouts (3&2, 4&3) computed the moment the deciding hole posts. Manage your entire trip from one phone — courses, players, tee times, matchups, even the welcome dinner. Snap a scorecard photo and AI reads par and stroke index for all 18 holes. The team feed runs hot with score posts, trash talk, and photos, while team and individual leaderboards update the second a putt drops. Side games (skins, Nassau, Vegas, presses) run alongside the cup, and a native iPhone app with an Apple Watch companion puts score entry on your wrist. Defend the cup.",
     iconName: "LandPlot",
     link: "https://www.buddycup.golf/",
     ariaLabel: "View Buddy Cup website",
     requiresPassword: false,
     status: "MVP",
-    techStack: ["Next.js", "TypeScript", "Neon Postgres", "Drizzle ORM", "Clerk Auth", "Claude API", "OpenAI API", "TanStack Query", "Tailwind CSS", "Vercel"],
+    techStack: ["Next.js", "TypeScript", "Neon Postgres", "Drizzle ORM", "Clerk Auth", "Claude API", "OpenAI API", "TanStack Query", "Tailwind CSS", "SwiftUI", "Vercel"],
     repos: ["PERN"],
+    // Media lives in public/media/buddycup: section crops of the live
+    // buddycup.golf landing. Skip its hero: the golf-ball image behind the
+    // logo carries an iStock watermark. Still wanted: iPhone + Watch shots.
     modalContent: {
+      heroMedia: {
+        type: "image",
+        src: "/media/buddycup/arcade-matchup.jpg",
+        width: 1060,
+        height: 580,
+        alt: "An arcade matchup card: two players from Hacks face two from Chunkers as pixelated NBA Jam-style portraits, with handicap-driven rating bars"
+      },
       overview: "Run your trip. Crown your champion. Buddy Cup is a multi-tenant Ryder-Cup-style platform that brings real match-play scoring to the buddy golf trip — courses, players, tee times, matchups, live leaderboards, and the surrounding chaos, all managed from one phone.",
       detailSections: [
         {
           heading: "The idea",
-          body: "Every buddy golf trip has the same problem: someone becomes the human spreadsheet. Tee times live in a group text, matchups on a napkin, and nobody can actually score match play with handicaps — so the \"cup\" gets settled by vibes. Buddy Cup replaces all of it. From signed-up to first tee shot in an afternoon: create the trip, invite your buddies, snap your scorecards, schedule your cup, and plan the surrounding chaos — flights, shuttles, dinners, the post-round bar stop — all on one shared, day-by-day timeline next to the golf."
+          body: "Every buddy golf trip has the same problem: someone becomes the human spreadsheet. Tee times live in a group text, matchups on a napkin, and nobody can actually score match play with handicaps — so the \"cup\" gets settled by vibes. Buddy Cup replaces all of it. From signed-up to first tee shot in an afternoon: create the trip, invite your buddies, snap your scorecards, schedule your cup, and plan the surrounding chaos — flights, shuttles, dinners, the post-round bar stop — all on one shared, day-by-day timeline next to the golf.",
+          media: [
+            { type: "image", src: "/media/buddycup/schedule.jpg", width: 1600, height: 1178, alt: "The trip itinerary: a day's hotel check-in, three 2v2 match-play tee times with each player's handicap, and the welcome dinner", caption: "The whole trip on one day-by-day timeline." }
+          ]
         },
         {
           heading: "Signature features",
+          media: [
+            { type: "image", src: "/media/buddycup/live-scoring.jpg", width: 980, height: 880, alt: "Live cup standings: Hacks 8½, Chunkers 6½ with 9 of 15 matches in the books, above an individual leaderboard", caption: "The leaderboard that fits in your back pocket." },
+            { type: "image", src: "/media/buddycup/feed.jpg", width: 880, height: 1254, alt: "The trip feed: a posted round at Pinehurst No. 2, trash talk, and emoji reactions", caption: "Trash talk, photos, and receipts." }
+          ],
           bullets: [
             "Real match-play scoring — not stroke-play with a coat of paint. The engine speaks the actual language of the Ryder Cup: DORMIE, AS, 3&2. Handicap strokes are allocated USGA-style against each hole's stroke index, net scores are compared per hole, and closeouts are detected the moment a match becomes mathematically over. Supports singles, 2v2 best ball, two-man aggregate, scramble, and house formats — with multiple handicap methods selectable per match",
             "AI scorecard reader — adding a course used to mean typing 54+ numbers. Now you photograph the scorecard and Claude's vision model extracts par, stroke index, and per-tee yardage/rating/slope for all 18 holes — with validation that falls back to manual entry rather than ever writing garbage data",
@@ -477,10 +494,24 @@ export const projects: Project[] = [
           ]
         },
         {
+          heading: "More games than the cup",
+          body: "A buddy trip isn't only the cup. Every round can carry its own side action, scored by the same engine and kept separate from cup points:",
+          bullets: [
+            "Formats: singles, 2v2 best ball, two-man aggregate, scramble, and stroke play, resolved by match play, Stableford, or stroke",
+            "30 Ball and 40 Ball: each side commits a budget of balls hole by hole, with a pace rule that keeps the budget reachable and scores net against par",
+            "Bingo Bango Bongo, plus a game pack with Skins, Vegas, and Quota and a named Nassau preset",
+            "Presses: match-play side bets tracked per match, never counted toward the cup"
+          ]
+        },
+        {
+          heading: "On the course: iPhone and Apple Watch",
+          body: "A native SwiftUI iPhone app shares the website's Clerk sign-in and covers the trip end to end: the cup, the schedule, the feed, score entry, and even building matches and new events. An Apple Watch companion lets you pick your group and enter hole scores from your wrist, without pulling out your phone mid-round."
+        },
+        {
           heading: "Build strategy",
           bullets: [
             "The scoring engine is a pure-function package: match-play math is the most algorithmically important code in the app, so it lives in its own workspace package with zero database or framework dependencies — inputs in, results out — covered by unit and property-based tests that make exotic formats safe to add",
-            "Multi-tenant data, single-tenant UI: every domain table is trip-scoped from day one, but v1 ships hardcoded for a real 12-man trip. The schema is the cheap insurance, the trip-creation UI is the deferred scope — unlocking \"any group's trip\" is routing and forms, not a rewrite",
+            "Multi-tenant from day one: every domain table was trip-scoped while v1 served a single real 12-man trip. That insurance paid off: the trip-creation wizard, invites, and trip kinds (multi-day trips, one-day outings, single matches) shipped as routing and forms, not a rewrite",
             "Permissions in the application layer: all authorization cascades through one set of helpers — platform admin → trip admin → captain → self — so a permission rule is one function, not a policy scattered across tables",
             "AI with a safety net: the scorecard reader validates its output and falls back to manual entry, and portrait generation never destroys the source photo. AI accelerates the happy path; it never gatekeeps it",
             "Polling-first realtime: golf doesn't need millisecond updates. TanStack Query polling keeps the leaderboard live with a fraction of the infrastructure of WebSockets — architecture matched to the actual problem",
@@ -490,8 +521,6 @@ export const projects: Project[] = [
       ],
       technicalDetails: "Next.js (App Router) with TypeScript and React Server Components — client components only where interactivity demands it. Neon serverless Postgres with Drizzle ORM (schema-as-code as the single source of truth); Clerk magic-link auth with a layered permission model. AI: Anthropic Claude (vision + extended thinking) for scorecard extraction, OpenAI gpt-image-1 for arcade portraits, Sightengine for feed moderation. UI: Tailwind CSS v4, Framer Motion, dnd-kit, and TanStack Query for server state and polling-based live updates. Vercel hosting with Vercel Blob storage, Sharp image processing, and Resend + React Email for delivery.",
       plannedFeatures: [
-        "Native iOS and Android apps — the scorecard, feed, and live cup standings on true native mobile, with push notifications for match closeouts and dormie alerts",
-        "Apple Watch app — enter hole scores from your wrist mid-round and glance at match status (2 UP, thru 14) without pulling out your phone",
         "Trip Memoir Engine — every hole-tagged photo, score, and feed post is already structured to fuel AI-generated nightly recaps and a post-trip highlight video (Remotion-based), with narrated audio",
         "GHIN integration, trophy room, and record book — season-over-season rivalry history"
       ],
