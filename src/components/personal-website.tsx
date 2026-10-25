@@ -14,10 +14,8 @@ interface PersonalWebsiteProps {
 
 import { OrdinalFrameModal } from './modals/OrdinalFrameModal';
 import { useAccessibilitySettings } from '../hooks/useAccessibilitySettings';
-import { maintenanceConfig } from '../config/maintenance';
 import { AmberModal } from './modals/AmberModal';
 import { HinkieBotModal } from './modals/HinkieBotModal';
-import { MaintenanceOverlay } from './MaintenanceOverlay';
 import { ResumeModal } from './modals/ResumeModal';
 import { CertsModal } from './modals/CertsModal';
 import { AIModal } from './modals/AIModal';
@@ -50,7 +48,6 @@ const PersonalWebsite = ({ galleryImages, gitStats }: PersonalWebsiteProps) => {
   const [isAIModalOpen, setIsAIModalOpen] = useState(false);
   const [isCertsModalOpen, setIsCertsModalOpen] = useState(false);
   const [isResumeModalOpen, setResumeModalOpen] = useState(false);
-  const [isMaintenanceMode, setIsMaintenanceMode] = useState(maintenanceConfig.isEnabled);
   const [isOrdinalFrameModalOpen, setIsOrdinalFrameModalOpen] = useState(false);
   const [isAmberModalOpen, setAmberModalOpen] = useState(false);
   const [isHinkieBotModalOpen, setIsHinkieBotModalOpen] = useState(false);
@@ -105,21 +102,7 @@ const PersonalWebsite = ({ galleryImages, gitStats }: PersonalWebsiteProps) => {
     }
   }, [searchParams, router]);
 
-  // First useEffect for maintenance mode
-  useEffect(() => {
-    const hasMaintenanceAccess = sessionStorage.getItem('maintenanceAccess') === 'true';
-    if (hasMaintenanceAccess) {
-      setIsMaintenanceMode(false);
-    }
-  }, []);
-
-  // Add this handler function
-  const handleMaintenancePassword = () => {
-    setIsMaintenanceMode(false);
-    sessionStorage.setItem('maintenanceAccess', 'true');
-  };
-
-  // Second useEffect for visitor ID
+  // Visitor ID
   useEffect(() => {
     const existingId = localStorage.getItem('visitorId');
     if (existingId) {
@@ -278,12 +261,7 @@ const PersonalWebsite = ({ galleryImages, gitStats }: PersonalWebsiteProps) => {
           settings={settings}
         />
 
-        {/* Wrap all content that should be behind maintenance overlay */}
         <div className="relative">
-          {isMaintenanceMode && maintenanceConfig.isEnabled && (
-            <MaintenanceOverlay onPasswordSuccess={handleMaintenancePassword} />
-          )}
-
           {/* Modern Layout - Default home page */}
           <ModernLayout
             cookieId={cookieId}

@@ -190,10 +190,6 @@ export function ProjectFeaturePage({ project, gitStats }: ProjectFeaturePageProp
   const [revealDelayMs, setRevealDelayMs] = useState<number | null>(null);
   const [showBurstStrips, setShowBurstStrips] = useState(false);
   const [fullscreenImage, setFullscreenImage] = useState<string | null>(null);
-  const [isGateOpen, setIsGateOpen] = useState(false);
-  const [gatedUrl, setGatedUrl] = useState('');
-  const [password, setPassword] = useState('');
-  const [passwordError, setPasswordError] = useState('');
 
   const content = project.modalContent ?? {};
   const images = content.images ?? [];
@@ -307,27 +303,6 @@ export function ProjectFeaturePage({ project, gitStats }: ProjectFeaturePageProp
     }
   };
 
-  const handleCtaClick = (url: string) => {
-    if (project.requiresPassword && !url.startsWith('/') && !url.startsWith('mailto:')) {
-      setGatedUrl(url);
-      setIsGateOpen(true);
-      setPassword('');
-      setPasswordError('');
-      return;
-    }
-    openUrl(url);
-  };
-
-  const handlePasswordSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (password === process.env.NEXT_PUBLIC_PROJECTS_PASSWORD) {
-      setIsGateOpen(false);
-      openUrl(gatedUrl);
-    } else {
-      setPasswordError('Incorrect password');
-    }
-  };
-
   const primaryCta = (() => {
     if (content.callToAction?.primary) return content.callToAction.primary;
     if (project.triggerAmberModal) return { label: 'Try Amber Mode', url: '/?section=amber' };
@@ -351,7 +326,7 @@ export function ProjectFeaturePage({ project, gitStats }: ProjectFeaturePageProp
     <div className="flex flex-col sm:flex-row gap-3">
       {primaryCta && (
         <button
-          onClick={() => handleCtaClick(primaryCta.url)}
+          onClick={() => openUrl(primaryCta.url)}
           style={{ backgroundColor: 'var(--accent)', color: 'white' }}
           className="flex items-center justify-center gap-2 px-6 py-3 rounded-lg transition-colors font-medium hover:opacity-90"
         >
@@ -686,42 +661,6 @@ export function ProjectFeaturePage({ project, gitStats }: ProjectFeaturePageProp
             >
               <X className="w-8 h-8" />
             </button>
-          </div>
-        </div>
-      )}
-
-      {/* Password Gate */}
-      {isGateOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-sm w-full mx-4">
-            <h3 className="text-lg font-semibold mb-4 dark:text-white">Enter Password</h3>
-            <form onSubmit={handlePasswordSubmit}>
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white mb-2"
-                placeholder="Password"
-                autoFocus
-              />
-              {passwordError && <p className="text-red-500 text-sm mb-2">{passwordError}</p>}
-              <div className="flex justify-end gap-2">
-                <button
-                  type="button"
-                  onClick={() => setIsGateOpen(false)}
-                  className="px-4 py-2 text-gray-600 hover:text-gray-800 dark:text-gray-300 dark:hover:text-gray-200"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  style={{ backgroundColor: 'var(--accent)' }}
-                  className="px-4 py-2 text-white rounded hover:opacity-90"
-                >
-                  Submit
-                </button>
-              </div>
-            </form>
           </div>
         </div>
       )}

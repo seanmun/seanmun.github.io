@@ -6,12 +6,15 @@
 
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/firebase-admin';
+import { takeRateLimit, type RateLimit } from '@/lib/rate-limit';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 const EVENT_TYPES = ['pageview', 'project_click', 'modal_open', 'link_click', 'click'] as const;
 const MAX_BATCH = 30;
+// A real visitor posts at most every few seconds (clicks flush every 5s)
+const TRACK_LIMIT: RateLimit = { collection: 'track_limits', max: 120, windowMs: 10 * 60 * 1000 };
 const DEVICE_TYPES = ['mobile', 'tablet', 'desktop'] as const;
 const BOT_PATTERN =
   /bot|crawler|spider|crawling|slurp|bingpreview|headlesschrome|lighthouse|pingdom|curl|wget|python-requests|facebookexternalhit|preview/i;
@@ -25,6 +28,14 @@ export async function POST(request: Request) {
     body = await request.json();
   } catch {
     return NextResponse.json({ error: 'Invalid request' }, { status: 400 });
+  }
+  if (!body || typeof body !== 'object') {
+    return NextResponse.json({ error: 'Invalid request' }, { status: 400 });
+  }
+
+  const limit = await takeRateLimit(request, TRACK_LIMIT);
+  if (!limit.allowed) {
+    return NextResponse.json({ ok: false }, { status: 429 });
   }
 
   // One event, or a batch from the click tracker

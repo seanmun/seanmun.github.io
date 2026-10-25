@@ -12,8 +12,7 @@ A modern, accessible personal portfolio website built with Next.js, React, and T
 - 📱 Fully responsive design
 - 🖼️ Dynamic image gallery
 - 🎵 Spotify integration
-- 🔒 Password-protected content
-- 🛠️ Maintenance mode feature
+- 🔒 Classified projects behind a server-checked speakeasy door
 - 📊 Server-side visitor analytics with a private dashboard at /dashboard
 - 📈 Live GitHub commit stats on the project cards
 
@@ -25,9 +24,11 @@ A modern, accessible personal portfolio website built with Next.js, React, and T
 | `DASHBOARD_PASSWORD` | Server-checked password for /dashboard (never `NEXT_PUBLIC`) |
 | `FIREBASE_PROJECT_ID` / `FIREBASE_CLIENT_EMAIL` / `FIREBASE_PRIVATE_KEY` | Admin SDK credentials for reading and writing analytics |
 | `RESEND_API_KEY` | Contact form delivery |
+| `VAULT_PASSWORD` | Server-checked password for the Classified door |
 
 Firestore rules are checked in at `firestore.rules` — all client access is denied,
-since the browser never talks to the database directly.
+since the browser never talks to the database directly. Logins, the contact
+form and event tracking are rate limited per hashed IP (`src/lib/rate-limit.ts`).
 
 ## Tech Stack
 
