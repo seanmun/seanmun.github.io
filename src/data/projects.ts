@@ -76,7 +76,6 @@ export interface Project {
   iconName: string;
   link: string;
   ariaLabel: string;
-  requiresPassword: boolean;
   status: 'Dev' | 'MVP' | 'Prod';
   techStack: string[];
   isLive?: boolean; // If false, show modal instead of linking directly
@@ -97,7 +96,6 @@ export const projects: Project[] = [
     iconName: "Zap",
     link: "https://www.kinetic.email/",
     ariaLabel: "View Kinetic.email website",
-    requiresPassword: false,
     status: "Prod",
     techStack: ["React", "TypeScript", "Vite", "Tailwind CSS", "Supabase", "Convex", "Claude API", "OpenAI API", "Pinecone", "Mailgun", "Vercel"],
     repos: ["kinetic-email", "kineticemail", "kinetic-email-factory"],
@@ -227,7 +225,6 @@ export const projects: Project[] = [
     iconName: "DollarSign",
     link: "https://mnsfantasy.com/",
     ariaLabel: "View MNS Fantasy website",
-    requiresPassword: false,
     status: "Prod",
     techStack: ["React", "TypeScript", "Vite", "Tailwind CSS", "Clerk", "Neon Postgres", "Drizzle ORM", "Claude API", "ElevenLabs", "SwiftUI", "Kotlin", "Alchemy API", "CoinGecko API", "Resend", "Vercel"],
     repos: ["mns", "mns-fantasy", "mns-ui", "bball-mns-fantasy", "nfl-mns-fantasy", "golf-mns-fantasy", "ncaa-mns-fantasy"],
@@ -337,7 +334,6 @@ export const projects: Project[] = [
     iconName: "Bot",
     link: "",
     ariaLabel: "View Agent Army project details",
-    requiresPassword: false,
     status: "Prod",
     techStack: ["Python", "TypeScript", "Node.js", "Telegram API", "Claude API", "SQLite", "Railway", "Raspberry Pi"],
     repos: ["HinkieBot", "track-everything"],
@@ -456,7 +452,6 @@ export const projects: Project[] = [
     iconName: "LandPlot",
     link: "https://www.buddycup.golf/",
     ariaLabel: "View Buddy Cup website",
-    requiresPassword: false,
     status: "MVP",
     techStack: ["Next.js", "TypeScript", "Neon Postgres", "Drizzle ORM", "Clerk Auth", "Claude API", "OpenAI API", "TanStack Query", "Tailwind CSS", "SwiftUI", "Vercel"],
     repos: ["PERN"],
@@ -553,7 +548,6 @@ export const projects: Project[] = [
     iconName: "Mic",
     link: "https://toposterity.ai",
     ariaLabel: "View To Posterity website",
-    requiresPassword: false,
     status: "Dev",
     techStack: ["Next.js", "TypeScript", "Tailwind CSS", "shadcn/ui", "Supabase", "Deepgram", "Claude API", "ElevenLabs", "Zustand", "Vercel"],
     repos: ["story-vault"],
@@ -561,14 +555,111 @@ export const projects: Project[] = [
   {
     title: "Rocket Pool Tour",
     slug: "rocket-pool-tour",
-    description: "A website for the Rocket Pool Tour — a next-generation professional billiards league founded by World Champion Rodney 'Rocket' Morris. The RPT introduces Rocket Run-Out©, a fast-paced, offense-driven game format that brings a modern, data-rich approach to a classic sport. The site pairs a back-end CRM for investor relations with a front-end marketing and educational hub for the league and its upcoming events. Expected launch in 2027.",
+    description: "The full stack for a new professional billiards league founded by World Champion \"Rocket\" Rodney Morris. A public site teaches Rocket Run-Out©, the league's scoring format. A live score tracker turns every rack into a rating and a handicap. Behind the team login, a partnership CRM tracks deals, and a deck engine generates a custom sponsorship pitch for each brand. Season 1 tips off in 2027.",
     iconName: "Rocket",
     link: "https://therocketpooltour.com/",
     ariaLabel: "View Rocket Pool Tour website",
-    requiresPassword: false,
     status: "Dev",
-    techStack: ["React", "Next.js", "TypeScript", "Tailwind CSS", "Vercel"],
+    techStack: ["Next.js", "React", "TypeScript", "Tailwind CSS", "Supabase", "PostgreSQL", "Upstash Redis", "Zod", "Vitest", "ElevenLabs", "Vercel"],
     repos: ["rocket"],
+    // Media lives in public/media/rocket. The CRM and deck shots are the real
+    // components rendered locally with FICTIONAL partners (Northwind Air,
+    // Crestline Beverage...): the live pipeline holds real brands, contacts,
+    // deal amounts and private deck links, none of which may appear here. The
+    // deck's closing slide is left out because it carries Rodney's phone and
+    // email. The tracker loop is the public demo on /rpt-app.
+    modalContent: {
+      heroMedia: {
+        type: "image",
+        src: "/media/rocket/home.jpg",
+        width: 1600,
+        height: 1000,
+        alt: "The Rocket Pool Tour homepage: the RPT logo, the next event in Las Vegas, and the line 40 elite players, 15 weeks, $1.5M+ in prizes, one groundbreaking new format"
+      },
+      overview: "The Rocket Pool Tour is a professional billiards league built around a new game, Rocket Run-Out©, created by World Champion and Hall of Famer \"Rocket\" Rodney Morris. I built everything the league runs on before its first rack is broken: the public site, the rules, the score tracker and rating system, and the private tools the founders use to sell the league to sponsors.",
+      detailSections: [
+        {
+          heading: "A sport with a scoreboard",
+          body: "Most pool is win or lose. In Rocket Run-Out every rack produces a number. A break and run scores 200, a dry break and run 150, a ball-in-hand run 100, and a miss scores 10 points per ball. Players shoot their own racks, so every shot is offense. The format comes in two versions: a 9-ball game for venues and leagues, and an 11-ball Pro game for the tour.",
+          media: [
+            { type: "image", src: "/media/rocket/scoring.jpg", width: 1240, height: 1110, alt: "The Rocket Run-Out scoring system: 200 for a break and run, 150 for a dry break and run, 100 for a ball-in-hand run, 60 for a salvage after a scratch, and 0 to 50 for an incomplete run", caption: "Five outcomes, each one a number." }
+          ],
+          footer: "A score on every rack is the point of the whole project. It is what makes ratings, handicaps, leaderboards, and live betting lines possible in a sport that has never had them."
+        },
+        {
+          heading: "The RRO app: every rack, rated",
+          body: "The score tracker is live on the web. Choose 9 or 11 balls and 5 or 10 racks, then score each rack with four inputs: the break, ball-in-hand, balls pocketed, and the 8. The score updates as you tap. Finish a five-rack match and it counts toward your rating. The app page runs the real tracker on the real rules, with nothing saved, so visitors can try it before they sign up.",
+          media: [
+            { type: "video", src: "/media/rocket/tracker.mp4", poster: "/media/rocket/tracker.jpg", width: 600, height: 1200, alt: "The Rocket Run-Out tracker scoring a five-rack match: a break and run for 200, a dry break and run for 150, a ball-in-hand run for 100, a salvage for 30, and another break and run, for 680 in total and a 136.0 average", caption: "A full match in the live demo: five racks, 680 points." }
+          ],
+          bullets: [
+            "One rules engine, written twice: a TypeScript mirror for instant feedback in the UI, and the same rules in Postgres, with a parity test that proves they agree",
+            "60 unit tests on the scoring, match and rating math",
+            "Usernames as the public identity, and a leaderboard players opt into",
+            "Guest opponents in seat two, and native iPhone and Android apps on the same data model next"
+          ]
+        },
+        {
+          heading: "The database is the referee",
+          body: "No client can post a score. The app sends only what happened at the table, and a Postgres trigger computes the points. Ratings have no write policy at all: only the match-completion function can recompute them. A phone app, a modified browser, or a direct API call gets the same result as the official tracker.",
+          media: [
+            { type: "image", src: "/media/rocket/rating.jpg", width: 1240, height: 1500, alt: "The Rating and Handicap rules: a rating is the average of your best 8 of your last 11 matches on a 0 to 200 scale, and your handicap is 80% of 200 minus your rating, rounded to the nearest 5", caption: "Best 8 of your last 11 matches makes a rating. The handicap follows from it." }
+          ],
+          bullets: [
+            "Your rating is the average of your best 8 of your last 11 matches, with fewer counted while you build a history",
+            "Handicap is 80% of the gap to 200, so a 120 player gets 65 a rack and a handicapped match still rewards skill",
+            "Calculated from raw scores only, and tracked separately for each game",
+            "The tour plays on raw points. The handicap is for venues and leagues"
+          ]
+        },
+        {
+          heading: "A pitch deck for every partner",
+          body: "Every brand the league pitches gets its own deck, with its logo on the cover and a case written for its industry: why an airline, a watchmaker, or a sportsbook belongs in pool, and where its name goes on the players, the tables, and the broadcast. Each deck is generated from a single partner record and an industry template, so a new deck is one new record. Sportsbook and technology partners get an extra integration slide.",
+          media: [
+            { type: "video", src: "/media/rocket/deck.mp4", poster: "/media/rocket/deck.jpg", width: 1600, height: 1000, alt: "A generated sponsorship deck for a sample partner, Northwind Air: the cover, the opportunity, the audience, the three sponsorship surfaces, why now, what RPT is, the format, and the founders", caption: "A generated deck for a sample partner. Real decks go out one brand at a time." }
+          ],
+          bullets: [
+            "More than two dozen bespoke decks across ten industries, all from one slide system",
+            "Each deck is shared by an unguessable link. It is rendered on the server, so a recipient's browser never receives another partner's terms",
+            "Deck links are kept out of search engines, referrers and caches, and internal previews are for team members only",
+            "A separate investor deck lays out the league's thesis, with ElevenLabs narration on mobile"
+          ]
+        },
+        {
+          heading: "A CRM built for the deal flow",
+          body: "The team portal turns those decks into a pipeline. Every partner appears as a card showing its deal status, how warm the lead is, the main contact, the latest note, and any funding secured. Open a card and you can move the deal, add contacts, and log calls, emails and meetings. Status changes are logged automatically.",
+          media: [
+            { type: "image", src: "/media/rocket/crm.jpg", width: 1600, height: 1445, alt: "The deal pipeline: totals for deals, active pipeline, closed won and funding secured, filters by status, industry and temperature, and a grid of partner cards", caption: "The pipeline at a glance, shown with sample partners." },
+            { type: "image", src: "/media/rocket/crm-detail.jpg", width: 1600, height: 1125, alt: "A deal opened in a side drawer: the deck link, status and temperature controls, funding secured, notes, contacts and the activity log", caption: "Every deal in one drawer: status, contacts and history." }
+          ],
+          bullets: [
+            "Search and filter by status, industry and lead temperature, with hot, active deals sorted to the top",
+            "Every write is a server action that checks the input, confirms the user is an admin, and is rate limited per user",
+            "Team members are managed from the portal, alongside subscribers and email assets"
+          ]
+        },
+        {
+          heading: "Engineering details",
+          bullets: [
+            "Row-level security on every table, with each admin check going through one Postgres function, so a policy can't quietly fall back to letting everyone in",
+            "Privileged database functions trust the logged-in user's session, never an ID passed in the request",
+            "Tutorials stream from Supabase Storage with range requests, so the video starts playing before it has fully downloaded",
+            "Magic-link and Google sign-in through Supabase Auth, with every team page and deck preview checked for admin access on the server"
+          ]
+        }
+      ],
+      technicalDetails: "Next.js 16 with the App Router and React 19 server components, TypeScript and Tailwind CSS 4, deployed on Vercel. Supabase provides Postgres with row-level security, auth and storage. Scoring and ratings run as Postgres triggers and SECURITY DEFINER functions, mirrored in TypeScript and tested with Vitest. Zod validates server actions, and Upstash Redis rate-limits them. Solo-built for the founders: brand site, rules, score tracker, CRM and deck engine.",
+      callToAction: {
+        primary: {
+          label: "Visit the Rocket Pool Tour",
+          url: "https://therocketpooltour.com/"
+        },
+        secondary: {
+          label: "Work with me",
+          url: "/#work-with-me"
+        }
+      }
+    }
   },
   {
     title: "Amber Mode",
@@ -577,7 +668,6 @@ export const projects: Project[] = [
     iconName: "Sun",
     link: "",
     ariaLabel: "Amber Mode modal",
-    requiresPassword: false,
     triggerAmberModal: true,
     status: "Prod",
     techStack: ["React", "Next.js", "TypeScript", "Tailwind CSS"]
@@ -589,7 +679,6 @@ export const projects: Project[] = [
     iconName: "Box",
     link: "https://github.com/seanmun/ordinalframe",
     ariaLabel: "View Ordinal Frame project details",
-    requiresPassword: false,
     isLive: false, // Not publicly launched yet - show modal
     status: "MVP",
     techStack: ["Python", "React", "Raspberry Pi", "JavaScript"],
@@ -661,7 +750,6 @@ export const projects: Project[] = [
     iconName: "Medal",
     link: "https://www.rumbleraffle.com/",
     ariaLabel: "View Rumble Raffle website",
-    requiresPassword: false,
     status: "Prod",
     techStack: ["React", "Typescript", "Next.js", "Express.js", "PostgreSQL", "Node.js", "Vercel"],
     repos: ["RumbleRaffle"],
@@ -673,7 +761,6 @@ export const projects: Project[] = [
     iconName: "Beef",
     link: "https://www.human-diet.com/",
     ariaLabel: "View Human-Diet.com project page",
-    requiresPassword: false,
     status: "Prod",
     techStack: ["React", "TypeScript", "Vite", "Canvas", "Framer Motion", "Tailwind CSS", "Vercel"],
     repos: ["1-pixel-health"],
@@ -733,7 +820,6 @@ export const projects: Project[] = [
     iconName: "Key",
     link: "https://trustthepick.com/",
     ariaLabel: "View Trust The Pick website",
-    requiresPassword: false,
     status: "Prod",
     techStack: ["React", "Next.js", "TypeScript", "Tailwind CSS", "Vercel"],
     repos: ["nba-lotto"],
@@ -745,7 +831,6 @@ export const projects: Project[] = [
     iconName: "Trophy",
     link: "https://draftdaytrades.com/",
     ariaLabel: "View Draft Day Trades website",
-    requiresPassword: false,
     status: "Prod",
     techStack: ["React", "Next.js", "TypeScript", "Firebase", "Tailwind CSS", "Vercel"],
     repos: ["draft"],
