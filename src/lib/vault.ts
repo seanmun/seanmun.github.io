@@ -64,7 +64,9 @@ function verify(purpose: string, token: unknown) {
   return safeEquals(signature, sign(purpose, expiry));
 }
 
-export const vaultConfigured = () => secret().length > 0;
+// normalizeAnswer keeps only letters, digits and spaces, so a password made of
+// anything else would normalize to '' and match any answer without them
+export const vaultConfigured = () => normalizeAnswer(secret()).length > 0;
 
 export function checkPassword(answer: unknown) {
   return vaultConfigured() && safeEquals(normalizeAnswer(answer), normalizeAnswer(secret()));

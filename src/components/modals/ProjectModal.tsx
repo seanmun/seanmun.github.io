@@ -41,7 +41,7 @@ export const ProjectModal = ({ isOpen, onClose, project }: ProjectModalProps) =>
     }
   };
 
-  const CTAButtons = () => (
+  const ctaButtons = (
     <div className="flex flex-col sm:flex-row gap-3">
       {modalContent.callToAction?.primary && (
         <a
@@ -234,7 +234,7 @@ export const ProjectModal = ({ isOpen, onClose, project }: ProjectModalProps) =>
             {/* CTA Button - inside scrollable content */}
             {modalContent.callToAction && (
               <div className="pt-4">
-                <CTAButtons />
+                {ctaButtons}
               </div>
             )}
           </div>

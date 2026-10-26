@@ -210,7 +210,14 @@ export default function DashboardView() {
 
         // Twice the window, so each headline number has a period to compare against
         const params = new URLSearchParams({ days: String(dateRange > 0 ? dateRange * 2 : 0) });
-        if (visitorId) params.set('visitorId', visitorId);
+        if (visitorId) {
+          // Registered before the read, so this browser is excluded from the first load
+          await fetch('/api/dashboard/data', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ visitorId }),
+          }).catch(() => {});
+        }
         if (includeMine) params.set('includeMine', '1');
 
         const res = await fetch(`/api/dashboard/data?${params}`);

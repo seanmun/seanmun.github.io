@@ -67,13 +67,7 @@ export const AIModal = ({ isOpen, onClose, settings }: AIModalProps) => {
               height={300}
               quality={75}
               className="rounded-lg max-w-full h-auto"
-              priority  // Add this to prioritize loading
-              onError={(e) => {
-                // Add fallback if image fails to load
-                const target = e.target as HTMLImageElement;
-                target.onerror = null; // Prevent infinite loop
-                target.src = '/profile/placeholder.jpg'; // Optional: provide a fallback image
-              }}
+              priority
             />
           </div>
 

@@ -1,4 +1,4 @@
 # Ideas
 
-## GitHub Stats Integration
-Pull in live GitHub stats for projects (last commit, total commits, stars, etc.) using GitHub REST API with a personal access token. Display on project cards or dashboard. Use ISR (build-time fetch with revalidation) on Vercel for performance. Requires adding a `githubRepo` field to each project in `projects.ts`.
+- **Social proof in Work with me:** short testimonials from clients and collaborators.
+- **Booking calendar:** a Cal.com or Calendly embed next to the inquiry form. Needs the booking link and a `frame-src` entry in the CSP in `next.config.ts`.

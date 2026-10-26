@@ -1,6 +1,6 @@
 'use client';
 import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
-import ForceGraph3D from 'react-force-graph-3d';
+import ForceGraph3D, { type ForceGraphMethods } from 'react-force-graph-3d';
 import * as THREE from 'three';
 import { ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
@@ -95,7 +95,7 @@ function makeGlowTexture() {
 }
 
 export default function ConceptGraph({ activity }: { activity: Record<string, ProjectGitStats> }) {
-  const fgRef = useRef<any>(null);
+  const fgRef = useRef<ForceGraphMethods | undefined>(undefined);
   // Live halos, keyed by node id; the pulse loop animates their opacity
   const halosRef = useRef(new Map<string, { material: THREE.SpriteMaterial; base: number; fresh: boolean; phase: number }>());
   const glowTexture = useMemo(() => makeGlowTexture(), []);
@@ -407,7 +407,7 @@ export default function ConceptGraph({ activity }: { activity: Record<string, Pr
       const ratio = 1 + distance / (dist || 1);
       fgRef.current.cameraPosition(
         { x: node.x * ratio, y: (node.y || 0) * ratio, z: (node.z || 0) * ratio },
-        { x: node.x, y: node.y, z: node.z },
+        { x: node.x, y: node.y ?? 0, z: node.z ?? 0 },
         1500
       );
     }
@@ -524,7 +524,7 @@ export default function ConceptGraph({ activity }: { activity: Record<string, Pr
   }, []);
 
   // Custom 3D node: rectangle with canvas-textured face
-  const nodeThreeObject = useCallback((node: any) => {
+  const nodeThreeObject = useCallback((node: object) => {
     const n = node as GraphNode;
     const group = new THREE.Group();
 
@@ -608,6 +608,15 @@ export default function ConceptGraph({ activity }: { activity: Record<string, Pr
     return (s === selectedNode.id || t === selectedNode.id) ? 0.9 : 0.05;
   }, [selectedNode]);
 
+  // The library's linkOpacity is one number for every link, so per-link
+  // dimming rides in the alpha of each link's colour (#rrggbbaa), which it
+  // multiplies into the opacity
+  const linkColor = useCallback((link: object) => {
+    const l = link as GraphLink;
+    const alpha = Math.round(linkOpacity(l) * 255).toString(16).padStart(2, '0');
+    return `${l.color}${alpha}`;
+  }, [linkOpacity]);
+
   const linkWidth = useCallback((link: GraphLink) => {
     if (!selectedNode) return 1;
     const s = typeof link.source === 'string' ? link.source : link.source.id;
@@ -645,11 +654,11 @@ export default function ConceptGraph({ activity }: { activity: Record<string, Pr
         backgroundColor={themeColors.background}
         nodeThreeObject={nodeThreeObject}
         nodeThreeObjectExtend={false}
-        onNodeClick={(node: any) => handleNodeClick(node as GraphNode)}
-        linkColor={(link: any) => (link as GraphLink).color}
-        linkOpacity={linkOpacity as any}
-        linkWidth={linkWidth as any}
-        linkCurvature={(link: any) => {
+        onNodeClick={(node: object) => handleNodeClick(node as GraphNode)}
+        linkColor={linkColor}
+        linkOpacity={1}
+        linkWidth={(link: object) => linkWidth(link as GraphLink)}
+        linkCurvature={(link: object) => {
           const idx = graphData.links.indexOf(link as GraphLink);
           return idx >= 0 ? linkCurvatures[idx] : 0;
         }}
@@ -657,7 +666,7 @@ export default function ConceptGraph({ activity }: { activity: Record<string, Pr
           reduceMotion ? 0 : 1 + Math.round(4 * linkActivity(link as GraphLink))}
         linkDirectionalParticleWidth={(link: object) => 1.5 + 2 * linkActivity(link as GraphLink)}
         linkDirectionalParticleSpeed={(link: object) => 0.002 + 0.008 * linkActivity(link as GraphLink)}
-        linkDirectionalParticleColor={(link: any) => (link as GraphLink).color}
+        linkDirectionalParticleColor={(link: object) => (link as GraphLink).color}
         d3AlphaDecay={0.01}
         d3VelocityDecay={0.2}
         warmupTicks={100}

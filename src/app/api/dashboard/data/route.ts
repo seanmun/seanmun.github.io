@@ -12,6 +12,33 @@ export const dynamic = 'force-dynamic';
 
 const MAX_EVENTS = 5000;
 
+// Whoever opens the dashboard is an admin — remember them so their own visits
+// stay out of the numbers. A POST, not part of the GET: the session cookie is
+// SameSite=Lax, which still rides along on a cross-site GET link, so a write
+// on GET would let another site register any visitor as an admin.
+export async function POST(request: Request) {
+  if (!(await hasDashboardSession())) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
+  const body = await request.json().catch(() => null);
+  const visitorId = body?.visitorId;
+  if (typeof visitorId !== 'string' || !/^[a-z0-9]{1,64}$/i.test(visitorId)) {
+    return NextResponse.json({ error: 'Invalid visitor' }, { status: 400 });
+  }
+
+  try {
+    await db
+      .collection('admin_visitors')
+      .doc(visitorId)
+      .set({ visitorId, lastSeen: new Date() }, { merge: true });
+    return NextResponse.json({ ok: true });
+  } catch (err) {
+    console.error('Failed to register admin visitor:', err);
+    return NextResponse.json({ error: 'Failed to register' }, { status: 500 });
+  }
+}
+
 export async function GET(request: Request) {
   if (!(await hasDashboardSession())) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -19,19 +46,9 @@ export async function GET(request: Request) {
 
   const url = new URL(request.url);
   const days = Number(url.searchParams.get('days') ?? '45');
-  const visitorId = url.searchParams.get('visitorId');
   const includeMine = url.searchParams.get('includeMine') === '1';
 
   try {
-    // Whoever opens the dashboard is an admin — remember them so their own
-    // visits stay out of the numbers
-    if (visitorId && /^[a-z0-9]{1,64}$/i.test(visitorId)) {
-      await db
-        .collection('admin_visitors')
-        .doc(visitorId)
-        .set({ visitorId, lastSeen: new Date() }, { merge: true });
-    }
-
     const adminSnapshot = await db.collection('admin_visitors').get();
     const adminIds = new Set(adminSnapshot.docs.map((doc) => doc.data().visitorId));
 
