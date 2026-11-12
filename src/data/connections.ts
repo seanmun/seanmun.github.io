@@ -84,5 +84,8 @@ export const connections: Connection[] = [
   { source: 'Money Never Sleeps', target: 'Buddy Cup', type: 'shared-tech', label: 'Clerk, Neon + Drizzle, and the same native iOS shell' },
   { source: 'TrustThePick.com', target: 'Rocket Pool Tour', type: 'shared-tech', label: 'React, Next.js, TypeScript, Tailwind' },
   { source: 'Kinetic.email', target: 'Buddy Cup', type: 'shared-tech', label: 'Claude + OpenAI API pipelines' },
+  { source: 'Kinetic.email', target: 'OutlookSucks.email', type: 'business', label: 'Email rendering know-how, from interactive email to Outlook tables' },
+  { source: 'OutlookSucks.email', target: 'Buddy Cup', type: 'shared-tech', label: 'Next.js, Clerk, and Claude' },
+  { source: 'OutlookSucks.email', target: 'Rocket Pool Tour', type: 'shared-tech', label: 'Next.js 16 and Supabase with row-level security' },
   { source: 'Kinetic.email', target: 'To Posterity', type: 'shared-tech', label: 'Claude API content pipeline' },
 ];

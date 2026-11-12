@@ -328,6 +328,203 @@ export const projects: Project[] = [
     }
   },
   {
+    title: "OutlookSucks.email",
+    slug: "outlooksucks",
+    description: "An email builder for the one inbox that still renders like it's 2007. Classic Outlook for Windows draws email with Microsoft Word, so anything modern breaks. OutlookSucks.email builds the email from your brand's approved blocks: drag them into place, type straight onto the canvas, then download a real Outlook template (.oft) your team opens and sends. The table soup is already written. No account needed.",
+    iconName: "MailX",
+    link: "https://www.outlooksucks.email/",
+    ariaLabel: "View OutlookSucks.email",
+    status: "MVP",
+    techStack: ["Next.js", "React", "TypeScript", "Tailwind CSS", "Claude API", "Tiptap", "dnd-kit", "Zod", "Clerk", "Supabase", "Vitest", "Vercel"],
+    repos: ["outlook-template"],
+    // Media lives in public/media/outlooksucks: recordings and crops of the
+    // live site in no-account mode. The brands are the app's own fictional
+    // samples. AI is off on the live site until its API key is set, so the
+    // page describes the AI loop without showing it run.
+    modalContent: {
+      heroMedia: {
+        type: "video",
+        src: "/media/outlooksucks/hero.mp4",
+        poster: "/media/outlooksucks/hero.jpg",
+        width: 848,
+        height: 576,
+        alt: "The OutlookSucks.email home page: Outlook sucks, your emails don't have to. Hovering the sample email X-rays it into the nested tables Outlook demands."
+      },
+      overview: "Classic Outlook for Windows renders email with Microsoft Word's engine. Flexbox, grid, rounded corners and media queries all fail there, so every internal email that has to look right ends up as hand-written nested tables. OutlookSucks.email writes those tables for you. You build the email visually from a fixed set of brand-approved blocks, and download a real Outlook template your team opens and sends.",
+      detailSections: [
+        {
+          heading: "The problem, in one ticker",
+          body: "The home page makes the case on a loop: \"Does display:flex work in Outlook for Windows? NO.\" The ticker draws on Can I email's support data, which lists about 200 features with no support at all in classic Outlook for Windows.",
+          media: [
+            { type: "video", src: "/media/outlooksucks/ticker.mp4", poster: "/media/outlooksucks/ticker.jpg", width: 848, height: 128, alt: "A rotating ticker asking whether CSS features like display:flex, display:grid and border-radius work in Outlook for Windows, each answered with a red NO stamp", caption: "Every answer is no." }
+          ]
+        },
+        {
+          heading: "Start from an example",
+          body: "Three ready-made emails show what comes out: an event invite, a two-column team newsletter, and a service notice. Each one belongs to a sample brand with its own colours, fonts and voice. Open one and it's yours to edit. Drafts live in your browser, so there's nothing to sign up for.",
+          media: [
+            { type: "image", src: "/media/outlooksucks/examples.jpg", width: 1080, height: 600, alt: "Three example emails: a Harbor & Pine spring town hall invite, the Lumen Labs team newsletter in two columns, and a Copperfield Group scheduled maintenance notice", caption: "Real output from the renderer, not mock-ups." }
+          ]
+        },
+        {
+          heading: "Edit on the email itself",
+          body: "Click any text on the canvas and type. A floating toolbar handles size, alignment, colour and spacing, and the inspector holds every setting for the selected block. Drag blocks in from the side panel, or split a row into two or three columns.",
+          media: [
+            { type: "video", src: "/media/outlooksucks/editor.mp4", poster: "/media/outlooksucks/editor.jpg", width: 1440, height: 900, alt: "The editor: the headline is retyped on the canvas from Spring town hall to Summer town hall, and a divider is dragged from the block list into the email", caption: "Type on the canvas, drag in a block." }
+          ],
+          bullets: [
+            "Blocks: logo header, hero image, headline and body, button, divider, social icons, footer, and rows of columns",
+            "Hold Option (Alt) to see every block's padding, and step it in 5px increments",
+            "Undo and redo, an image library, and a warning when an image is too low-resolution to look sharp",
+            "Missing links and leftover placeholders are listed under Unresolved before anything ships"
+          ]
+        },
+        {
+          heading: "AI that edits, not generates",
+          body: "Describe the email, or attach a design comp as an image or PDF, and Claude builds the first draft from the brand's own blocks. The model never writes HTML. It returns a short list of operations (add, update, move or remove a block, set the subject), and each one is checked against that block's schema. Either the whole set applies or none of it does.",
+          bullets: [
+            "If validation fails, the errors go back to the model for one retry",
+            "Blocks the request didn't touch stay exactly as they were",
+            "The model can't set image sources, and writes [[PLACEHOLDER]] instead of inventing facts or links. Placeholders are flagged before export",
+            "If you keep editing while it works, you choose whether to apply its changes on top of yours or discard them. Every AI change is a single undo step"
+          ],
+          footer: "The AI assistant is built and tested against a scripted model. It goes live on the site once its production key is set."
+        },
+        {
+          heading: "A real Outlook template, written byte by byte",
+          body: "An .oft is a Microsoft compound file, the same format as an old Word document. Instead of using a generic library, I wrote the file writer myself, to control the details Outlook's reader depends on. Export is a ZIP with the template and a README of instructions. The export dialog says plainly what has been verified and what hasn't.",
+          media: [
+            { type: "image", src: "/media/outlooksucks/export.jpg", width: 740, height: 900, alt: "The Export dialog: Outlook template (.oft) selected, with badges for generation implemented, structural checks passed and Outlook verified not yet; the Mac template marked experimental and unavailable; and two unresolved items to acknowledge", caption: "Export says exactly what's been verified." }
+          ],
+          bullets: [
+            "A from-scratch MS-CFB and MS-OXMSG writer. An .oft differs from an .msg only by one class ID on the root entry",
+            "Images travel inside the file as inline attachments, so recipients never load them from the app",
+            "Each file is read back by two independent parsers, plus strict Python checks of the file's internal structure",
+            "An Outlook for Mac exporter is built, but stays switched off until it's checked against a template saved by Outlook for Mac"
+          ]
+        },
+        {
+          heading: "Engineering details",
+          bullets: [
+            "One renderer feeds both the preview and every export: tables, inline styles, explicit image sizes, a fixed 600px width. Tests fail if a class, a media query, flexbox or grid gets in",
+            "Emails are stored as structured JSON, never HTML. Rich text is a restricted Tiptap editor, and pasted content is cut down to bold, italic, links and bullets",
+            "Links must be https, http or mailto, and every piece of text is escaped",
+            "Signing in is optional. Accounts run on Clerk and Supabase, where row-level security keeps each user to their own emails and images",
+            "Revision numbers stop two open tabs from silently overwriting each other",
+            "More than 100 tests, covering hostile pastes, malformed AI output, unsafe links, and access to other users' data"
+          ]
+        }
+      ],
+      technicalDetails: "Next.js 16 and React 19 with TypeScript and Tailwind CSS, deployed on Vercel. The Claude API with structured outputs drafts emails as validated operations. Tiptap powers the restricted rich-text editing, dnd-kit the drag and drop, and Zod the per-block schemas. The .oft writer is a custom TypeScript implementation of Microsoft's compound file and Outlook message formats. Optional accounts run on Clerk with Supabase Postgres and Storage behind row-level security. Tested with Vitest, with Python structural checks on the exported files.",
+      callToAction: {
+        primary: {
+          label: "Build an email",
+          url: "https://www.outlooksucks.email/"
+        },
+        secondary: {
+          label: "Work with me",
+          url: "/#work-with-me"
+        }
+      }
+    }
+  },
+  {
+    title: "Buddy Cup",
+    slug: "buddy-cup",
+    description: "A multi-tenant Ryder-Cup-style platform that brings real match-play scoring to the buddy golf trip. Navigate actual match-play math with handicap strokes auto-allocated by stroke index, dormie tracking, and closeouts (3&2, 4&3) computed the moment the deciding hole posts. Manage your entire trip from one phone — courses, players, tee times, matchups, even the welcome dinner. Snap a scorecard photo and AI reads par and stroke index for all 18 holes. The team feed runs hot with score posts, trash talk, and photos, while team and individual leaderboards update the second a putt drops. Side games (skins, Nassau, Vegas, presses) run alongside the cup, and a native iPhone app with an Apple Watch companion puts score entry on your wrist. Defend the cup.",
+    iconName: "LandPlot",
+    link: "https://www.buddycup.golf/",
+    ariaLabel: "View Buddy Cup website",
+    status: "MVP",
+    techStack: ["Next.js", "TypeScript", "Neon Postgres", "Drizzle ORM", "Clerk Auth", "Claude API", "OpenAI API", "TanStack Query", "Tailwind CSS", "SwiftUI", "Vercel"],
+    repos: ["PERN"],
+    comingSoonApps: ["ios"],
+    // Media lives in public/media/buddycup: section crops of the live
+    // buddycup.golf landing. Skip its hero: the golf-ball image behind the
+    // logo carries an iStock watermark. Still wanted: iPhone + Watch shots.
+    modalContent: {
+      heroMedia: {
+        type: "image",
+        src: "/media/buddycup/arcade-matchup.jpg",
+        width: 1060,
+        height: 580,
+        alt: "An arcade matchup card: two players from Hacks face two from Chunkers as pixelated NBA Jam-style portraits, with handicap-driven rating bars"
+      },
+      overview: "Run your trip. Crown your champion. Buddy Cup is a multi-tenant Ryder-Cup-style platform that brings real match-play scoring to the buddy golf trip — courses, players, tee times, matchups, live leaderboards, and the surrounding chaos, all managed from one phone.",
+      detailSections: [
+        {
+          heading: "The idea",
+          body: "Every buddy golf trip has the same problem: someone becomes the human spreadsheet. Tee times live in a group text, matchups on a napkin, and nobody can actually score match play with handicaps — so the \"cup\" gets settled by vibes. Buddy Cup replaces all of it. From signed-up to first tee shot in an afternoon: create the trip, invite your buddies, snap your scorecards, schedule your cup, and plan the surrounding chaos — flights, shuttles, dinners, the post-round bar stop — all on one shared, day-by-day timeline next to the golf.",
+          media: [
+            { type: "image", src: "/media/buddycup/schedule.jpg", width: 1600, height: 1178, alt: "The trip itinerary: a day's hotel check-in, three 2v2 match-play tee times with each player's handicap, and the welcome dinner", caption: "The whole trip on one day-by-day timeline." }
+          ]
+        },
+        {
+          heading: "Inside a trip",
+          body: "Here's what a four-day cup looks like from the inside. Pick a day: the cup score updates through that day, every match shows its result or its live status, and every player's net score for the round sits beside it. Saturday is mid-round, so four singles matches are still live.",
+          media: [
+            { type: "diagram", diagram: "buddycup-trip", alt: "An interactive sample trip with day tabs: the cup score through each day, every match result or live status, and an individual net-to-par leaderboard", caption: "A sample trip. Tap a day." }
+          ]
+        },
+        {
+          heading: "Signature features",
+          media: [
+            { type: "image", src: "/media/buddycup/live-scoring.jpg", width: 980, height: 880, alt: "Live cup standings: Hacks 8½, Chunkers 6½ with 9 of 15 matches in the books, above an individual leaderboard", caption: "The leaderboard that fits in your back pocket." },
+            { type: "image", src: "/media/buddycup/feed.jpg", width: 880, height: 1254, alt: "The trip feed: a posted round at Pinehurst No. 2, trash talk, and emoji reactions", caption: "Trash talk, photos, and receipts." }
+          ],
+          bullets: [
+            "Real match-play scoring — not stroke-play with a coat of paint. The engine speaks the actual language of the Ryder Cup: DORMIE, AS, 3&2. Handicap strokes are allocated USGA-style against each hole's stroke index, net scores are compared per hole, and closeouts are detected the moment a match becomes mathematically over. Supports singles, 2v2 best ball, two-man aggregate, scramble, and house formats — with multiple handicap methods selectable per match",
+            "AI scorecard reader — adding a course used to mean typing 54+ numbers. Now you photograph the scorecard and Claude's vision model extracts par, stroke index, and per-tee yardage/rating/slope for all 18 holes — with validation that falls back to manual entry rather than ever writing garbage data",
+            "Arcade matchup portraits — players upload a photo and an AI image pipeline returns a 1994-NBA-Jam-digitizer version of them: pixelated, palette-crushed, transparent background, composited onto gold-framed matchup cards with team-color glows, CRT scanlines, and handicap-driven rating bars. Matchup reveals feel like a fight card",
+            "The feed — a team chat built for the trip, not for productivity. Score posts, hole-tagged photos, emoji reactions, and trash talk — auto-moderated by an image-moderation service so admins don't have to babysit",
+            "Live cup scoreboard — broadcast-graphics hierarchy: team total on top (\"8½ – 6½, 6 points left\"), per-match status cards and an individual leaderboard below, updating as holes post",
+            "Lazy-claim roster — the admin seeds every player slot with email, nickname, and handicap; players claim their slot on first login via magic link. The trip is fully operational on day one even if half the group never signs in"
+          ]
+        },
+        {
+          heading: "More games than the cup",
+          body: "A buddy trip isn't only the cup. Every round can carry its own side action, scored by the same engine and kept separate from cup points:",
+          bullets: [
+            "Formats: singles, 2v2 best ball, two-man aggregate, scramble, and stroke play, resolved by match play, Stableford, or stroke",
+            "30 Ball and 40 Ball: each side commits a budget of balls hole by hole, with a pace rule that keeps the budget reachable and scores net against par",
+            "Bingo Bango Bongo, plus a game pack with Skins, Vegas, and Quota and a named Nassau preset",
+            "Presses: match-play side bets tracked per match, never counted toward the cup"
+          ]
+        },
+        {
+          heading: "On the course: iPhone and Apple Watch",
+          body: "A native SwiftUI iPhone app shares the website's Clerk sign-in and covers the trip end to end: the cup, the schedule, the feed, score entry, and even building matches and new events. An Apple Watch companion lets you pick your group and enter hole scores from your wrist, without pulling out your phone mid-round."
+        },
+        {
+          heading: "Build strategy",
+          bullets: [
+            "The scoring engine is a pure-function package: match-play math is the most algorithmically important code in the app, so it lives in its own workspace package with zero database or framework dependencies — inputs in, results out — covered by unit and property-based tests that make exotic formats safe to add",
+            "Multi-tenant from day one: every domain table was trip-scoped while v1 served a single real 12-man trip. That insurance paid off: the trip-creation wizard, invites, and trip kinds (multi-day trips, one-day outings, single matches) shipped as routing and forms, not a rewrite",
+            "Permissions in the application layer: all authorization cascades through one set of helpers — platform admin → trip admin → captain → self — so a permission rule is one function, not a policy scattered across tables",
+            "AI with a safety net: the scorecard reader validates its output and falls back to manual entry, and portrait generation never destroys the source photo. AI accelerates the happy path; it never gatekeeps it",
+            "Polling-first realtime: golf doesn't need millisecond updates. TanStack Query polling keeps the leaderboard live with a fraction of the infrastructure of WebSockets — architecture matched to the actual problem",
+            "Built against a real trip: the whole product is pressure-tested by an actual 12-man, 6-round cup — real handicaps, real tee times, real trash talk. Nothing ships that wouldn't survive contact with 12 opinionated golfers"
+          ]
+        }
+      ],
+      technicalDetails: "Next.js (App Router) with TypeScript and React Server Components — client components only where interactivity demands it. Neon serverless Postgres with Drizzle ORM (schema-as-code as the single source of truth); Clerk magic-link auth with a layered permission model. AI: Anthropic Claude (vision + extended thinking) for scorecard extraction, OpenAI gpt-image-1 for arcade portraits, Sightengine for feed moderation. UI: Tailwind CSS v4, Framer Motion, dnd-kit, and TanStack Query for server state and polling-based live updates. Vercel hosting with Vercel Blob storage, Sharp image processing, and Resend + React Email for delivery.",
+      plannedFeatures: [
+        "Trip Memoir Engine — every hole-tagged photo, score, and feed post is already structured to fuel AI-generated nightly recaps and a post-trip highlight video (Remotion-based), with narrated audio",
+        "GHIN integration, trophy room, and record book — season-over-season rivalry history"
+      ],
+      callToAction: {
+        primary: {
+          label: "Visit BuddyCup.golf",
+          url: "https://www.buddycup.golf/"
+        },
+        secondary: {
+          label: "Work with me",
+          url: "/#work-with-me"
+        }
+      }
+    }
+  },
+  {
     title: "Agent Army",
     slug: "agent-army",
     description: "A growing fleet of Telegram bots and agents, each with one job it does relentlessly: Hinkie runs my fantasy basketball league and channels the Process, A.I.bert turns text messages into a private self-hosted health data lake, and ITYSL Bot drops the perfect sketch clip into any chat. Chat interfaces, real infrastructure, always on duty.",
@@ -438,102 +635,6 @@ export const projects: Project[] = [
         }
       ],
       callToAction: {
-        secondary: {
-          label: "Work with me",
-          url: "/#work-with-me"
-        }
-      }
-    }
-  },
-  {
-    title: "Buddy Cup",
-    slug: "buddy-cup",
-    description: "A multi-tenant Ryder-Cup-style platform that brings real match-play scoring to the buddy golf trip. Navigate actual match-play math with handicap strokes auto-allocated by stroke index, dormie tracking, and closeouts (3&2, 4&3) computed the moment the deciding hole posts. Manage your entire trip from one phone — courses, players, tee times, matchups, even the welcome dinner. Snap a scorecard photo and AI reads par and stroke index for all 18 holes. The team feed runs hot with score posts, trash talk, and photos, while team and individual leaderboards update the second a putt drops. Side games (skins, Nassau, Vegas, presses) run alongside the cup, and a native iPhone app with an Apple Watch companion puts score entry on your wrist. Defend the cup.",
-    iconName: "LandPlot",
-    link: "https://www.buddycup.golf/",
-    ariaLabel: "View Buddy Cup website",
-    status: "MVP",
-    techStack: ["Next.js", "TypeScript", "Neon Postgres", "Drizzle ORM", "Clerk Auth", "Claude API", "OpenAI API", "TanStack Query", "Tailwind CSS", "SwiftUI", "Vercel"],
-    repos: ["PERN"],
-    comingSoonApps: ["ios"],
-    // Media lives in public/media/buddycup: section crops of the live
-    // buddycup.golf landing. Skip its hero: the golf-ball image behind the
-    // logo carries an iStock watermark. Still wanted: iPhone + Watch shots.
-    modalContent: {
-      heroMedia: {
-        type: "image",
-        src: "/media/buddycup/arcade-matchup.jpg",
-        width: 1060,
-        height: 580,
-        alt: "An arcade matchup card: two players from Hacks face two from Chunkers as pixelated NBA Jam-style portraits, with handicap-driven rating bars"
-      },
-      overview: "Run your trip. Crown your champion. Buddy Cup is a multi-tenant Ryder-Cup-style platform that brings real match-play scoring to the buddy golf trip — courses, players, tee times, matchups, live leaderboards, and the surrounding chaos, all managed from one phone.",
-      detailSections: [
-        {
-          heading: "The idea",
-          body: "Every buddy golf trip has the same problem: someone becomes the human spreadsheet. Tee times live in a group text, matchups on a napkin, and nobody can actually score match play with handicaps — so the \"cup\" gets settled by vibes. Buddy Cup replaces all of it. From signed-up to first tee shot in an afternoon: create the trip, invite your buddies, snap your scorecards, schedule your cup, and plan the surrounding chaos — flights, shuttles, dinners, the post-round bar stop — all on one shared, day-by-day timeline next to the golf.",
-          media: [
-            { type: "image", src: "/media/buddycup/schedule.jpg", width: 1600, height: 1178, alt: "The trip itinerary: a day's hotel check-in, three 2v2 match-play tee times with each player's handicap, and the welcome dinner", caption: "The whole trip on one day-by-day timeline." }
-          ]
-        },
-        {
-          heading: "Inside a trip",
-          body: "Here's what a four-day cup looks like from the inside. Pick a day: the cup score updates through that day, every match shows its result or its live status, and every player's net score for the round sits beside it. Saturday is mid-round, so four singles matches are still live.",
-          media: [
-            { type: "diagram", diagram: "buddycup-trip", alt: "An interactive sample trip with day tabs: the cup score through each day, every match result or live status, and an individual net-to-par leaderboard", caption: "A sample trip. Tap a day." }
-          ]
-        },
-        {
-          heading: "Signature features",
-          media: [
-            { type: "image", src: "/media/buddycup/live-scoring.jpg", width: 980, height: 880, alt: "Live cup standings: Hacks 8½, Chunkers 6½ with 9 of 15 matches in the books, above an individual leaderboard", caption: "The leaderboard that fits in your back pocket." },
-            { type: "image", src: "/media/buddycup/feed.jpg", width: 880, height: 1254, alt: "The trip feed: a posted round at Pinehurst No. 2, trash talk, and emoji reactions", caption: "Trash talk, photos, and receipts." }
-          ],
-          bullets: [
-            "Real match-play scoring — not stroke-play with a coat of paint. The engine speaks the actual language of the Ryder Cup: DORMIE, AS, 3&2. Handicap strokes are allocated USGA-style against each hole's stroke index, net scores are compared per hole, and closeouts are detected the moment a match becomes mathematically over. Supports singles, 2v2 best ball, two-man aggregate, scramble, and house formats — with multiple handicap methods selectable per match",
-            "AI scorecard reader — adding a course used to mean typing 54+ numbers. Now you photograph the scorecard and Claude's vision model extracts par, stroke index, and per-tee yardage/rating/slope for all 18 holes — with validation that falls back to manual entry rather than ever writing garbage data",
-            "Arcade matchup portraits — players upload a photo and an AI image pipeline returns a 1994-NBA-Jam-digitizer version of them: pixelated, palette-crushed, transparent background, composited onto gold-framed matchup cards with team-color glows, CRT scanlines, and handicap-driven rating bars. Matchup reveals feel like a fight card",
-            "The feed — a team chat built for the trip, not for productivity. Score posts, hole-tagged photos, emoji reactions, and trash talk — auto-moderated by an image-moderation service so admins don't have to babysit",
-            "Live cup scoreboard — broadcast-graphics hierarchy: team total on top (\"8½ – 6½, 6 points left\"), per-match status cards and an individual leaderboard below, updating as holes post",
-            "Lazy-claim roster — the admin seeds every player slot with email, nickname, and handicap; players claim their slot on first login via magic link. The trip is fully operational on day one even if half the group never signs in"
-          ]
-        },
-        {
-          heading: "More games than the cup",
-          body: "A buddy trip isn't only the cup. Every round can carry its own side action, scored by the same engine and kept separate from cup points:",
-          bullets: [
-            "Formats: singles, 2v2 best ball, two-man aggregate, scramble, and stroke play, resolved by match play, Stableford, or stroke",
-            "30 Ball and 40 Ball: each side commits a budget of balls hole by hole, with a pace rule that keeps the budget reachable and scores net against par",
-            "Bingo Bango Bongo, plus a game pack with Skins, Vegas, and Quota and a named Nassau preset",
-            "Presses: match-play side bets tracked per match, never counted toward the cup"
-          ]
-        },
-        {
-          heading: "On the course: iPhone and Apple Watch",
-          body: "A native SwiftUI iPhone app shares the website's Clerk sign-in and covers the trip end to end: the cup, the schedule, the feed, score entry, and even building matches and new events. An Apple Watch companion lets you pick your group and enter hole scores from your wrist, without pulling out your phone mid-round."
-        },
-        {
-          heading: "Build strategy",
-          bullets: [
-            "The scoring engine is a pure-function package: match-play math is the most algorithmically important code in the app, so it lives in its own workspace package with zero database or framework dependencies — inputs in, results out — covered by unit and property-based tests that make exotic formats safe to add",
-            "Multi-tenant from day one: every domain table was trip-scoped while v1 served a single real 12-man trip. That insurance paid off: the trip-creation wizard, invites, and trip kinds (multi-day trips, one-day outings, single matches) shipped as routing and forms, not a rewrite",
-            "Permissions in the application layer: all authorization cascades through one set of helpers — platform admin → trip admin → captain → self — so a permission rule is one function, not a policy scattered across tables",
-            "AI with a safety net: the scorecard reader validates its output and falls back to manual entry, and portrait generation never destroys the source photo. AI accelerates the happy path; it never gatekeeps it",
-            "Polling-first realtime: golf doesn't need millisecond updates. TanStack Query polling keeps the leaderboard live with a fraction of the infrastructure of WebSockets — architecture matched to the actual problem",
-            "Built against a real trip: the whole product is pressure-tested by an actual 12-man, 6-round cup — real handicaps, real tee times, real trash talk. Nothing ships that wouldn't survive contact with 12 opinionated golfers"
-          ]
-        }
-      ],
-      technicalDetails: "Next.js (App Router) with TypeScript and React Server Components — client components only where interactivity demands it. Neon serverless Postgres with Drizzle ORM (schema-as-code as the single source of truth); Clerk magic-link auth with a layered permission model. AI: Anthropic Claude (vision + extended thinking) for scorecard extraction, OpenAI gpt-image-1 for arcade portraits, Sightengine for feed moderation. UI: Tailwind CSS v4, Framer Motion, dnd-kit, and TanStack Query for server state and polling-based live updates. Vercel hosting with Vercel Blob storage, Sharp image processing, and Resend + React Email for delivery.",
-      plannedFeatures: [
-        "Trip Memoir Engine — every hole-tagged photo, score, and feed post is already structured to fuel AI-generated nightly recaps and a post-trip highlight video (Remotion-based), with narrated audio",
-        "GHIN integration, trophy room, and record book — season-over-season rivalry history"
-      ],
-      callToAction: {
-        primary: {
-          label: "Visit BuddyCup.golf",
-          url: "https://www.buddycup.golf/"
-        },
         secondary: {
           label: "Work with me",
           url: "/#work-with-me"
