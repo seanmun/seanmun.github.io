@@ -858,50 +858,91 @@ export const projects: Project[] = [
   {
     title: "Human-Diet.com",
     slug: "human-diet",
-    description: "An interactive data-storytelling experience that visualizes how the human diet stayed remarkably consistent for ~300,000 years — and then transformed almost overnight. Built as a scroll-driven \"camera zoom\" over a truthful, perfectly linear timeline, so the viewer physically feels how tiny the window of modern change really is.",
+    description: "Walk through 300,000 years of eating. A man, a woman and a child walk a three.js world from forager camps through the ice age, the first farms, cities and factories to today, on a road whose lanes are the diet itself. Their clothes, height and weight change with the era, and a live readout tracks life expectancy, body size and energy use. Under the world, a strictly linear timeline shows the scale: almost all of the change sits in the last sliver. Every number is tied to one of 95 checked sources.",
     iconName: "Beef",
     link: "https://www.human-diet.com/",
     ariaLabel: "View Human-Diet.com project page",
     status: "Prod",
-    techStack: ["React", "TypeScript", "Vite", "Canvas", "Framer Motion", "Tailwind CSS", "Vercel"],
+    techStack: ["React", "TypeScript", "Vite", "three.js", "WebGL", "Canvas", "Framer Motion", "Tailwind CSS", "Vercel"],
     repos: ["1-pixel-health"],
     showGitStats: false,
+    // Media lives in public/media/humandiet: a scroll recording of the live
+    // site (sped up 1.6x) and stills from the same session, plus crops of
+    // the Objects and Method & Sources tabs. The 3D models are still the
+    // low-poly placeholders; refresh the media once the Blender models land.
     modalContent: {
-      overview: "An interactive journey through 300,000 years of the human diet — a scroll-driven data story where the scale of time itself is the argument.",
+      heroMedia: {
+        type: "video",
+        src: "/media/humandiet/walk.mp4",
+        poster: "/media/humandiet/walk.jpg",
+        width: 1120,
+        height: 700,
+        alt: "Scrolling through Human-Diet.com: three walkers cross a 3D world from forager camps past the first farms and towns to a modern landscape of refineries and monocrops, while the year counter runs from 300,000 BCE to 2025 and the diet lanes under their feet shift from meat and plants to seed oils and processed food"
+      },
+      overview: "For nearly all of human history we ate one broadly stable diet. Then, in the last few lifetimes, seed oils and ultra-processed food rewrote it. Human Diet makes you feel that instead of reading it: you scroll, and three people walk from 300,000 years ago to today, while the world, their bodies and the food under their feet change around them.",
       detailSections: [
         {
-          heading: "The idea",
-          body: "Most nutrition charts flatten history to make a point. I wanted to do the opposite: let the scale of time be the argument. The premise of Human Diet is simple and a little unsettling — for nearly all of human existence we ate one broadly stable diet, and then in the last ~200 years (seed oils, ultra-processed foods) we rewrote it. The whole design goal was to make someone feel that in their gut, not just read it."
+          heading: "A walk through 300,000 years",
+          body: "The road is the data. Its lanes are the eight food groups, each as wide as its share of the diet, so the road itself changes colour as the walkers move through time. The world around it changes too: forager camps and open grassland, the snow and mammoths of the ice age, the first fields and villages, stone towns, then factories, monocrops and seed-oil refineries. Fifteen chapters tell the story along the way, each with what people ate, how they prepared it, and the sources behind it.",
+          media: [
+            { type: "image", src: "/media/humandiet/ice-age.jpg", width: 1800, height: 1125, alt: "18,000 BCE: the walkers cross a snowy ice-age landscape past mammoths and hide tents, beside the chapter Peak reliance on the hunt", caption: "18,000 BCE: peak reliance on the hunt." },
+            { type: "image", src: "/media/humandiet/factory.jpg", width: 1800, height: 1125, alt: "1865 CE: a brick factory and canning beside fields, under the chapter The first factory food", caption: "1865: the first factory food." }
+          ]
         },
         {
-          heading: "The learning goal",
-          body: "I set out to learn honest data storytelling — how to build a narrative experience that's genuinely persuasive without ever distorting the underlying data. That turned into a deeper set of challenges: scroll-driven \"scrollytelling,\" high-performance canvas rendering, and designing a single experience that feels native on both a mouse and a touchscreen."
+          heading: "Bodies that follow the data",
+          body: "The walkers aren't decoration. Their height and weight come from the evidence for each era, and they wear six outfits along the way, from hides and sewn furs to a T-shirt, jeans and sneakers. A readout in the corner tracks the numbers as you go.",
+          media: [
+            { type: "image", src: "/media/humandiet/convenience.jpg", width: 1800, height: 1125, alt: "1998 CE: the walkers in modern clothes pass factories and a store, with the readout showing life expectancy 76 years, height 176 cm, weight 85 kg and 58% of the diet from seed oils and ultra-processed food", caption: "1998: the golden age of processing." }
+          ],
+          bullets: [
+            "Life expectancy at birth, and the median age at death",
+            "Adult height and weight",
+            "Energy used per person per year, from about 1,700 kWh for a forager to over 80,000 today",
+            "The share of the diet from seed oils and ultra-processed food, from 0% for nearly all of history to 58% today"
+          ]
         },
         {
-          heading: "The hardest (and most interesting) problem",
-          body: "The core tension: on a truthful linear timeline, 300,000 years of change lives in the final 0.07% of the axis — so all the drama is invisible, crammed into a couple of pixels. The tempting shortcut is to warp the axis and give recent history more room. I built that version first, then threw it out: warping the axis literally inverts the thesis — it gives the last 200 years the same visual weight as 200,000 years, which is the exact lie the project exists to expose.",
-          footer: "The solution keeps the data completely honest and solves legibility with navigation instead of distortion. The x-axis is always perfectly linear — every year gets equal weight. Scrolling doesn't warp anything; it drives an honest camera zoom toward the present, the way you'd zoom into the corner of a huge photograph. You open on the truthful whole-history frame — a vast flat expanse of \"one diet,\" with the modern era as a hair-thin sliver at the edge — then dive in to watch the change at full detail, with the present always pinned to the right edge. A live \"years on screen\" counter falls from 302,025 → 150 as you zoom, which became the emotional payload of the whole piece."
+          heading: "Honest scale, kept from the first version",
+          body: "On a truthful linear timeline, the modern era is a hair-thin sliver at the edge, so all the drama is invisible. The tempting fix is to stretch the recent past. I built that version early on and threw it out, because it gives the last 200 years the same visual weight as 200,000, which is the exact distortion the project exists to expose.",
+          media: [
+            { type: "image", src: "/media/humandiet/strip.jpg", width: 1800, height: 180, alt: "The linear timeline strip: about 300,000 years of essentially one diet as flat bands, with all of the change crammed into the last sliver at the right edge", caption: "Every year drawn the same width. All the change is in the last sliver." }
+          ],
+          footer: "So the timeline strip under the world stays strictly linear, and the walk above it is openly a time-lapse. The walkers slow down as they near the present, from more than a thousand years per step to about six months, and the screen always says what one step is worth. The walk carries the story, and the strip keeps the proportions true."
+        },
+        {
+          heading: "Every number has a source",
+          body: "The rebuild came with a full Method & Sources page: 95 checked sources in eight topics, the evidence behind each chapter, and plain notes on what the numbers are and aren't. The diet bands are a stylised reconstruction, not a measurement, and the page says so. Prehistoric shares carry wide uncertainty, and values before about 1800 are reconstructions from many populations.",
+          media: [
+            { type: "image", src: "/media/humandiet/sources.jpg", width: 1000, height: 1260, alt: "The Method & Sources page: How time is drawn, explaining the linear timeline and the time-lapse walk, and What the numbers are and are not", caption: "Method & Sources: how it's drawn, and what the numbers can't tell you." }
+          ]
         },
         {
           heading: "How it's built",
           bullets: [
-            "React 18 + TypeScript + Vite + Tailwind CSS for the app shell and design system",
-            "Framer Motion links scroll position to the experience; discrete state (active chapter, phase) is decoupled from continuous values so scrolling never triggers unnecessary re-renders",
-            "The visualization is a hand-built canvas streamgraph, not a charting library: it samples the diet composition across the visible year-window and renders stacked, gradient-filled bands driven imperatively through a requestAnimationFrame loop — 60fps while the camera zooms, with zero React renders per frame",
-            "A small time-scale module encapsulates the camera math: an exponential zoom that naturally gives deep prehistory ~half the journey and recent history the other half, while the on-screen axis stays linear",
-            "Responsive by input, not just width: vertical scroll is the native gesture on both touch and mouse; desktop additionally gets a hover-to-inspect readout, and the layout reflows to a swipeable key and repositioned narrative cards on mobile",
-            "Diet composition data is a structured dataset of era-by-era estimates synthesized from anthropological, archaeological, and nutritional sources, with an interpolation layer that produces smooth transitions between periods"
+            "A three.js world built entirely in code: the walkers, animals, plants, buildings and machines are procedural low-poly models, generated and placed per era as the camera moves",
+            "The walkers' bodies scale with the data each frame. Girth follows body mass, with children affected less",
+            "React, TypeScript and Vite for the app, with Framer Motion tying the whole experience to scroll position",
+            "The timeline strip is a hand-built canvas streamgraph, and on devices without WebGL it becomes the whole experience",
+            "Diet, body, lifespan and energy curves are structured datasets, each keyed to its sources and interpolated between eras"
           ]
         },
         {
-          heading: "What it demonstrates",
+          heading: "Next: a photorealistic world built in Blender",
+          body: "Today's world is a set of low-poly placeholders, and it was built to be replaced. The site's Objects tab is a full production brief: 53 models in the scene now and 11 more planned, each with its real-world size, the era it appears in, and the variants it needs. The next step is to model them in Blender and swap them in one by one.",
+          media: [
+            { type: "image", src: "/media/humandiet/objects.jpg", width: 1500, height: 1260, alt: "The Objects tab: how to deliver a model (one .glb per object, real-world metres, PBR materials, no baked lighting, no real logos) and the first entries, the man, woman and child walkers", caption: "The model brief is already on the site." }
+          ],
           bullets: [
-            "Concept — turning a data set into an argument you can feel: finding the one interaction (a truthful zoom) that makes the point land",
-            "Judgment — recognizing and rejecting the \"easy\" version that would have quietly lied, and engineering a harder solution that keeps the data honest",
-            "Execution — custom canvas rendering, scroll-linked animation, performance discipline, and a cohesive cross-device experience, end to end"
+            "Rigged walkers with a real walk cycle, and lean and heavy body shapes blended by the weight data, in all six era outfits",
+            "Physically based materials and real-world scale for every object, exported as one compressed .glb per model so it drops straight into the scene",
+            "Image-based lighting, soft shadows, ambient occlusion and atmospheric haze in the browser, so the sun, snow and smog still change with the era",
+            "Level-of-detail versions and instancing for the plants and props scattered by the hundred, to keep it smooth on a phone",
+            "A Blender-rendered cinematic of the full walk, for sharing where a live 3D page can't go"
           ]
         }
       ],
+      technicalDetails: "React 18 and TypeScript on Vite, with three.js and WebGL for the walking world, a hand-built canvas streamgraph for the timeline, Framer Motion for scroll-driven animation, and Tailwind CSS. Deployed on Vercel. Data lives in typed modules for diet composition, vitals, chapters and sources, each value keyed to its references.",
       callToAction: {
         primary: {
           label: "Visit Human-Diet.com",
