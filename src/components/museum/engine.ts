@@ -13,6 +13,7 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js';
 import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js';
 import { CSS3DObject, CSS3DRenderer } from 'three/examples/jsm/renderers/CSS3DRenderer.js';
+import { Sky } from 'three/examples/jsm/objects/Sky.js';
 import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js';
 import * as T from './textures';
 import {
@@ -90,7 +91,7 @@ export function createMuseum(host: HTMLElement, opts: Options): MuseumHandle {
   scene.fog = new THREE.Fog('#d9d5ce', 22, 75);
   const pmrem = new THREE.PMREMGenerator(renderer);
   scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
-  scene.environmentIntensity = 0.38;
+  scene.environmentIntensity = mobile ? 0.38 : 0.3;
 
   const camera = new THREE.PerspectiveCamera(55, 1, 0.05, 200);
   const disposables: { dispose(): void }[] = [];
@@ -107,17 +108,53 @@ export function createMuseum(host: HTMLElement, opts: Options): MuseumHandle {
     track(g);
     const mesh = new THREE.Mesh(g, material);
     mesh.receiveShadow = true;
+    mesh.castShadow = true; // the building blocks the sun; light only gets in through openings
     scene.add(mesh);
     return mesh;
   }
 
+  type Win = { y0: number; y1: number; w: number; zs: number[] };
+  type Hole = { x0: number; x1: number; z0: number; z1: number };
+  const openings: { side: number; x: number; y0: number; y1: number; z0: number; z1: number }[] = [];
+
+  // A side wall (thickness along x) with an optional band of windows
+  function sideWall(xa: number, xb: number, z1: number, z0: number, h: number, mat: Mat, side: number, win?: Win) {
+    if (!win) { slab([xa, 0, z1], [xb, h, z0], mat); return; }
+    slab([xa, 0, z1], [xb, win.y0, z0], mat);
+    slab([xa, win.y1, z1], [xb, h, z0], mat);
+    const spans = win.zs.map((z) => [z - win.w / 2, z + win.w / 2]).sort((a, b) => a[0] - b[0]);
+    let at = z1;
+    for (const [a, b] of spans) {
+      if (a > at) slab([xa, win.y0, at], [xb, win.y1, a], mat);
+      openings.push({ side, x: side < 0 ? xb : xa, y0: win.y0, y1: win.y1, z0: a, z1: b });
+      at = b;
+    }
+    if (z0 > at) slab([xa, win.y0, at], [xb, win.y1, z0], mat);
+  }
+
+  // A ceiling with rectangular skylight holes cut through it
+  function ceiling(x0: number, x1: number, z1: number, z0: number, y: number, mat: Mat, holes: Hole[] = []) {
+    const xs = [...new Set([x0, x1, ...holes.flatMap((h) => [h.x0, h.x1])])].sort((a, b) => a - b);
+    for (let i = 0; i < xs.length - 1; i++) {
+      const [a, b] = [xs[i], xs[i + 1]];
+      const inStrip = holes.filter((h) => h.x0 <= a && h.x1 >= b).sort((p, q) => p.z1 - q.z1);
+      let at = z1;
+      for (const h of inStrip) {
+        if (h.z1 > at) slab([a, y, at], [b, y + 0.3, h.z1], mat);
+        at = h.z0;
+      }
+      if (z0 > at) slab([a, y, at], [b, y + 0.3, z0], mat);
+    }
+  }
+
   // A space: floor, ceiling and side walls. Front and back walls are
   // partitions, shared with the neighboring space.
-  function space(b: { x0: number; x1: number; z0: number; z1: number; h: number }, wall: Mat, floor: Mat, ceil: Mat) {
+  function space(b: { x0: number; x1: number; z0: number; z1: number; h: number }, wall: Mat, floor: Mat, ceil: Mat,
+    opts: { windows?: Win; skylights?: Hole[] } = {}) {
     slab([b.x0 - WALL_T, -0.2, b.z1], [b.x1 + WALL_T, 0, b.z0], floor);
-    slab([b.x0 - WALL_T, b.h, b.z1], [b.x1 + WALL_T, b.h + 0.3, b.z0], ceil);
-    slab([b.x0 - WALL_T, 0, b.z1], [b.x0, b.h, b.z0], wall);
-    slab([b.x1, 0, b.z1], [b.x1 + WALL_T, b.h, b.z0], wall);
+    ceiling(b.x0 - WALL_T, b.x1 + WALL_T, b.z1, b.z0, b.h, ceil, opts.skylights);
+    sideWall(b.x0 - WALL_T, b.x0, b.z1, b.z0, b.h, wall, -1, opts.windows);
+    sideWall(b.x1, b.x1 + WALL_T, b.z1, b.z0, b.h, wall, 1, opts.windows);
     // shadow gap where wall meets floor: the detail that makes walls read as built
     box([0.012, 0.05, b.z0 - b.z1 - WALL_T], [b.x0 + 0.006, 0.025, (b.z0 + b.z1) / 2], reveal);
     box([0.012, 0.05, b.z0 - b.z1 - WALL_T], [b.x1 - 0.006, 0.025, (b.z0 + b.z1) / 2], reveal);
@@ -173,20 +210,18 @@ export function createMuseum(host: HTMLElement, opts: Options): MuseumHandle {
 
   // ---------- lobby ----------
 
-  space(LOBBY, M.concrete, M.marbleFloor, M.concrete);
+  const LOBBY_SKYLIGHTS: Hole[] = [-5, 0, 5].map((x) => ({ x0: x - 0.55, x1: x + 0.55, z0: 4, z1: -12 }));
+  space(LOBBY, M.concrete, M.marbleFloor, M.concrete, { skylights: LOBBY_SKYLIGHTS });
   partition(LOBBY.z0, LOBBY.x0 - WALL_T, LOBBY.x1 + WALL_T, LOBBY.h, M.concrete, M.concrete);
   partition(LOBBY.z1, LOBBY.x0 - WALL_T, LOBBY.x1 + WALL_T, LOBBY.h, M.concrete, M.plaster, { x: 0, w: 4.2, h: 5.2 });
 
-  // Skylights: glowing slots in the ceiling and soft shafts of light below
-  const skyMat = track(new THREE.MeshBasicMaterial({ color: '#fffaf0', toneMapped: false }));
+  // Skylights: open slots to the sky, with soft shafts of light below
   const shaftTex = track(T.shaftGradient());
   const shaftMat = track(new THREE.MeshBasicMaterial({
     map: shaftTex, color: '#fff3dc', transparent: true, opacity: 0.07, depthWrite: false,
     blending: THREE.AdditiveBlending, side: THREE.DoubleSide, toneMapped: false,
   }));
   for (const x of [-5, 0, 5]) {
-    const slot = plane(1.1, 16, skyMat, [x, LOBBY.h - 0.01, -4]);
-    slot.rotation.x = Math.PI / 2;
     for (const r of [0, Math.PI / 2]) {
       const s = plane(1.4, 13, shaftMat, [x + 1.1, LOBBY.h / 2 - 0.3, -4], r);
       s.rotation.z = 0.18;
@@ -194,10 +229,41 @@ export function createMuseum(host: HTMLElement, opts: Options): MuseumHandle {
     }
   }
 
-  const sun = new THREE.DirectionalLight('#fff4e2', 1.4);
-  sun.position.set(6, 30, 8);
-  scene.add(sun);
-  scene.add(new THREE.HemisphereLight('#f6f1e8', '#4a4741', 0.6));
+  // The sun: high in the east-southeast, about 40° up. On desktop it casts
+  // shadows from the whole building, so it only lands where an opening lets
+  // it in. Phones skip shadows and keep the old soft fill instead.
+  const SUN_DIR = new THREE.Vector3(0.62, 0.6, 0.35).normalize();
+  const MUSEUM_CENTER = new THREE.Vector3(0, 0, -63);
+  let sunDirty = 150; // frames left to re-render the sun's shadow
+  const sun = new THREE.DirectionalLight('#fff1dc', mobile ? 1.4 : 6.5);
+  sun.position.copy(MUSEUM_CENTER).addScaledVector(SUN_DIR, 90);
+  sun.target.position.copy(MUSEUM_CENTER);
+  if (!mobile) {
+    sun.castShadow = true;
+    sun.shadow.mapSize.set(4096, 4096);
+    const cam = sun.shadow.camera;
+    cam.left = -80; cam.right = 80; cam.top = 80; cam.bottom = -80; cam.near = 10; cam.far = 200;
+    sun.shadow.bias = -0.0003;
+    sun.shadow.normalBias = 0.04;
+    sun.shadow.radius = 3;
+    // The building doesn't move, so this big shadow re-renders only for a few
+    // seconds after the page opens and after each model arrives (see tick)
+    sun.shadow.autoUpdate = false;
+  }
+  scene.add(sun, sun.target);
+  // Less fill on desktop, so sunlit and shaded areas read as daylight does
+  scene.add(new THREE.HemisphereLight('#eef2f6', '#4a4741', mobile ? 0.6 : 0.5));
+
+  // A physically based sky outside every opening, with the sun in it
+  const sky = new Sky();
+  sky.scale.setScalar(150);
+  const skyU = sky.material.uniforms;
+  skyU.turbidity.value = 4;
+  skyU.rayleigh.value = 1.2;
+  skyU.mieCoefficient.value = 0.004;
+  skyU.mieDirectionalG.value = 0.8;
+  skyU.sunPosition.value.copy(SUN_DIR);
+  scene.add(sky);
 
   // Name on the wall over the gallery door
   const name = T.lettering('SEAN MUNLEY', { size: 150, weight: 200, sub: 'Selected works', color: '#3b3935' });
@@ -229,10 +295,51 @@ export function createMuseum(host: HTMLElement, opts: Options): MuseumHandle {
 
   // ---------- gallery ----------
 
-  space(GALLERY, M.plaster, M.polished, M.ceiling);
+  // A clerestory band above the art: daylight from both sides, sun from the east
+  const GALLERY_WINDOWS: Win = { y0: 5.0, y1: 7.2, w: 2.6, zs: Array.from({ length: 8 }, (_, i) => -16.4 - i * 4.2) };
+  space(GALLERY, M.plaster, M.polished, M.ceiling, { windows: GALLERY_WINDOWS });
   // Track lights run the length of the gallery ceiling
   const trackMat = color('#2a2a2a', { roughness: 0.5, metalness: 0.6 });
   for (const x of [-3, 3]) box([0.06, 0.06, 33], [x, GALLERY.h - 0.25, (GALLERY.z0 + GALLERY.z1) / 2], trackMat);
+
+  // ---------- windows: glass, mullions, and sun through them ----------
+
+  const glass = track(new THREE.MeshStandardMaterial({
+    color: '#dfeef5', transparent: true, opacity: 0.1, roughness: 0.05, metalness: 0.1, depthWrite: false,
+  }));
+  const mullion = color('#2b2d30', { roughness: 0.45, metalness: 0.7 });
+  const sunShaftMat = track(new THREE.MeshBasicMaterial({
+    map: shaftTex, color: '#ffe9c4', transparent: true, opacity: mobile ? 0 : 0.06, depthWrite: false,
+    blending: THREE.AdditiveBlending, side: THREE.DoubleSide, toneMapped: false,
+  }));
+  for (const o of openings) {
+    const zc = (o.z0 + o.z1) / 2, yc = (o.y0 + o.y1) / 2, w = o.z1 - o.z0, h = o.y1 - o.y0;
+    const pane = plane(w, h, glass, [o.x - o.side * 0.12, yc, zc], o.side < 0 ? Math.PI / 2 : -Math.PI / 2);
+    pane.castShadow = false;
+    const mx = o.x - o.side * 0.14;
+    for (const dz of [-w / 2, -w / 6, w / 6, w / 2]) box([0.06, h, 0.06], [mx, yc, zc + dz], mullion).castShadow = true;
+    for (const y of [o.y0, yc, o.y1]) box([0.06, 0.06, w], [mx, y, zc], mullion).castShadow = true;
+    // A dusty shaft of sun from each window facing it, down to the floor
+    if (Math.sign(SUN_DIR.x) !== o.side) continue;
+    const top = [[o.y1, o.z0], [o.y1, o.z1], [o.y0, o.z1], [o.y0, o.z0]];
+    const pos: number[] = [], uv: number[] = [];
+    const corner = (y: number, z: number, t: number) => {
+      const len = (y / SUN_DIR.y) * t;
+      return [o.x - SUN_DIR.x * len, y - SUN_DIR.y * len, z - SUN_DIR.z * len];
+    };
+    for (let k = 0; k < 4; k++) {
+      const [ya, za] = top[k], [yb, zb] = top[(k + 1) % 4];
+      const quad = [corner(ya, za, 0), corner(yb, zb, 0), corner(yb, zb, 1), corner(ya, za, 1)];
+      for (const i of [0, 1, 2, 0, 2, 3]) pos.push(...quad[i]);
+      uv.push(0, 1, 1, 1, 1, 0, 0, 1, 1, 0, 0, 0);
+    }
+    const g = track(new THREE.BufferGeometry());
+    g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+    g.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2));
+    const shaft = new THREE.Mesh(g, sunShaftMat);
+    shaft.renderOrder = 2;
+    scene.add(shaft);
+  }
 
   // ---------- project rooms ----------
 
@@ -353,6 +460,7 @@ export function createMuseum(host: HTMLElement, opts: Options): MuseumHandle {
   let total = 0;
   manager.onStart = (_u, l, t) => { loaded = l; total = t; opts.onProgress(loaded, total); };
   manager.onProgress = (_u, l, t) => { loaded = l; total = t; opts.onProgress(loaded, total); };
+  manager.onLoad = () => { sunDirty = 90; };
   const gltf = new GLTFLoader(manager);
   gltf.setMeshoptDecoder(MeshoptDecoder);
   const draco = new DRACOLoader().setDecoderPath('/draco/');
@@ -800,6 +908,8 @@ export function createMuseum(host: HTMLElement, opts: Options): MuseumHandle {
       pitch -= pointerSmooth.y * 0.04;
     }
     camera.rotation.set(pitch, yaw, 0, 'YXZ');
+    sky.position.copy(camera.position);
+    if (sunDirty > 0) { sun.shadow.needsUpdate = true; sunDirty--; }
     if (!reduceMotion) sPivot.rotation.y = t * 0.25;
     for (const a of animators) a(t, dt);
     updatePanels(scroll);
