@@ -515,15 +515,25 @@ export function createMuseum(host: HTMLElement, opts: Options): MuseumHandle {
 
   // ---------- camera route ----------
 
+  // Position follows a smooth curve through every stop. Heading is yaw and
+  // pitch, turned the short way round, so the view never swings a look-at
+  // point through the camera (which reads as a sudden 180° whip).
   const n = stations.length;
   const P = stations.map((s) => new THREE.Vector3(...s.pos));
-  const L = stations.map((s) => new THREE.Vector3(...s.look));
+  const path = new THREE.CatmullRomCurve3(P, false, 'centripetal', 0.5);
+  const heading = stations.map((s) => {
+    const d = new THREE.Vector3(...s.look).sub(new THREE.Vector3(...s.pos)).normalize();
+    return { yaw: Math.atan2(-d.x, -d.z), pitch: Math.asin(d.y) };
+  });
   const fogColors = stations.map((s) => new THREE.Color(s.slug ? roomStyle[s.slug]?.fog ?? '#d9d5ce' : '#d9d5ce'));
   const camPos = P[0].clone();
-  const camLook = L[0].clone();
+  let camYaw = heading[0].yaw;
+  let camPitch = heading[0].pitch;
   const targetPos = new THREE.Vector3();
-  const targetLook = new THREE.Vector3();
+  let targetYaw = camYaw;
+  let targetPitch = camPitch;
   const fogTarget = new THREE.Color();
+  const lean = new THREE.Vector3();
   let scroll = 0;
   const pointer = new THREE.Vector2();
   const pointerSmooth = new THREE.Vector2();
@@ -532,14 +542,25 @@ export function createMuseum(host: HTMLElement, opts: Options): MuseumHandle {
     const t = Math.min(1, Math.max(0, (x - a) / (b - a)));
     return t * t * (3 - 2 * t);
   };
+  const wrap = (a: number) => Math.atan2(Math.sin(a), Math.cos(a)); // to [-π, π]
 
   function routeAt(s: number) {
     const clamped = Math.min(n - 1, Math.max(0, s));
     const i = Math.min(n - 2, Math.floor(clamped));
-    const e = smooth(0.12, 0.88, clamped - i);
-    targetPos.lerpVectors(P[i], P[i + 1], e);
-    targetLook.lerpVectors(L[i], L[i + 1], e);
+    const f = clamped - i;
+    // Rest at each stop for the first and last fifth of the scroll between them
+    const e = smooth(0.2, 0.8, f);
+    path.getPoint((i + e) / (n - 1), targetPos);
+    const a = heading[i], b = heading[i + 1];
+    targetYaw = a.yaw + wrap(b.yaw - a.yaw) * e;
+    targetPitch = a.pitch + (b.pitch - a.pitch) * e;
     fogTarget.lerpColors(fogColors[i], fogColors[i + 1], e);
+    // While resting, drift gently toward what you're looking at, so scrolling
+    // through a stop still feels like moving, not a dead zone
+    const near = Math.round(clamped);
+    const rest = Math.max(0, 1 - Math.abs(clamped - near) / 0.3);
+    lean.set(-Math.sin(heading[near].yaw), 0, -Math.cos(heading[near].yaw)).multiplyScalar(0.45 * smooth(0, 1, rest) * (clamped - near + 0.3) / 0.6);
+    targetPos.add(lean);
   }
 
   // ---------- video lifecycle ----------
@@ -615,18 +636,22 @@ export function createMuseum(host: HTMLElement, opts: Options): MuseumHandle {
     const dt = Math.min(timer.getDelta(), 0.1);
     const t = timer.getElapsed();
     routeAt(scroll);
-    const k = reduceMotion ? 1 : 1 - Math.exp(-dt * 5);
+    // Inertia: the camera glides after the scroll instead of tracking it
+    // frame for frame, so a fast flick of the wheel still reads as a walk.
+    const k = reduceMotion ? 1 : 1 - Math.exp(-dt * 2.6);
     camPos.lerp(targetPos, k);
-    camLook.lerp(targetLook, k);
+    camYaw += wrap(targetYaw - camYaw) * k;
+    camPitch += (targetPitch - camPitch) * k;
     (scene.fog as THREE.Fog).color.lerp(fogTarget, k);
     (scene.background as THREE.Color).copy((scene.fog as THREE.Fog).color);
     camera.position.copy(camPos);
-    camera.lookAt(camLook);
+    let yaw = camYaw, pitch = camPitch;
     if (!reduceMotion && !mobile) {
       pointerSmooth.lerp(pointer, 1 - Math.exp(-dt * 3));
-      camera.rotateY(-pointerSmooth.x * 0.06);
-      camera.rotateX(-pointerSmooth.y * 0.04);
+      yaw -= pointerSmooth.x * 0.06;
+      pitch -= pointerSmooth.y * 0.04;
     }
+    camera.rotation.set(pitch, yaw, 0, 'YXZ');
     if (!reduceMotion) sPivot.rotation.y = t * 0.25;
     for (const a of animators) a(t, dt);
     renderer.render(scene, camera);

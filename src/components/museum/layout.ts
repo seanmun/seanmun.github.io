@@ -67,36 +67,58 @@ export interface GalleryPiece {
   size?: number; // photos: the longer edge, meters
 }
 
+// Hung in bays: each sculpture flanked by two photos, so one stop takes in
+// a whole bay. Bays alternate walls down the hall, and the walk views each
+// one at a slight angle, so turning from wall to wall sweeps through
+// "looking ahead" instead of spinning around.
 export const GALLERY_PIECES: GalleryPiece[] = [
-  { id: 'allnet', kind: 'model', src: '/models/museum/allnet.glb', side: -1, z: -18.5, y: 0.6, title: 'All Net', note: 'Thirteen nets hung from a brass rod' },
-  { id: 'love', kind: 'photo', src: '/media/museum/photos/love.jpg', side: 1, z: -17.6, y: 2.0, size: 1.6, title: 'Love', note: 'Mural on a city wall' },
-  { id: 'flatball', kind: 'model', src: '/models/museum/flatball.glb', side: 1, z: -21.8, y: 1.15, title: 'Flat Ball', note: 'Twenty-four deflated balls on walnut' },
-  { id: 'aj1', kind: 'photo', src: '/media/museum/photos/aj1hanging.jpg', side: -1, z: -22.4, y: 2.0, size: 1.5, title: 'Hung Up', note: 'Jordan 1s on a sconce' },
-  { id: 'hoopgarden', kind: 'model', src: '/models/museum/hoopgarden.glb', side: -1, z: -26.6, y: 0.3, title: 'Hoop Garden', note: 'A painted backboard over floating shelves of plants' },
-  { id: 'moto', kind: 'photo', src: '/media/museum/photos/motoDeath.jpg', side: 1, z: -25.8, y: 2.0, size: 1.6, title: 'Last Ride', note: 'Wall mural' },
-  { id: 'hoody', kind: 'photo', src: '/media/museum/photos/hoody.jpg', side: -1, z: -30.6, y: 2.0, size: 1.6, title: 'Hoody', note: 'Hoodie and flag, in paint' },
-  { id: 'bronzehoop', kind: 'model', src: '/models/museum/bronzehoop.glb', side: 1, z: -30.0, y: 1.1, title: 'Bronze Hoop', note: 'A rim rising out of forty-six bronze rods' },
-  { id: 'framehoop', kind: 'photo', src: '/media/museum/photos/framehoop.jpg', side: -1, z: -34.2, y: 2.0, size: 1.5, title: 'Frame Hoop', note: 'A hoop through the print' },
-  { id: 'surfing', kind: 'photo', src: '/media/museum/photos/surfingEvolution.jpg', side: 1, z: -34.2, y: 2.0, size: 1.9, title: 'Surfing Evolution', note: 'A painted wall by the beach' },
-  { id: 'chandelier', kind: 'photo', src: '/media/museum/photos/chandelier.jpg', side: -1, z: -38.0, y: 2.0, size: 1.6, title: 'Chandelier', note: 'Shoes hung from crystal' },
-  { id: 'vibe', kind: 'photo', src: '/media/museum/photos/vibe.jpg', side: 1, z: -38.2, y: 2.0, size: 1.9, title: 'Vibe', note: 'Building mural' },
-  { id: 'helmet', kind: 'photo', src: '/media/museum/photos/daHelmet.jpg', side: -1, z: -41.8, y: 2.0, size: 1.5, title: 'Helmet', note: 'One helmet, one wall' },
-  { id: 'balance', kind: 'photo', src: '/media/museum/photos/balance.jpg', side: 1, z: -41.8, y: 2.0, size: 1.6, title: 'Balance', note: 'Stacked stones in fog' },
-  { id: 'beached', kind: 'photo', src: '/media/museum/photos/beachedhoop.jpg', side: -1, z: -45.4, y: 2.0, size: 1.5, title: 'Beached Hoop', note: 'Framed print' },
-  { id: 'hang11', kind: 'photo', src: '/media/museum/photos/hang11.jpg', side: 1, z: -45.4, y: 2.0, size: 1.5, title: 'Hang 11', note: 'A sneaker on the line' },
+  // Bay A, left
+  { id: 'aj1', kind: 'photo', src: '/media/museum/photos/aj1hanging.jpg', side: -1, z: -16.8, y: 2.0, size: 1.5, title: 'Hung Up', note: 'Jordan 1s on a sconce' },
+  { id: 'allnet', kind: 'model', src: '/models/museum/allnet.glb', side: -1, z: -19.2, y: 0.6, title: 'All Net', note: 'Thirteen nets hung from a brass rod' },
+  { id: 'love', kind: 'photo', src: '/media/museum/photos/love.jpg', side: -1, z: -21.6, y: 2.0, size: 1.6, title: 'Love', note: 'Mural on a city wall' },
+  // Bay B, right
+  { id: 'moto', kind: 'photo', src: '/media/museum/photos/motoDeath.jpg', side: 1, z: -22.1, y: 2.0, size: 1.6, title: 'Last Ride', note: 'Wall mural' },
+  { id: 'flatball', kind: 'model', src: '/models/museum/flatball.glb', side: 1, z: -24.5, y: 1.15, title: 'Flat Ball', note: 'Twenty-four deflated balls on walnut' },
+  { id: 'hoody', kind: 'photo', src: '/media/museum/photos/hoody.jpg', side: 1, z: -26.9, y: 2.0, size: 1.6, title: 'Hoody', note: 'Hoodie and flag, in paint' },
+  // Bay C, left
+  { id: 'framehoop', kind: 'photo', src: '/media/museum/photos/framehoop.jpg', side: -1, z: -27.6, y: 2.0, size: 1.5, title: 'Frame Hoop', note: 'A hoop through the print' },
+  { id: 'hoopgarden', kind: 'model', src: '/models/museum/hoopgarden.glb', side: -1, z: -30.0, y: 0.3, title: 'Hoop Garden', note: 'A painted backboard over floating shelves of plants' },
+  { id: 'chandelier', kind: 'photo', src: '/media/museum/photos/chandelier.jpg', side: -1, z: -32.4, y: 2.0, size: 1.6, title: 'Chandelier', note: 'Shoes hung from crystal' },
+  // Bay D, right
+  { id: 'surfing', kind: 'photo', src: '/media/museum/photos/surfingEvolution.jpg', side: 1, z: -32.6, y: 2.0, size: 1.7, title: 'Surfing Evolution', note: 'A painted wall by the beach' },
+  { id: 'bronzehoop', kind: 'model', src: '/models/museum/bronzehoop.glb', side: 1, z: -35.5, y: 1.1, title: 'Bronze Hoop', note: 'A rim rising out of forty-six bronze rods' },
+  { id: 'vibe', kind: 'photo', src: '/media/museum/photos/vibe.jpg', side: 1, z: -38.4, y: 2.0, size: 1.7, title: 'Vibe', note: 'Building mural' },
+  // Bays E and F: prints at the end of the hall
+  { id: 'helmet', kind: 'photo', src: '/media/museum/photos/daHelmet.jpg', side: -1, z: -43.2, y: 2.0, size: 1.5, title: 'Helmet', note: 'One helmet, one wall' },
+  { id: 'beached', kind: 'photo', src: '/media/museum/photos/beachedhoop.jpg', side: -1, z: -45.8, y: 2.0, size: 1.5, title: 'Beached Hoop', note: 'Framed print' },
+  { id: 'balance', kind: 'photo', src: '/media/museum/photos/balance.jpg', side: 1, z: -43.2, y: 2.0, size: 1.6, title: 'Balance', note: 'Stacked stones in fog' },
+  { id: 'hang11', kind: 'photo', src: '/media/museum/photos/hang11.jpg', side: 1, z: -45.8, y: 2.0, size: 1.5, title: 'Hang 11', note: 'A sneaker on the line' },
 ];
 
-export const STACK = { x: 0, z: -40.5, plinth: 0.55, src: '/models/museum/stack.glb' };
+export const STACK = { x: 0, z: -40, plinth: 0.55, src: '/models/museum/stack.glb' };
+
+// Scroll per stop, in screen heights: room to linger at each piece
+export const STEP = 1.35;
 
 const EYE = 1.7;
 
-function wallLook(p: GalleryPiece, y = 1.9): Pick<Station, 'pos' | 'look'> {
-  const wallX = p.side * 6;
-  return { pos: [p.side * 2.6, EYE, p.z], look: [wallX, y, p.z] };
+// A bay seen from the middle of the hall, a little before it, so the view
+// angles down the hall rather than square onto the wall.
+function bayView(side: -1 | 1, z: number, y = 1.8): Pick<Station, 'pos' | 'look'> {
+  return { pos: [side * 1.5, EYE, z + 2.2], look: [side * 6, y, z] };
 }
 
 function piece(id: string) {
   return GALLERY_PIECES.find((p) => p.id === id)!;
+}
+
+function bay(id: string, left: string, right: string): Station {
+  const p = piece(id);
+  return {
+    id, group: 'Gallery', label: p.title,
+    sub: `${p.note}. Flanked by ${piece(left).title} and ${piece(right).title}.`,
+    ...bayView(p.side, p.z, p.kind === 'model' ? 1.75 : 1.9),
+  };
 }
 
 export function buildStations(projects: MuseumProject[]): Station[] {
@@ -105,13 +127,14 @@ export function buildStations(projects: MuseumProject[]): Station[] {
     { id: 'mark', group: 'Lobby', label: 'The S', sub: 'Porcelain and gold leaf, on a marble plinth', pos: [0, 2.0, -4.2], look: [0, 1.9, -8.5] },
     { id: 'gallery', group: 'Gallery', label: 'The Gallery', sub: 'Basketball art from the mood board, recreated in Blender', pos: [0, EYE, -11.5], look: [0, 2.2, -32] },
   ];
-  for (const id of ['allnet', 'flatball', 'hoopgarden', 'bronzehoop']) {
-    const p = piece(id);
-    stations.push({ id, group: 'Gallery', label: p.title, sub: p.note, ...wallLook(p, p.kind === 'model' ? 1.75 : 2.0) });
-  }
   stations.push(
-    { id: 'stack', group: 'Gallery', label: 'Stack', sub: 'Five navy balls, balanced', pos: [-1.2, 1.55, -36.8], look: [STACK.x, 1.4, STACK.z] },
-    { id: 'prints', group: 'Gallery', label: 'Prints', sub: 'Photographs from the mood board', pos: [-1.4, EYE, -43.4], look: [6, 1.9, -43.4] },
+    bay('allnet', 'aj1', 'love'),
+    bay('flatball', 'moto', 'hoody'),
+    bay('hoopgarden', 'framehoop', 'chandelier'),
+    bay('bronzehoop', 'surfing', 'vibe'),
+    { id: 'stack', group: 'Gallery', label: 'Stack', sub: 'Five navy balls, balanced', pos: [-1.3, 1.55, -36.6], look: [STACK.x, 1.3, STACK.z] },
+    { id: 'prints-left', group: 'Gallery', label: 'Prints', sub: 'Helmet, and Beached Hoop', ...bayView(-1, -44.5, 1.95) },
+    { id: 'prints-right', group: 'Gallery', label: 'Prints', sub: 'Balance, and Hang 11', ...bayView(1, -44.5, 1.95) },
   );
 
   ROOM_SLUGS.forEach((slug, i) => {

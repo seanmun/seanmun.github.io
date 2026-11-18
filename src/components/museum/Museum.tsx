@@ -7,7 +7,7 @@
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
-import { buildStations, type MuseumProject } from './layout';
+import { STEP, buildStations, type MuseumProject } from './layout';
 import type { MuseumHandle } from './engine';
 
 export default function Museum({ projects, ordinals }: { projects: MuseumProject[]; ordinals: string[] }) {
@@ -36,20 +36,38 @@ export default function Museum({ projects, ordinals }: { projects: MuseumProject
           onPlacard: (slug) => setPlacard(slug),
           onProgress: (loaded, total) => setProgress({ loaded, total }),
         });
-        engineRef.current.setScroll(window.scrollY / window.innerHeight);
+        engineRef.current.setScroll(window.scrollY / (STEP * window.innerHeight));
       } catch (err) {
         console.error('Museum failed to start:', err);
         setFailed(true);
       }
     });
+    // When scrolling goes idle (after any wheel or touch momentum), glide to
+    // the nearest stop, so the view never rests mid-turn facing a corner.
+    let settle = 0;
+    let restedAt = Math.round(window.scrollY / (STEP * window.innerHeight));
     const onScroll = () => {
-      const s = window.scrollY / window.innerHeight;
+      const s = window.scrollY / (STEP * window.innerHeight);
       engineRef.current?.setScroll(s);
       setActive(Math.min(stations.length - 1, Math.max(0, Math.round(s))));
+      window.clearTimeout(settle);
+      settle = window.setTimeout(() => {
+        const now = window.scrollY / (STEP * window.innerHeight);
+        // A deliberate nudge (over a tenth of a stop) carries on in that
+        // direction; anything smaller eases back
+        const moved = now - restedAt;
+        const target = Math.abs(moved) < 0.1 ? restedAt
+          : Math.min(stations.length - 1, Math.max(0, moved > 0 ? Math.ceil(now - 0.02) : Math.floor(now + 0.02)));
+        restedAt = target;
+        if (Math.abs(now - target) > 0.01) {
+          window.scrollTo({ top: target * STEP * window.innerHeight, behavior: reduceMotion ? 'auto' : 'smooth' });
+        }
+      }, 260);
     };
     window.addEventListener('scroll', onScroll, { passive: true });
     return () => {
       disposed = true;
+      window.clearTimeout(settle);
       window.removeEventListener('scroll', onScroll);
       engineRef.current?.dispose();
       engineRef.current = null;
@@ -58,7 +76,7 @@ export default function Museum({ projects, ordinals }: { projects: MuseumProject
 
   const goTo = useCallback((i: number) => {
     const smooth = !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    window.scrollTo({ top: i * window.innerHeight, behavior: smooth ? 'smooth' : 'auto' });
+    window.scrollTo({ top: i * STEP * window.innerHeight, behavior: smooth ? 'smooth' : 'auto' });
     setMapOpen(false);
   }, []);
 
@@ -82,8 +100,8 @@ export default function Museum({ projects, ordinals }: { projects: MuseumProject
     <div className="bg-[#d9d5ce] text-[#1d1c1a]">
       <div ref={hostRef} className="fixed inset-0" aria-hidden="true" />
 
-      {/* Scroll track: one screen per station */}
-      <div style={{ height: `${stations.length * 100}vh` }} />
+      {/* Scroll track: STEP screens between stations */}
+      <div style={{ height: `${((stations.length - 1) * STEP + 1) * 100}vh` }} />
 
       {/* Top bar */}
       <header className="fixed top-0 inset-x-0 z-20 flex items-center justify-between px-4 sm:px-6 py-4 pointer-events-none">
