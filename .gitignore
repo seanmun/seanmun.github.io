@@ -58,3 +58,6 @@ next-env.d.ts
 
 # Raw video exports — web-encoded copies live in public/media
 /public/videos/
+
+# Raw Meshy exports (hundreds of MB); the optimized copies live in public/models/museum
+museum-src/

@@ -72,7 +72,7 @@ const nextConfig: NextConfig = {
             // The browser only talks to this site: analytics and Firestore go
             // through /api, and Spotify is an iframe. WebAssembly runs on the
             // home page; full eval is only for the dev server's fast refresh.
-            value: `default-src 'self'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval'${process.env.NODE_ENV === 'development' ? " 'unsafe-eval'" : ''}; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; media-src 'self'; font-src 'self' data:; connect-src 'self' blob:; frame-src https://open.spotify.com; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none';`,
+            value: `default-src 'self'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval'${process.env.NODE_ENV === 'development' ? " 'unsafe-eval'" : ''}; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; media-src 'self'; font-src 'self' data:; connect-src 'self' blob:; worker-src 'self' blob:; frame-src https://open.spotify.com; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none';`,
           },
         ],
       },

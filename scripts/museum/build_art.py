@@ -384,6 +384,6 @@ def build_ordinalframe():
 build_ordinalframe()
 build_stack()
 build_flatball()
-build_hoopgarden()
-build_bronzehoop()
-build_allnet()
+# Hoop Garden, Bronze Hoop and All Net are now Meshy models, cleaned by
+# clean_meshy.py (hoop-garden.glb, scars-of-the-game.glb, tangled-nets.glb).
+# Their builders stay above for reference but no longer run.

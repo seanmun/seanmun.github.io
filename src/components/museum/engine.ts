@@ -11,6 +11,7 @@
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js';
+import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js';
 import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js';
 import * as T from './textures';
 import {
@@ -67,6 +68,10 @@ export function createMuseum(host: HTMLElement, opts: Options): MuseumHandle {
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, mobile ? 1.5 : 1.75));
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
   renderer.toneMappingExposure = 0.98;
+  // Real shadows from the gallery spotlights: what makes the sculptures
+  // read as objects on a wall rather than pictures of them. Off on phones.
+  renderer.shadowMap.enabled = !mobile;
+  renderer.shadowMap.type = THREE.PCFShadowMap;
   host.appendChild(renderer.domElement);
   renderer.domElement.style.display = 'block';
 
@@ -91,6 +96,7 @@ export function createMuseum(host: HTMLElement, opts: Options): MuseumHandle {
     worldUV(g, tile ?? (first as Mat).userData?.tile ?? 4);
     track(g);
     const mesh = new THREE.Mesh(g, material);
+    mesh.receiveShadow = true;
     scene.add(mesh);
     return mesh;
   }
@@ -129,6 +135,7 @@ export function createMuseum(host: HTMLElement, opts: Options): MuseumHandle {
   function box(size: V3, pos: V3, material: THREE.Material, parent: THREE.Object3D = scene) {
     const m = new THREE.Mesh(track(new THREE.BoxGeometry(...size)), material);
     m.position.set(...pos);
+    m.receiveShadow = true;
     parent.add(m);
     return m;
   }
@@ -201,6 +208,11 @@ export function createMuseum(host: HTMLElement, opts: Options): MuseumHandle {
   sPivot.position.set(0, 1.1, -8.5);
   scene.add(sPivot);
   const sKey = new THREE.SpotLight('#fff6e8', 60, 14, 0.42, 0.7, 1.5);
+  sKey.castShadow = !mobile;
+  sKey.shadow.mapSize.set(1024, 1024);
+  sKey.shadow.bias = -0.0004;
+  sKey.shadow.normalBias = 0.02;
+  sKey.shadow.radius = 5;
   sKey.position.set(2.5, 8, -5);
   sKey.target.position.set(0, 1.8, -8.5);
   scene.add(sKey, sKey.target);
@@ -332,6 +344,34 @@ export function createMuseum(host: HTMLElement, opts: Options): MuseumHandle {
   manager.onProgress = (_u, l, t) => { loaded = l; total = t; opts.onProgress(loaded, total); };
   const gltf = new GLTFLoader(manager);
   gltf.setMeshoptDecoder(MeshoptDecoder);
+  const draco = new DRACOLoader().setDecoderPath('/draco/');
+  gltf.setDRACOLoader(draco);
+  disposables.push(draco);
+
+  // Art casts and catches shadows, and its textures stay sharp at an angle
+  const asArt = (root: THREE.Object3D) => {
+    root.traverse((o) => {
+      const m = o as THREE.Mesh;
+      if (!m.isMesh) return;
+      m.castShadow = true;
+      m.receiveShadow = true;
+      const mats = Array.isArray(m.material) ? m.material : [m.material];
+      for (const mat of mats as THREE.MeshStandardMaterial[]) {
+        for (const t of [mat.map, mat.normalMap, mat.roughnessMap]) if (t) t.anisotropy = 8;
+      }
+    });
+    return root;
+  };
+  const shadowSpot = (light: THREE.SpotLight, far = 12) => {
+    light.castShadow = !mobile;
+    light.shadow.mapSize.set(1024, 1024);
+    light.shadow.camera.near = 0.5;
+    light.shadow.camera.far = far;
+    light.shadow.bias = -0.0004;
+    light.shadow.normalBias = 0.02;
+    light.shadow.radius = 5;
+    return light;
+  };
   const photoLoader = new THREE.TextureLoader(manager);
 
   gltf.load('/models/s-mark.glb', (g) => {
@@ -342,7 +382,7 @@ export function createMuseum(host: HTMLElement, opts: Options): MuseumHandle {
     model.scale.setScalar(scale);
     const center = bounds.getCenter(new THREE.Vector3());
     model.position.set(-center.x * scale, -bounds.min.y * scale + 0.02, -center.z * scale);
-    sPivot.add(model);
+    sPivot.add(asArt(model));
   });
 
   const frameMat = color('#141414', { roughness: 0.45 });
@@ -357,7 +397,7 @@ export function createMuseum(host: HTMLElement, opts: Options): MuseumHandle {
     if (p.kind === 'model') {
       gltf.load(p.src, (g) => {
         g.scene.position.y = p.y ?? 0;
-        group.add(g.scene);
+        group.add(asArt(g.scene));
       });
       pieceLights.push([p.side * 3.2, GALLERY.h - 0.4, p.z]);
     } else {
@@ -383,7 +423,7 @@ export function createMuseum(host: HTMLElement, opts: Options): MuseumHandle {
 
   // Gallery spotlights on the sculptures
   for (const lp of pieceLights) {
-    const s = new THREE.SpotLight('#fff3e0', 45, 12, 0.5, 0.65, 1.4);
+    const s = shadowSpot(new THREE.SpotLight('#fff3e0', 45, 12, 0.5, 0.65, 1.4));
     s.position.set(...lp);
     s.target.position.set(Math.sign(lp[0]) * 6, 1.6, lp[2]);
     scene.add(s, s.target);
@@ -394,10 +434,10 @@ export function createMuseum(host: HTMLElement, opts: Options): MuseumHandle {
   blob(STACK.x, STACK.z, 1.6);
   gltf.load(STACK.src, (g) => {
     g.scene.position.set(STACK.x, STACK.plinth, STACK.z);
-    scene.add(g.scene);
+    scene.add(asArt(g.scene));
     animators.push((t) => { if (!reduceMotion) g.scene.rotation.y = t * 0.15; });
   });
-  const stackLight = new THREE.SpotLight('#fff3e0', 40, 10, 0.32, 0.6, 1.4);
+  const stackLight = shadowSpot(new THREE.SpotLight('#fff3e0', 40, 10, 0.32, 0.6, 1.4));
   stackLight.position.set(STACK.x + 0.5, GALLERY.h - 0.4, STACK.z + 1);
   stackLight.target.position.set(STACK.x, 1, STACK.z);
   scene.add(stackLight, stackLight.target);
@@ -412,7 +452,7 @@ export function createMuseum(host: HTMLElement, opts: Options): MuseumHandle {
     g.position.set(room.x1 - 0.005, ORDINAL.y, z);
     g.rotation.y = -Math.PI / 2;
     scene.add(g);
-    gltf.load(ORDINAL.src, (m) => g.add(m.scene));
+    gltf.load(ORDINAL.src, (m) => g.add(asArt(m.scene)));
 
     // The screen: a slideshow canvas, crossfading between pieces
     const slides: CanvasImageSource[] = [];

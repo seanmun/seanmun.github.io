@@ -74,7 +74,7 @@ export interface GalleryPiece {
 export const GALLERY_PIECES: GalleryPiece[] = [
   // Bay A, left
   { id: 'aj1', kind: 'photo', src: '/media/museum/photos/aj1hanging.jpg', side: -1, z: -16.8, y: 2.0, size: 1.5, title: 'Hung Up', note: 'Jordan 1s on a sconce' },
-  { id: 'allnet', kind: 'model', src: '/models/museum/allnet.glb', side: -1, z: -19.2, y: 0.6, title: 'All Net', note: 'Thirteen nets hung from a brass rod' },
+  { id: 'nets', kind: 'model', src: '/models/museum/tangled-nets.glb', side: -1, z: -19.2, y: 0.72, title: 'Tangled Nets', note: 'Frayed nets in red, white and blue, hung from a brass rod' },
   { id: 'love', kind: 'photo', src: '/media/museum/photos/love.jpg', side: -1, z: -21.6, y: 2.0, size: 1.6, title: 'Love', note: 'Mural on a city wall' },
   // Bay B, right
   { id: 'moto', kind: 'photo', src: '/media/museum/photos/motoDeath.jpg', side: 1, z: -22.1, y: 2.0, size: 1.6, title: 'Last Ride', note: 'Wall mural' },
@@ -82,11 +82,11 @@ export const GALLERY_PIECES: GalleryPiece[] = [
   { id: 'hoody', kind: 'photo', src: '/media/museum/photos/hoody.jpg', side: 1, z: -26.9, y: 2.0, size: 1.6, title: 'Hoody', note: 'Hoodie and flag, in paint' },
   // Bay C, left
   { id: 'framehoop', kind: 'photo', src: '/media/museum/photos/framehoop.jpg', side: -1, z: -27.6, y: 2.0, size: 1.5, title: 'Frame Hoop', note: 'A hoop through the print' },
-  { id: 'hoopgarden', kind: 'model', src: '/models/museum/hoopgarden.glb', side: -1, z: -30.0, y: 0.3, title: 'Hoop Garden', note: 'A painted backboard over floating shelves of plants' },
+  { id: 'hoopgarden', kind: 'model', src: '/models/museum/hoop-garden.glb', side: -1, z: -30.0, y: 0.22, title: 'Hoop Garden', note: 'A backboard over four shelves of potted plants' },
   { id: 'chandelier', kind: 'photo', src: '/media/museum/photos/chandelier.jpg', side: -1, z: -32.4, y: 2.0, size: 1.6, title: 'Chandelier', note: 'Shoes hung from crystal' },
   // Bay D, right
   { id: 'surfing', kind: 'photo', src: '/media/museum/photos/surfingEvolution.jpg', side: 1, z: -32.6, y: 2.0, size: 1.7, title: 'Surfing Evolution', note: 'A painted wall by the beach' },
-  { id: 'bronzehoop', kind: 'model', src: '/models/museum/bronzehoop.glb', side: 1, z: -35.5, y: 1.1, title: 'Bronze Hoop', note: 'A rim rising out of forty-six bronze rods' },
+  { id: 'scars', kind: 'model', src: '/models/museum/scars-of-the-game.glb', side: 1, z: -35.5, y: 0.78, title: 'Scars of the Game', note: 'A chain net hung from a field of weathered rods' },
   { id: 'vibe', kind: 'photo', src: '/media/museum/photos/vibe.jpg', side: 1, z: -38.4, y: 2.0, size: 1.7, title: 'Vibe', note: 'Building mural' },
   // Bays E and F: prints at the end of the hall
   { id: 'helmet', kind: 'photo', src: '/media/museum/photos/daHelmet.jpg', side: -1, z: -43.2, y: 2.0, size: 1.5, title: 'Helmet', note: 'One helmet, one wall' },
@@ -105,7 +105,7 @@ const EYE = 1.7;
 // A bay seen from the middle of the hall, a little before it, so the view
 // angles down the hall rather than square onto the wall.
 function bayView(side: -1 | 1, z: number, y = 1.8): Pick<Station, 'pos' | 'look'> {
-  return { pos: [side * 1.5, EYE, z + 2.2], look: [side * 6, y, z] };
+  return { pos: [side * 2.0, EYE, z + 1.9], look: [side * 6, y, z] };
 }
 
 function piece(id: string) {
@@ -128,10 +128,10 @@ export function buildStations(projects: MuseumProject[]): Station[] {
     { id: 'gallery', group: 'Gallery', label: 'The Gallery', sub: 'Basketball art from the mood board, recreated in Blender', pos: [0, EYE, -11.5], look: [0, 2.2, -32] },
   ];
   stations.push(
-    bay('allnet', 'aj1', 'love'),
+    bay('nets', 'aj1', 'love'),
     bay('flatball', 'moto', 'hoody'),
     bay('hoopgarden', 'framehoop', 'chandelier'),
-    bay('bronzehoop', 'surfing', 'vibe'),
+    bay('scars', 'surfing', 'vibe'),
     { id: 'stack', group: 'Gallery', label: 'Stack', sub: 'Five navy balls, balanced', pos: [-1.3, 1.55, -36.6], look: [STACK.x, 1.3, STACK.z] },
     { id: 'prints-left', group: 'Gallery', label: 'Prints', sub: 'Helmet, and Beached Hoop', ...bayView(-1, -44.5, 1.95) },
     { id: 'prints-right', group: 'Gallery', label: 'Prints', sub: 'Balance, and Hang 11', ...bayView(1, -44.5, 1.95) },
