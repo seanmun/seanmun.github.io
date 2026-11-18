@@ -61,7 +61,55 @@ export interface TourStop {
 
 export function roomTour(slug: string, index: number): TourStop[] | null {
   const r = roomBounds(index);
+  // Shared viewpoints: the screen on the left wall, seen at an angle so the
+  // panel can float to its right, and the way out by the far doorway
+  const screen = (heading: string, label = 'The screen'): TourStop => ({
+    id: 'screen', label, panel: { kind: 'section', heading },
+    pos: [-1.0, 1.8, r.zc + 3.2], look: [-7, 2.4, r.zc + 0.4], place: [0.95, -0.05, 2.4],
+  });
+  const finale = (heading: string): TourStop => ({
+    id: 'finale', label: 'Before you go', panel: { kind: 'finale', heading },
+    pos: [-1.6, 1.7, r.z1 + 5.2], look: [-2.5, 1.9, r.z1], place: [0.75, -0.1, 2.5],
+  });
+  const arrive = (look: V3, place: V3 = [-0.6, 0.12, 2.5]): TourStop => ({
+    id: 'arrive', label: 'Arrive', panel: { kind: 'overview' }, pos: [ROOM.doorX, 1.75, r.z0 - 1.5], look, place,
+  });
   switch (slug) {
+    case 'kinetic-email':
+      return [
+        arrive([6, 1.7, r.zc - 0.5]),
+        { id: 'mailroom', label: 'The mailroom', panel: { kind: 'section', heading: 'The Problem' }, pos: [3.0, 1.7, r.zc + 3.0], look: [7, 1.8, r.zc - 0.5], place: [-0.6, -0.05, 2.4] },
+        screen('Describe an email → get two production builds'),
+        finale('The generation pipeline'),
+      ];
+    case 'outlooksucks':
+      return [
+        arrive([3.6, 1.1, r.zc - 2.2]),
+        { id: 'crt', label: 'The cubicle', panel: { kind: 'section', heading: 'The problem, in one ticker' }, pos: [3.2, 1.5, r.zc + 0.6], look: [4.0, 1.0, r.zc - 2.1], place: [-0.55, 0.25, 2.2] },
+        screen('Edit on the email itself'),
+        finale('A real Outlook template, written byte by byte'),
+      ];
+    case 'buddy-cup':
+      return [
+        arrive([-6, 2.2, r.zc], [0.95, 0.05, 2.5]),
+        { id: 'mat', label: 'On the mat', panel: { kind: 'section', heading: 'The idea' }, pos: [1.6, 1.65, r.zc + 1.6], look: [-7, 2.0, r.zc + 0.4], place: [1.0, -0.1, 2.4] },
+        { id: 'bag', label: 'The bag', panel: { kind: 'section', heading: 'Signature features' }, pos: [2.2, 1.7, r.zc - 0.2], look: [4.5, 0.9, r.zc - 3], place: [-0.6, 0.2, 2.4] },
+        finale('On the course: iPhone and Apple Watch'),
+      ];
+    case 'rocket-pool-tour':
+      return [
+        arrive([3.2, 0.9, r.zc - 1]),
+        { id: 'table', label: 'The table', panel: { kind: 'section', heading: 'The RRO app: every rack, rated' }, pos: [0.6, 1.75, r.zc + 1.0], look: [3.2, 0.85, r.zc - 0.8], place: [-0.6, 0.25, 2.3] },
+        screen('A pitch deck for every partner'),
+        finale('A CRM built for the deal flow'),
+      ];
+    case 'human-diet':
+      return [
+        arrive([3.6, 1.0, r.zc - 1.2]),
+        screen('A walk through 300,000 years'),
+        { id: 'diorama', label: 'The diorama', panel: { kind: 'section', heading: 'Bodies that follow the data' }, pos: [0.2, 1.7, r.zc + 2.6], look: [3.6, 0.9, r.zc - 1], place: [-0.6, 0.2, 2.4] },
+        { id: 'finale', label: 'Before you go', panel: { kind: 'finale', heading: 'Next: a photorealistic world built in Blender' }, pos: [-1.2, 1.7, r.zc - 3.5], look: [3.6, 1.2, r.zc - 1.5], place: [-0.55, 0.0, 2.5] },
+      ];
     case 'money-never-sleeps':
       return [
         { id: 'arrive', label: 'Center court', panel: { kind: 'overview' }, pos: [ROOM.doorX, 1.75, r.z0 - 1.5], look: [-3, 2.3, r.zc - 4], place: [0.8, 0.0, 2.5] },
@@ -197,10 +245,13 @@ export function buildStations(projects: MuseumProject[], tours: Record<string, P
     const r = roomBounds(i);
     const tour = roomTour(slug, i);
     if (tour && tours[slug]?.length === tour.length) {
-      tour.forEach((t, k) => stations.push({
-        id: `${slug}-${t.id}`, group: p.title, label: p.title, sub: t.label, slug,
-        pos: t.pos, look: t.look, panel: k, place: t.place,
-      }));
+      tour.forEach((t, k) => {
+        stations.push({
+          id: `${slug}-${t.id}`, group: p.title, label: p.title, sub: t.label, slug,
+          pos: t.pos, look: t.look, panel: k, place: t.place,
+        });
+        if (k === 0) stations.push(...ordinalStop(slug, r.zc, projects)); // OrdinalFrame, right after arriving
+      });
       return;
     }
     stations.push(

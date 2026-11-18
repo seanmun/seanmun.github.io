@@ -46,9 +46,19 @@ function sentences(text: string, max: number) {
   return out.trim();
 }
 
-// Shortest bullets first, so the panel keeps the punchy ones
+// Short bullets as written; when a section only has long ones, cut them at
+// a natural break (a colon, dash or semicolon) rather than mid-thought
+function trimBullet(b: string, max: number) {
+  if (b.length <= max) return b;
+  const cut = b.slice(0, max).search(/(: | — | – |; |\. )(?!.*(: | — | – |; |\. ))/);
+  if (cut > 40) return b.slice(0, cut).replace(/[:;—–]$/, '').trim();
+  return `${b.slice(0, b.lastIndexOf(' ', max - 1)).replace(/[,;:]$/, '')}…`;
+}
+
 function pickBullets(bullets: string[] | undefined, n: number, max = 125) {
-  return (bullets ?? []).filter((b) => b.length <= max).slice(0, n);
+  const all = bullets ?? [];
+  const short = all.filter((b) => b.length <= max);
+  return (short.length >= n ? short : all.map((b) => trimBullet(b, max))).slice(0, n);
 }
 
 const STATUS: Record<string, string> = { Prod: 'Live', MVP: 'MVP', Dev: 'In development' };
