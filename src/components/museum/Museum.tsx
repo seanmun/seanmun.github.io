@@ -31,6 +31,36 @@ export default function Museum({ projects, ordinals, tours }: { projects: Museum
   const [failed, setFailed] = useState(false);
   const [placard, setPlacard] = useState<string | null>(null);
   const [mapOpen, setMapOpen] = useState(false);
+  // Narrow (portrait) screens get a bottom-sheet layout; the same aspect
+  // threshold the engine uses
+  const [narrow, setNarrow] = useState(false);
+  const sheetRef = useRef<HTMLDivElement>(null);
+  const insetRef = useRef(0);
+
+  useEffect(() => {
+    const mq = window.matchMedia('(max-aspect-ratio: 4/5)');
+    const update = () => setNarrow(mq.matches);
+    update();
+    mq.addEventListener('change', update);
+    return () => mq.removeEventListener('change', update);
+  }, []);
+
+  // Tell the camera how much of the screen the sheet covers, so it frames
+  // the art in the open area above it
+  useEffect(() => {
+    const el = sheetRef.current;
+    if (!el) return;
+    const report = () => {
+      const px = narrow ? Math.max(0, window.innerHeight - el.getBoundingClientRect().top) : 0;
+      insetRef.current = px;
+      engineRef.current?.setInset(px);
+    };
+    report();
+    const ro = new ResizeObserver(report);
+    ro.observe(el);
+    window.addEventListener('resize', report);
+    return () => { ro.disconnect(); window.removeEventListener('resize', report); };
+  });
 
   useEffect(() => {
     const host = hostRef.current;
@@ -50,6 +80,7 @@ export default function Museum({ projects, ordinals, tours }: { projects: Museum
           onProgress: (loaded, total) => setProgress({ loaded, total }),
         });
         engineRef.current.setScroll(window.scrollY / (STEP * window.innerHeight));
+        engineRef.current.setInset(insetRef.current);
       } catch (err) {
         console.error('Museum failed to start:', err);
         setFailed(true);
@@ -107,6 +138,7 @@ export default function Museum({ projects, ordinals, tours }: { projects: Museum
     return out;
   }, [stations]);
   const project = placard ? projects.find((p) => p.slug === placard) : null;
+  const sheetPanel = station.panel !== undefined && station.slug ? tours[station.slug]?.[station.panel] : undefined;
   const loading = progress.loaded < progress.total;
 
   return (
@@ -158,8 +190,21 @@ export default function Museum({ projects, ordinals, tours }: { projects: Museum
         </nav>
       )}
 
+      {/* On a narrow screen, a tour stop's hologram becomes the bottom sheet */}
+      {narrow && sheetPanel && (
+        <div ref={sheetRef} className="fixed bottom-0 inset-x-0 z-10 px-3 pb-3">
+          <div key={station.id} className="holo-sheet">
+            <Hologram content={sheetPanel} />
+          </div>
+        </div>
+      )}
+
       {/* Caption for the current stop */}
-      <div className={`fixed bottom-0 inset-x-0 z-10 px-4 pb-6 sm:pb-8 flex justify-center pointer-events-none transition-opacity duration-300 ${station.panel !== undefined ? 'opacity-0' : ''}`} aria-hidden={station.panel !== undefined}>
+      <div
+        ref={narrow && sheetPanel ? undefined : sheetRef}
+        className={`fixed bottom-0 inset-x-0 z-10 px-3 sm:px-4 pb-3 sm:pb-8 flex justify-center pointer-events-none transition-opacity duration-300 ${station.panel !== undefined ? 'opacity-0' : ''}`}
+        aria-hidden={station.panel !== undefined}
+      >
         <div
           key={station.id}
           className="pointer-events-auto max-w-xl w-full rounded-2xl bg-black/55 backdrop-blur px-5 py-4 text-white shadow-2xl animate-[museumIn_.5s_ease-out]"
@@ -289,6 +334,16 @@ function Hologram({ content: c }: { content: PanelContent }) {
 // Light, cyan, a little unstable: projected light, not a UI card
 const HOLO_CSS = `
 .holo-wrap { width: 560px; }
+.holo-sheet .holo {
+  opacity: 1; animation: holoIn .7s ease-out; max-height: 44vh; overflow-y: auto; padding: 16px 18px 18px;
+  background: linear-gradient(180deg, rgba(14,70,110,0.92) 0%, rgba(6,36,66,0.94) 100%);
+}
+.holo-sheet .holo-kicker { font-size: 10px; margin-bottom: 6px; }
+.holo-sheet .holo-title { font-size: 21px; margin-bottom: 8px; }
+.holo-sheet .holo-body { font-size: 15px; line-height: 1.45; }
+.holo-sheet .holo-list li { font-size: 14px; }
+.holo-sheet .holo-stats dd { font-size: 20px; }
+.holo-sheet .holo-links a { font-size: 14px; padding: 7px 13px; }
 .holo {
   position: relative; overflow: hidden; padding: 26px 30px 28px; border-radius: 16px;
   color: #e4fbff; font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;

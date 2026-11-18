@@ -25,6 +25,9 @@ import {
 
 export interface MuseumHandle {
   setScroll(s: number): void;
+  // Pixels covered by the info sheet at the bottom of a narrow screen: the
+  // view shifts its center up into the open area above it
+  setInset(px: number): void;
   dispose(): void;
 }
 
@@ -837,7 +840,8 @@ export function createMuseum(host: HTMLElement, opts: Options): MuseumHandle {
 
   function updatePanels(s: number) {
     for (const h of holos) {
-      const vis = Math.max(0, 1 - Math.abs(s - h.station) / 0.45);
+      // On a narrow screen the panel's content shows in the bottom sheet instead
+      const vis = narrow ? 0 : Math.max(0, 1 - Math.abs(s - h.station) / 0.45);
       const on = vis > 0.5;
       if (on !== h.on) {
         h.on = on;
@@ -906,15 +910,27 @@ export function createMuseum(host: HTMLElement, opts: Options): MuseumHandle {
 
   // Post-processing on desktop; phones render straight to the screen
   const post = mobile ? null : createPost(renderer, scene, camera, (o) => o === sky);
+  // Narrow screens: info lives in a bottom sheet, not floating panels, and
+  // the lens shifts (like a tilt-shift lens: no distortion) so whatever the
+  // camera aims at sits in the middle of the open area above the sheet
+  let narrow = false;
+  let inset = 0;
+  const applyView = () => {
+    const w = host.clientWidth, h = host.clientHeight;
+    if (narrow && inset > 0) camera.setViewOffset(w, h, 0, inset / 2, w, h);
+    else camera.clearViewOffset();
+    camera.updateProjectionMatrix();
+  };
   const resize = () => {
     const w = host.clientWidth, h = host.clientHeight;
     renderer.setSize(w, h, false);
     post?.setSize(w, h, renderer.getPixelRatio());
     cssRenderer.setSize(w, h);
     camera.aspect = w / h;
-    camera.fov = w / h < 0.8 ? 72 : 55;
-    camera.updateProjectionMatrix();
-    placePanels(w / h < 0.8);
+    narrow = w / h < 0.8;
+    camera.fov = narrow ? 62 : 55;
+    applyView();
+    placePanels(narrow);
   };
   resize();
   // Panel heights are known once React has rendered them; place again
@@ -944,7 +960,6 @@ export function createMuseum(host: HTMLElement, opts: Options): MuseumHandle {
     let yaw = camYaw, pitch = camPitch;
     // Tall, narrow screens see more above and below: aim a little lower so
     // the art sits in the open middle of the screen, above the caption
-    if (camera.aspect < 0.8) pitch -= 0.14;
     if (!reduceMotion && !mobile) {
       pointerSmooth.lerp(pointer, 1 - Math.exp(-dt * 3));
       yaw -= pointerSmooth.x * 0.06;
@@ -966,6 +981,11 @@ export function createMuseum(host: HTMLElement, opts: Options): MuseumHandle {
     setScroll(s: number) {
       scroll = s;
       updateVideos(s);
+    },
+    setInset(px: number) {
+      if (Math.abs(px - inset) < 2) return;
+      inset = px;
+      applyView();
     },
     dispose() {
       cancelAnimationFrame(raf);
