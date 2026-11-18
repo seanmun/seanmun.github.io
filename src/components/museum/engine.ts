@@ -386,6 +386,7 @@ export function createMuseum(host: HTMLElement, opts: Options): MuseumHandle {
   });
 
   const frameMat = color('#141414', { roughness: 0.45 });
+  const labelBacking = color('#d9d6cf', { roughness: 0.9 });
   const matboard = color('#f7f5f0', { roughness: 0.95 });
   const pieceLights: V3[] = [];
 
@@ -399,6 +400,17 @@ export function createMuseum(host: HTMLElement, opts: Options): MuseumHandle {
         g.scene.position.y = p.y ?? 0;
         group.add(asArt(g.scene));
       });
+      // Wall label to the right of the piece, at reading height
+      if (p.artist) {
+        const label = new THREE.Group();
+        label.position.set((p.width ?? 1.5) / 2 + 0.42, 1.45, 0);
+        group.add(label);
+        box([0.4, 0.26, 0.012], [0, 0, 0.006], labelBacking, label);
+        const face = new THREE.Mesh(track(new THREE.PlaneGeometry(0.384, 0.24)),
+          track(new THREE.MeshStandardMaterial({ map: track(T.artLabel(p.title, p.artist)), roughness: 0.8 })));
+        face.position.z = 0.0125;
+        label.add(face);
+      }
       pieceLights.push([p.side * 3.2, GALLERY.h - 0.4, p.z]);
     } else {
       photoLoader.load(p.src, (t) => {
@@ -440,6 +452,22 @@ export function createMuseum(host: HTMLElement, opts: Options): MuseumHandle {
     g.scene.position.z = -CART.depth / 2; // exported back-to-wall; center it on its footprint
     cart.add(asArt(g.scene));
   });
+  // Its label on a small lectern stand in front, angled up to read
+  const stand = new THREE.Group();
+  stand.position.set(CART.x + 1.0, 0, CART.z + 1.05);
+  stand.rotation.y = CART.turn;
+  scene.add(stand);
+  box([0.05, 0.92, 0.05], [0, 0.46, 0], color('#2a2a2a', { roughness: 0.5, metalness: 0.5 }), stand);
+  const lectern = new THREE.Group();
+  lectern.position.set(0, 0.96, 0.02);
+  lectern.rotation.x = -0.55;
+  stand.add(lectern);
+  box([0.42, 0.28, 0.02], [0, 0, 0], color('#2a2a2a', { roughness: 0.5, metalness: 0.5 }), lectern);
+  const lecternFace = new THREE.Mesh(track(new THREE.PlaneGeometry(0.384, 0.24)),
+    track(new THREE.MeshStandardMaterial({ map: track(T.artLabel(CART.title, CART.artist)), roughness: 0.8 })));
+  lecternFace.position.z = 0.011;
+  lectern.add(lecternFace);
+
   const cartLight = shadowSpot(new THREE.SpotLight('#fff3e0', 45, 11, 0.36, 0.6, 1.4));
   cartLight.position.set(CART.x + 1.2, GALLERY.h - 0.4, CART.z + 2);
   cartLight.target.position.set(CART.x, 0.7, CART.z);

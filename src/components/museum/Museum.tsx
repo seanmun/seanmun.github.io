@@ -156,6 +156,7 @@ export default function Museum({ projects, ordinals }: { projects: MuseumProject
               {active + 1} / {stations.length}
             </span>
           </div>
+          {station.artist && <p className="text-sm text-white/90 mt-0.5">by {station.artist}</p>}
           <p className="text-sm text-white/75 mt-1">{station.sub}</p>
           {station.slug && (
             <div className="mt-3 flex flex-wrap gap-2">

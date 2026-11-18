@@ -630,3 +630,24 @@ export function screenGlow(halfW: number, halfH: number, reachM: number) {
   ctx.putImageData(img, 0, 0);
   return { texture: finish(c, false), width: W / PPM, height: H / PPM };
 }
+
+// A museum tombstone label for a recreated artwork: title, artist, and an
+// honest line that this is a 3D recreation of their piece.
+export function artLabel(title: string, artist: string) {
+  const W = 640, H = 400;
+  const [c, ctx] = canvas(W, H);
+  ctx.fillStyle = '#fbfaf7';
+  ctx.fillRect(0, 0, W, H);
+  ctx.fillStyle = '#1d1c1a';
+  ctx.font = '600 52px "Helvetica Neue", Helvetica, Arial, sans-serif';
+  ctx.fillText(title, 44, 104, W - 88);
+  ctx.font = '400 40px "Helvetica Neue", Helvetica, Arial, sans-serif';
+  ctx.fillText(artist, 44, 168, W - 88);
+  ctx.fillRect(44, 200, 56, 3);
+  ctx.fillStyle = '#6d6a64';
+  ctx.font = 'italic 400 28px "Helvetica Neue", Helvetica, Arial, sans-serif';
+  ctx.fillText('Recreated in 3D after the original', 44, 262, W - 88);
+  ctx.font = '400 26px "Helvetica Neue", Helvetica, Arial, sans-serif';
+  ctx.fillText('Mood board, seanmun.com', 44, 304, W - 88);
+  return finish(c, false);
+}

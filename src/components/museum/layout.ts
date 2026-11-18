@@ -21,6 +21,7 @@ export interface Station {
   id: string;
   label: string; // shown in the caption and the room map
   sub: string;
+  artist?: string; // credit for a recreated artwork
   group: string; // room map heading this station belongs to
   slug?: string; // project rooms: opens that project's placard
   pos: V3;
@@ -65,6 +66,8 @@ export interface GalleryPiece {
   note: string;
   y?: number; // bottom edge for models, center for photos
   size?: number; // photos: the longer edge, meters
+  artist?: string; // sculptures recreate real artworks: credit the artist
+  width?: number; // sculptures: meters, to place the wall label beside them
 }
 
 // Hung in bays: each sculpture flanked by two photos, so one stop takes in
@@ -74,19 +77,19 @@ export interface GalleryPiece {
 export const GALLERY_PIECES: GalleryPiece[] = [
   // Bay A, left
   { id: 'aj1', kind: 'photo', src: '/media/museum/photos/aj1hanging.jpg', side: -1, z: -16.8, y: 2.0, size: 1.5, title: 'Hung Up', note: 'Jordan 1s on a sconce' },
-  { id: 'nets', kind: 'model', src: '/models/museum/tangled-nets.glb', side: -1, z: -19.2, y: 0.72, title: 'Tangled Nets', note: 'Frayed nets in red, white and blue, hung from a brass rod' },
+  { id: 'nets', kind: 'model', src: '/models/museum/tangled-nets.glb', side: -1, z: -19.2, y: 0.72, title: 'Tangled Nets', artist: 'Tyrell Winston', width: 1.5, note: 'Frayed nets in red, white and blue, hung from a brass rod' },
   { id: 'love', kind: 'photo', src: '/media/museum/photos/love.jpg', side: -1, z: -21.6, y: 2.0, size: 1.6, title: 'Love', note: 'Mural on a city wall' },
   // Bay B, right
   { id: 'moto', kind: 'photo', src: '/media/museum/photos/motoDeath.jpg', side: 1, z: -22.1, y: 2.0, size: 1.6, title: 'Last Ride', note: 'Wall mural' },
-  { id: 'deflated', kind: 'model', src: '/models/museum/deflated-legends.glb', side: 1, z: -24.5, y: 1.25, title: 'Deflated Legends', note: 'Twenty-four worn-out game balls, hung in a grid' },
+  { id: 'deflated', kind: 'model', src: '/models/museum/deflated-legends.glb', side: 1, z: -24.5, y: 1.25, title: 'Deflated Legends', artist: 'Tyrell Winston', width: 1.6, note: 'Twenty-four worn-out game balls, hung in a grid' },
   { id: 'hoody', kind: 'photo', src: '/media/museum/photos/hoody.jpg', side: 1, z: -26.9, y: 2.0, size: 1.6, title: 'Hoody', note: 'Hoodie and flag, in paint' },
   // Bay C, left
   { id: 'framehoop', kind: 'photo', src: '/media/museum/photos/framehoop.jpg', side: -1, z: -27.6, y: 2.0, size: 1.5, title: 'Frame Hoop', note: 'A hoop through the print' },
-  { id: 'hoopgarden', kind: 'model', src: '/models/museum/hoop-garden.glb', side: -1, z: -30.0, y: 0.7, title: 'Hoop Garden', note: 'A backboard over four shelves of potted plants' },
+  { id: 'hoopgarden', kind: 'model', src: '/models/museum/hoop-garden.glb', side: -1, z: -30.0, y: 1.2, title: 'Hoop Garden', artist: 'Teddy Santis', width: 1.8, note: 'A backboard over four shelves of potted plants' },
   { id: 'chandelier', kind: 'photo', src: '/media/museum/photos/chandelier.jpg', side: -1, z: -32.4, y: 2.0, size: 1.6, title: 'Chandelier', note: 'Shoes hung from crystal' },
   // Bay D, right
   { id: 'surfing', kind: 'photo', src: '/media/museum/photos/surfingEvolution.jpg', side: 1, z: -32.6, y: 2.0, size: 1.7, title: 'Surfing Evolution', note: 'A painted wall by the beach' },
-  { id: 'scars', kind: 'model', src: '/models/museum/scars-of-the-game.glb', side: 1, z: -35.5, y: 0.78, title: 'Scars of the Game', note: 'A chain net hung from a field of weathered rods' },
+  { id: 'scars', kind: 'model', src: '/models/museum/scars-of-the-game.glb', side: 1, z: -35.5, y: 0.78, title: 'Shooting Hoops', artist: 'New York Sunshine', width: 1.6, note: 'A chain net hung from a field of weathered rods' },
   { id: 'vibe', kind: 'photo', src: '/media/museum/photos/vibe.jpg', side: 1, z: -38.4, y: 2.0, size: 1.7, title: 'Vibe', note: 'Building mural' },
   // Bays E and F: prints at the end of the hall
   { id: 'helmet', kind: 'photo', src: '/media/museum/photos/daHelmet.jpg', side: -1, z: -43.2, y: 2.0, size: 1.5, title: 'Helmet', note: 'One helmet, one wall' },
@@ -95,9 +98,12 @@ export const GALLERY_PIECES: GalleryPiece[] = [
   { id: 'hang11', kind: 'photo', src: '/media/museum/photos/hang11.jpg', side: 1, z: -45.8, y: 2.0, size: 1.5, title: 'Hang 11', note: 'A sneaker on the line' },
 ];
 
-// Blue Planet Cart stands on the floor in the middle of the hall, on its
+// Relic Rack stands on the floor in the middle of the hall, on its
 // casters, turned a little toward the visitor walking up
-export const CART = { x: 0, z: -40, turn: -0.35, scale: 1.12, depth: 0.4, src: '/models/museum/blue-planet-cart.glb' };
+export const CART = {
+  x: 0, z: -40, turn: -0.35, scale: 1.12, depth: 0.4, src: '/models/museum/blue-planet-cart.glb',
+  title: 'Relic Rack', artist: 'Daniel Arsham',
+};
 
 // Scroll per stop, in screen heights: room to linger at each piece
 export const STEP = 1.35;
@@ -117,7 +123,7 @@ function piece(id: string) {
 function bay(id: string, left: string, right: string): Station {
   const p = piece(id);
   return {
-    id, group: 'Gallery', label: p.title,
+    id, group: 'Gallery', label: p.title, artist: p.artist,
     sub: `${p.note}. Flanked by ${piece(left).title} and ${piece(right).title}.`,
     ...bayView(p.side, p.z, p.kind === 'model' ? 1.75 : 1.9),
   };
@@ -134,7 +140,7 @@ export function buildStations(projects: MuseumProject[]): Station[] {
     bay('deflated', 'moto', 'hoody'),
     bay('hoopgarden', 'framehoop', 'chandelier'),
     bay('scars', 'surfing', 'vibe'),
-    { id: 'cart', group: 'Gallery', label: 'Blue Planet Cart', sub: 'A rack of worn blue balls, painted like globes', pos: [-1.2, 1.6, -36.9], look: [CART.x, 0.75, CART.z] },
+    { id: 'cart', group: 'Gallery', label: CART.title, artist: CART.artist, sub: 'A rack of eroded blue balls, painted like globes', pos: [-1.2, 1.6, -36.9], look: [CART.x, 0.75, CART.z] },
     { id: 'prints-left', group: 'Gallery', label: 'Prints', sub: 'Helmet, and Beached Hoop', ...bayView(-1, -44.5, 1.95) },
     { id: 'prints-right', group: 'Gallery', label: 'Prints', sub: 'Balance, and Hang 11', ...bayView(1, -44.5, 1.95) },
   );
