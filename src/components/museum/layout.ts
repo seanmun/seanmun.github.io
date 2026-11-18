@@ -22,10 +22,56 @@ export interface Station {
   label: string; // shown in the caption and the room map
   sub: string;
   artist?: string; // credit for a recreated artwork
+  panel?: number; // tour stops: index into that room's hologram panels
+  place?: V3; // where the panel floats: [right, up, distance] from the camera
   group: string; // room map heading this station belongs to
   slug?: string; // project rooms: opens that project's placard
   pos: V3;
   look: V3;
+}
+
+// ---------- room tours ----------
+// A room with a tour walks the visitor through its project in a few stops,
+// each with a hologram panel tied to something in the room. Panel content
+// is built on the server from the project's case study (see museum/page).
+
+export interface PanelContent {
+  kicker: string;
+  title: string;
+  body: string;
+  bullets: string[];
+  chips: string[];
+  stats: { label: string; value: string }[];
+  links: { label: string; href: string; external?: boolean }[];
+}
+
+export type TourPanel =
+  | { kind: 'overview' }
+  | { kind: 'section'; heading: string }
+  | { kind: 'finale'; heading?: string };
+
+export interface TourStop {
+  id: string;
+  label: string;
+  panel: TourPanel;
+  pos: V3;
+  look: V3;
+  place: V3;
+}
+
+export function roomTour(slug: string, index: number): TourStop[] | null {
+  const r = roomBounds(index);
+  switch (slug) {
+    case 'money-never-sleeps':
+      return [
+        { id: 'arrive', label: 'Center court', panel: { kind: 'overview' }, pos: [ROOM.doorX, 1.75, r.z0 - 1.5], look: [-3, 2.3, r.zc - 4], place: [0.8, 0.0, 2.5] },
+        { id: 'ribbon', label: 'The ribbon board', panel: { kind: 'section', heading: 'A real league, with real money problems' }, pos: [-0.5, 1.7, r.zc + 1.6], look: [7, 4.2, r.zc - 1.2], place: [0.7, -0.45, 2.5] },
+        { id: 'bump', label: 'Bump', panel: { kind: 'section', heading: 'Bump, your AI general manager' }, pos: [-2.2, 1.8, r.zc + 0.8], look: [-7, 2.35, r.zc + 0.4], place: [1.0, -0.05, 2.4] },
+        { id: 'hoop', label: 'Every game', panel: { kind: 'finale', heading: 'One login. Every game.' }, pos: [-1.6, 1.7, r.z1 + 5.2], look: [-3.5, 2.9, r.z1 + 0.2], place: [0.75, -0.1, 2.5] },
+      ];
+    default:
+      return null;
+  }
 }
 
 export const LOBBY = { x0: -9, x1: 9, z0: 6, z1: -14, h: 12 };
@@ -129,7 +175,7 @@ function bay(id: string, left: string, right: string): Station {
   };
 }
 
-export function buildStations(projects: MuseumProject[]): Station[] {
+export function buildStations(projects: MuseumProject[], tours: Record<string, PanelContent[]> = {}): Station[] {
   const stations: Station[] = [
     { id: 'entrance', group: 'Lobby', label: 'Sean Munley', sub: 'Selected works. Scroll to walk in.', pos: [0, EYE, 4.5], look: [0, 4.2, -14] },
     { id: 'mark', group: 'Lobby', label: 'The S', sub: 'Porcelain and gold leaf, on a marble plinth', pos: [0, 2.0, -4.2], look: [0, 1.9, -8.5] },
@@ -149,6 +195,14 @@ export function buildStations(projects: MuseumProject[]): Station[] {
     const p = projects.find((x) => x.slug === slug);
     if (!p) return;
     const r = roomBounds(i);
+    const tour = roomTour(slug, i);
+    if (tour && tours[slug]?.length === tour.length) {
+      tour.forEach((t, k) => stations.push({
+        id: `${slug}-${t.id}`, group: p.title, label: p.title, sub: t.label, slug,
+        pos: t.pos, look: t.look, panel: k, place: t.place,
+      }));
+      return;
+    }
     stations.push(
       { id: `${slug}-enter`, group: p.title, label: p.title, sub: ROOM_NOTES[slug] ?? '', slug, pos: [ROOM.doorX, 1.75, r.z0 - 1.5], look: enterLook(slug, r.zc) },
       ...ordinalStop(slug, r.zc, projects),

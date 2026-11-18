@@ -12,6 +12,7 @@ import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js';
 import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js';
+import { CSS3DObject, CSS3DRenderer } from 'three/examples/jsm/renderers/CSS3DRenderer.js';
 import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js';
 import * as T from './textures';
 import {
@@ -28,6 +29,7 @@ interface Options {
   stations: Station[];
   projects: MuseumProject[];
   ordinals: string[]; // the owner's own inscriptions; generated stand-ins if empty
+  panels: { station: number; element: HTMLElement }[]; // hologram panels, rendered by React
   reduceMotion: boolean;
   onPlacard(slug: string): void;
   onProgress(loaded: number, total: number): void;
@@ -74,6 +76,14 @@ export function createMuseum(host: HTMLElement, opts: Options): MuseumHandle {
   renderer.shadowMap.type = THREE.PCFShadowMap;
   host.appendChild(renderer.domElement);
   renderer.domElement.style.display = 'block';
+  renderer.domElement.setAttribute('aria-hidden', 'true');
+
+  // Hologram panels are real HTML placed in the scene: crisp text, links
+  // that work, and readable by assistive tech, yet they sit in the room
+  const cssRenderer = new CSS3DRenderer();
+  Object.assign(cssRenderer.domElement.style, { position: 'absolute', inset: '0', pointerEvents: 'none' });
+  host.appendChild(cssRenderer.domElement);
+  const cssScene = new THREE.Scene();
 
   const scene = new THREE.Scene();
   scene.background = new THREE.Color('#d9d5ce');
@@ -318,7 +328,8 @@ export function createMuseum(host: HTMLElement, opts: Options): MuseumHandle {
       videoScreens.push({ index: i, video, src: media.video, mat: screenMat, loaded: false });
     }
 
-    if (p) {
+    const toured = stations.some((st) => st.slug === slug && st.panel !== undefined);
+    if (p && !toured) {
       const pt = track(T.placard(p.title, `${p.status} · ${p.techStack.slice(0, 4).join(', ')}`, 'Click to read the placard →'));
       const pg = new THREE.Group();
       pg.position.set(r.x0 + 0.04, 1.45, r.zc - 2.9);
@@ -634,12 +645,74 @@ export function createMuseum(host: HTMLElement, opts: Options): MuseumHandle {
     targetPos.add(lean);
   }
 
+  // ---------- hologram panels ----------
+
+  const PANEL_PX = 560; // CSS width of a panel
+  const PANEL_M = 1.45; // its width in the room, meters
+  const beamMat = () => track(new THREE.MeshBasicMaterial({
+    color: '#6fdcff', transparent: true, opacity: 0, blending: THREE.AdditiveBlending,
+    depthWrite: false, side: THREE.DoubleSide, toneMapped: false,
+  }));
+  const holos = opts.panels.map(({ station, element }) => {
+    const obj = new CSS3DObject(element);
+    element.style.pointerEvents = 'none';
+    obj.scale.setScalar(PANEL_M / PANEL_PX);
+    cssScene.add(obj);
+    // A projector on the floor and a faint cone of light up to the panel
+    const coneMat = beamMat();
+    const cone = new THREE.Mesh(track(new THREE.CylinderGeometry(0.5, 0.06, 1, 32, 1, true)), coneMat);
+    const padMat = beamMat();
+    const pad = new THREE.Mesh(track(new THREE.CylinderGeometry(0.16, 0.18, 0.03, 32)), padMat);
+    const base = new THREE.Mesh(track(new THREE.CylinderGeometry(0.2, 0.22, 0.02, 32)), color('#1b1d22', { roughness: 0.4, metalness: 0.6 }));
+    scene.add(cone, pad, base);
+    return { station, element, obj, cone, coneMat, pad, padMat, base, on: false };
+  });
+
+  const UP = new THREE.Vector3(0, 1, 0);
+  function placePanels(narrow: boolean) {
+    for (const h of holos) {
+      const st = stations[h.station];
+      const pos = new THREE.Vector3(...st.pos);
+      const fwd = new THREE.Vector3(...st.look).sub(pos).normalize();
+      const right = new THREE.Vector3().crossVectors(fwd, UP).normalize();
+      const up = new THREE.Vector3().crossVectors(right, fwd);
+      // On a narrow screen the panel moves to the middle, a little lower and closer
+      const [r, u, d] = narrow ? [0, -0.32, (st.place?.[2] ?? 3) * 0.92] : st.place ?? [1.2, 0, 3];
+      const at = pos.clone().addScaledVector(fwd, d).addScaledVector(right, r).addScaledVector(up, u);
+      h.obj.position.copy(at);
+      h.obj.lookAt(pos);
+      const halfH = ((h.element.offsetHeight || 420) * (PANEL_M / PANEL_PX)) / 2;
+      const bottom = Math.max(0.3, at.y - halfH - 0.04);
+      h.cone.scale.y = bottom;
+      h.cone.position.set(at.x, bottom / 2, at.z);
+      h.pad.position.set(at.x, 0.035, at.z);
+      h.base.position.set(at.x, 0.01, at.z);
+    }
+  }
+
+  function updatePanels(s: number) {
+    for (const h of holos) {
+      const vis = Math.max(0, 1 - Math.abs(s - h.station) / 0.45);
+      const on = vis > 0.5;
+      if (on !== h.on) {
+        h.on = on;
+        h.element.dataset.on = on ? '1' : '0';
+        h.element.style.pointerEvents = on ? 'auto' : 'none'; // hidden panels never block the scene
+      }
+      const glow = smooth(0, 1, vis);
+      h.coneMat.opacity = 0.045 * glow;
+      h.padMat.opacity = 0.25 + 0.6 * glow;
+    }
+  }
+
   // ---------- video lifecycle ----------
 
   function updateVideos(s: number) {
     for (const v of videoScreens) {
-      const stationIdx = stations.findIndex((st) => st.slug === ROOM_SLUGS[v.index]);
-      const near = Math.abs(s - stationIdx - 0.5) < 2.2;
+      const slug = ROOM_SLUGS[v.index];
+      const first = stations.findIndex((st) => st.slug === slug);
+      const last = stations.length - 1 - [...stations].reverse().findIndex((st) => st.slug === slug);
+      const near = s > first - 1.6 && s < last + 1.4;
       if (near && !v.loaded) {
         v.loaded = true;
         v.video.src = v.src;
@@ -689,11 +762,15 @@ export function createMuseum(host: HTMLElement, opts: Options): MuseumHandle {
   const resize = () => {
     const w = host.clientWidth, h = host.clientHeight;
     renderer.setSize(w, h, false);
+    cssRenderer.setSize(w, h);
     camera.aspect = w / h;
     camera.fov = w / h < 0.8 ? 72 : 55;
     camera.updateProjectionMatrix();
+    placePanels(w / h < 0.8);
   };
   resize();
+  // Panel heights are known once React has rendered them; place again
+  requestAnimationFrame(() => placePanels(host.clientWidth / host.clientHeight < 0.8));
   const ro = new ResizeObserver(resize);
   ro.observe(host);
 
@@ -725,7 +802,9 @@ export function createMuseum(host: HTMLElement, opts: Options): MuseumHandle {
     camera.rotation.set(pitch, yaw, 0, 'YXZ');
     if (!reduceMotion) sPivot.rotation.y = t * 0.25;
     for (const a of animators) a(t, dt);
+    updatePanels(scroll);
     renderer.render(scene, camera);
+    cssRenderer.render(cssScene, camera);
   };
   tick();
 
@@ -752,6 +831,7 @@ export function createMuseum(host: HTMLElement, opts: Options): MuseumHandle {
       pmrem.dispose();
       renderer.dispose();
       renderer.domElement.remove();
+      cssRenderer.domElement.remove();
     },
   };
 }

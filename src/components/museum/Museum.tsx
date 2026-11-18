@@ -6,12 +6,24 @@
 // the words stay crisp, accessible and selectable.
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import Link from 'next/link';
-import { STEP, buildStations, type MuseumProject } from './layout';
+import { STEP, buildStations, type MuseumProject, type PanelContent } from './layout';
 import type { MuseumHandle } from './engine';
 
-export default function Museum({ projects, ordinals }: { projects: MuseumProject[]; ordinals: string[] }) {
-  const stations = useMemo(() => buildStations(projects), [projects]);
+export default function Museum({ projects, ordinals, tours }: { projects: MuseumProject[]; ordinals: string[]; tours: Record<string, PanelContent[]> }) {
+  const stations = useMemo(() => buildStations(projects, tours), [projects, tours]);
+  // One container per hologram panel: React renders into it, the engine
+  // places it in the room
+  const panels = useMemo(() => stations.flatMap((st, i) => {
+    if (st.panel === undefined || !st.slug) return [];
+    const content = tours[st.slug]?.[st.panel];
+    if (!content) return [];
+    const element = document.createElement('div');
+    element.className = 'holo-wrap';
+    element.dataset.on = '0';
+    return [{ station: i, element, content }];
+  }), [stations, tours]);
   const hostRef = useRef<HTMLDivElement>(null);
   const engineRef = useRef<MuseumHandle | null>(null);
   const [active, setActive] = useState(0);
@@ -32,6 +44,7 @@ export default function Museum({ projects, ordinals }: { projects: MuseumProject
           stations,
           projects,
           ordinals,
+          panels: panels.map(({ station, element }) => ({ station, element })),
           reduceMotion,
           onPlacard: (slug) => setPlacard(slug),
           onProgress: (loaded, total) => setProgress({ loaded, total }),
@@ -72,7 +85,7 @@ export default function Museum({ projects, ordinals }: { projects: MuseumProject
       engineRef.current?.dispose();
       engineRef.current = null;
     };
-  }, [stations, projects, ordinals]);
+  }, [stations, projects, ordinals, panels]);
 
   const goTo = useCallback((i: number) => {
     const smooth = !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -98,7 +111,8 @@ export default function Museum({ projects, ordinals }: { projects: MuseumProject
 
   return (
     <div className="bg-[#d9d5ce] text-[#1d1c1a]">
-      <div ref={hostRef} className="fixed inset-0" aria-hidden="true" />
+      <div ref={hostRef} className="fixed inset-0" />
+      {panels.map((p) => createPortal(<Hologram content={p.content} />, p.element, `holo-${p.station}`))}
 
       {/* Scroll track: STEP screens between stations */}
       <div style={{ height: `${((stations.length - 1) * STEP + 1) * 100}vh` }} />
@@ -145,7 +159,7 @@ export default function Museum({ projects, ordinals }: { projects: MuseumProject
       )}
 
       {/* Caption for the current stop */}
-      <div className="fixed bottom-0 inset-x-0 z-10 px-4 pb-6 sm:pb-8 flex justify-center pointer-events-none">
+      <div className={`fixed bottom-0 inset-x-0 z-10 px-4 pb-6 sm:pb-8 flex justify-center pointer-events-none transition-opacity duration-300 ${station.panel !== undefined ? 'opacity-0' : ''}`} aria-hidden={station.panel !== undefined}>
         <div
           key={station.id}
           className="pointer-events-auto max-w-xl w-full rounded-2xl bg-black/55 backdrop-blur px-5 py-4 text-white shadow-2xl animate-[museumIn_.5s_ease-out]"
@@ -228,7 +242,102 @@ export default function Museum({ projects, ordinals }: { projects: MuseumProject
         </div>
       )}
 
-      <style>{`@keyframes museumIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }`}</style>
+      <style>{`@keyframes museumIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+${HOLO_CSS}`}</style>
     </div>
   );
 }
+
+// ---------- hologram panel ----------
+
+function Hologram({ content: c }: { content: PanelContent }) {
+  return (
+    <section className="holo" aria-label={c.title}>
+      <p className="holo-kicker">{c.kicker}</p>
+      <h2 className="holo-title">{c.title}</h2>
+      {c.body && <p className="holo-body">{c.body}</p>}
+      {c.bullets.length > 0 && (
+        <ul className="holo-list">
+          {c.bullets.map((b) => <li key={b}>{b}</li>)}
+        </ul>
+      )}
+      {c.stats.length > 0 && (
+        <dl className="holo-stats">
+          {c.stats.map((s) => (
+            <div key={s.label}><dt>{s.label}</dt><dd>{s.value}</dd></div>
+          ))}
+        </dl>
+      )}
+      {c.chips.length > 0 && (
+        <ul className="holo-chips">
+          {c.chips.map((ch) => <li key={ch}>{ch}</li>)}
+        </ul>
+      )}
+      {c.links.length > 0 && (
+        <div className="holo-links">
+          {c.links.map((l, i) => l.external ? (
+            <a key={l.href} href={l.href} target="_blank" rel="noopener noreferrer" className={i === 0 ? 'primary' : ''}>{l.label} ↗</a>
+          ) : (
+            <Link key={l.href} href={l.href} className={i === 0 ? 'primary' : ''}>{l.label} →</Link>
+          ))}
+        </div>
+      )}
+    </section>
+  );
+}
+
+// Light, cyan, a little unstable: projected light, not a UI card
+const HOLO_CSS = `
+.holo-wrap { width: 560px; }
+.holo {
+  position: relative; overflow: hidden; padding: 26px 30px 28px; border-radius: 16px;
+  color: #e4fbff; font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  background: linear-gradient(180deg, rgba(14,70,110,0.80) 0%, rgba(6,36,66,0.82) 60%, rgba(4,26,52,0.86) 100%);
+  border: 1px solid rgba(140,225,255,0.65);
+  box-shadow: 0 0 28px rgba(80,200,255,0.45), inset 0 0 40px rgba(80,200,255,0.16);
+  text-shadow: 0 0 10px rgba(120,220,255,0.55);
+  opacity: 0; transition: opacity .35s ease;
+}
+.holo::before {
+  content: ""; position: absolute; inset: 0; pointer-events: none;
+  background: repeating-linear-gradient(0deg, rgba(200,245,255,0.07) 0 1px, transparent 1px 4px);
+  animation: holoScan 6s linear infinite;
+}
+.holo::after {
+  content: ""; position: absolute; left: 0; right: 0; top: -30%; height: 30%; pointer-events: none;
+  background: linear-gradient(180deg, transparent, rgba(170,240,255,0.12), transparent);
+  animation: holoSweep 4.5s ease-in-out infinite;
+}
+.holo-wrap[data-on="1"] .holo { animation: holoIn .8s ease-out forwards; }
+.holo-kicker { font-size: 12px; letter-spacing: .28em; text-transform: uppercase; color: rgba(170,235,255,0.75); margin: 0 0 10px; }
+.holo-title { font-size: 30px; line-height: 1.12; font-weight: 600; margin: 0 0 12px; color: #fff; }
+.holo-body { font-size: 17px; line-height: 1.5; margin: 0; color: rgba(228,250,255,0.92); }
+.holo-list { margin: 14px 0 0; padding: 0; list-style: none; }
+.holo-list li { position: relative; padding-left: 18px; font-size: 15px; line-height: 1.45; margin-top: 7px; color: rgba(228,250,255,0.88); }
+.holo-list li::before { content: ""; position: absolute; left: 0; top: .6em; width: 7px; height: 7px; border-radius: 50%; background: #7fe3ff; box-shadow: 0 0 8px #7fe3ff; }
+.holo-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 18px 0 0; }
+.holo-stats div { border: 1px solid rgba(140,225,255,0.4); border-radius: 10px; padding: 10px 12px; background: rgba(80,200,255,0.08); }
+.holo-stats dt { font-size: 11px; letter-spacing: .18em; text-transform: uppercase; color: rgba(170,235,255,0.7); }
+.holo-stats dd { margin: 4px 0 0; font-size: 26px; font-weight: 600; color: #fff; }
+.holo-chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 16px 0 0; padding: 0; list-style: none; }
+.holo-chips li { font-size: 13px; padding: 4px 10px; border-radius: 999px; border: 1px solid rgba(140,225,255,0.45); background: rgba(80,200,255,0.1); }
+.holo-chips li:first-child { background: rgba(80,255,170,0.18); border-color: rgba(120,255,190,0.6); }
+.holo-links { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; }
+.holo-links a { font-size: 15px; padding: 8px 15px; border-radius: 999px; border: 1px solid rgba(140,225,255,0.6); color: #e4fbff; text-decoration: none; text-shadow: none; }
+.holo-links a:hover { background: rgba(120,220,255,0.18); }
+.holo-links a.primary { background: rgba(140,230,255,0.9); color: #04202e; border-color: transparent; font-weight: 600; }
+@keyframes holoIn {
+  0% { opacity: 0; clip-path: inset(49% 0 49% 0); }
+  25% { opacity: .9; clip-path: inset(30% 0 30% 0); }
+  35% { opacity: .35; }
+  50% { opacity: 1; clip-path: inset(0 0 0 0); }
+  62% { opacity: .75; }
+  100% { opacity: 1; clip-path: inset(0 0 0 0); }
+}
+@keyframes holoScan { from { background-position: 0 0; } to { background-position: 0 40px; } }
+@keyframes holoSweep { 0%, 15% { top: -30%; } 85%, 100% { top: 110%; } }
+@media (prefers-reduced-motion: reduce) {
+  .holo-wrap[data-on="1"] .holo { animation: none; opacity: 1; }
+  .holo::before, .holo::after { animation: none; }
+}
+`;
