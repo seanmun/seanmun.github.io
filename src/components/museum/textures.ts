@@ -487,3 +487,146 @@ export function blob() {
   ctx.fillRect(0, 0, 128, 128);
   return finish(c, false);
 }
+
+// ---------- OrdinalFrame slides ----------
+// Generated stand-ins for inscriptions, drawn inside the same UI the real
+// device shows (controls top left, "tap to cycle" top right, page dots).
+
+const SLIDE_W = 1200, SLIDE_H = 720;
+
+export function ordinalChrome(ctx: CanvasRenderingContext2D, index: number, count: number) {
+  ctx.strokeStyle = 'rgba(255,255,255,0.55)';
+  ctx.lineWidth = 2;
+  for (const x of [46, 94]) { ctx.beginPath(); ctx.arc(x, 44, 18, 0, Math.PI * 2); ctx.stroke(); }
+  ctx.fillStyle = 'rgba(255,255,255,0.8)';
+  ctx.font = '600 15px ui-monospace, Menlo, monospace';
+  ctx.textAlign = 'right';
+  ctx.fillText('TAP TO CYCLE · AUTO 30s', SLIDE_W - 32, 50);
+  ctx.textAlign = 'left';
+  for (let i = 0; i < count; i++) {
+    ctx.fillStyle = i === index ? '#f7931a' : 'rgba(255,255,255,0.6)';
+    ctx.beginPath();
+    ctx.arc(SLIDE_W / 2 + (i - (count - 1) / 2) * 20, SLIDE_H - 18, 5, 0, Math.PI * 2);
+    ctx.fill();
+  }
+}
+
+function slideBase(seed: number) {
+  const [c, ctx] = canvas(SLIDE_W, SLIDE_H);
+  const g = ctx.createLinearGradient(0, 0, SLIDE_W, SLIDE_H);
+  g.addColorStop(0, '#2a2350');
+  g.addColorStop(1, '#141a33');
+  ctx.fillStyle = g;
+  ctx.fillRect(0, 0, SLIDE_W, SLIDE_H);
+  return { c, ctx, r: rng(seed), x: (SLIDE_W - 540) / 2, y: (SLIDE_H - 540) / 2 - 10, s: 540 };
+}
+
+// A mirrored pixel creature, the classic on-chain look
+function pixelSlide() {
+  const { c, ctx, r, x, y, s } = slideBase(101);
+  const n = 24, px = s / n;
+  ctx.fillStyle = '#0e0f1c';
+  ctx.fillRect(x, y, s, s);
+  const pal = ['#f7931a', '#ffd23f', '#ee4266', '#3bceac', '#540d6e', '#ffffff'];
+  const grid: number[][] = [];
+  for (let j = 0; j < n; j++) {
+    grid.push([]);
+    for (let i = 0; i < n / 2; i++) {
+      const dx = (n / 2 - i) / (n / 2), dy = Math.abs(j - n / 2) / (n / 2);
+      const p = 0.75 - dx * 0.45 - dy * 0.55;
+      grid[j].push(r() < p ? 1 + Math.floor(r() * (pal.length - 1)) : 0);
+    }
+  }
+  for (let j = 0; j < n; j++) for (let i = 0; i < n; i++) {
+    const v = grid[j][i < n / 2 ? i : n - 1 - i];
+    if (!v) continue;
+    ctx.fillStyle = pal[v - 1];
+    ctx.fillRect(x + i * px, y + j * px, px + 0.5, px + 0.5);
+  }
+  for (const ex of [8, 15]) { ctx.fillStyle = '#000'; ctx.fillRect(x + ex * px, y + 9 * px, px, px * 2); }
+  return c;
+}
+
+// Orange rings radiating from off center
+function ringSlide() {
+  const { c, ctx, r, x, y, s } = slideBase(202);
+  ctx.save();
+  ctx.beginPath();
+  ctx.rect(x, y, s, s);
+  ctx.clip();
+  ctx.fillStyle = '#120a02';
+  ctx.fillRect(x, y, s, s);
+  const cx = x + s * 0.38, cy = y + s * 0.6;
+  for (let k = 40; k > 0; k--) {
+    const t = k / 40;
+    ctx.fillStyle = `hsl(${28 + t * 18 + r() * 6}, 95%, ${12 + (k % 2) * 40 * (1 - t * 0.6)}%)`;
+    ctx.beginPath();
+    ctx.arc(cx, cy, t * s * 0.95, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  ctx.restore();
+  return c;
+}
+
+// Nested squares in primary color, after Albers
+function squareSlide() {
+  const { c, ctx, r, x, y, s } = slideBase(303);
+  const pal = ['#1d3fbb', '#f2c12e', '#e4402b', '#f4efe3', '#111111', '#2b9d6b'];
+  let size = s, ox = x, oy = y;
+  for (let k = 0; k < 6; k++) {
+    ctx.fillStyle = pal[k];
+    ctx.fillRect(ox, oy, size, size);
+    const next = size * (0.72 - r() * 0.08);
+    ox += (size - next) / 2;
+    oy += (size - next) * (0.62 + r() * 0.1);
+    size = next;
+  }
+  return c;
+}
+
+// One of the owner's inscriptions on the device screen: contained in the art
+// square, with pixel art kept crisp instead of blurred by scaling.
+export function ordinalArtSlide(img: HTMLImageElement) {
+  const { c, ctx, x, y, s } = slideBase(1);
+  const w = img.naturalWidth || s, h = img.naturalHeight || s;
+  const k = Math.min(s / w, s / h);
+  ctx.imageSmoothingEnabled = Math.max(w, h) > 256;
+  ctx.drawImage(img, x + (s - w * k) / 2, y + (s - h * k) / 2, w * k, h * k);
+  ctx.imageSmoothingEnabled = true;
+  return c;
+}
+
+export function ordinalSlides() {
+  return [pixelSlide(), ringSlide(), squareSlide()];
+}
+
+export function averageColor(source: CanvasImageSource) {
+  const [, ctx] = canvas(1, 1);
+  ctx.drawImage(source, 0, 0, 1, 1);
+  const d = ctx.getImageData(0, 0, 1, 1).data;
+  return `rgb(${d[0]},${d[1]},${d[2]})`;
+}
+
+// A soft glow for light spilling from a screen onto a wall: brightest at
+// the screen's edge, falling off smoothly to nothing (no visible border).
+// Sizes are meters; the returned plane size fits the falloff exactly.
+export function screenGlow(halfW: number, halfH: number, reachM: number) {
+  const PPM = 90; // pixels per meter
+  const W = Math.ceil((halfW + reachM) * 2 * PPM), H = Math.ceil((halfH + reachM) * 2 * PPM);
+  const [c, ctx] = canvas(W, H);
+  const img = ctx.createImageData(W, H);
+  const hx = halfW * PPM, hy = halfH * PPM, reach = reachM * PPM;
+  for (let y = 0; y < H; y++) {
+    for (let x = 0; x < W; x++) {
+      const dx = Math.max(0, Math.abs(x - W / 2) - hx);
+      const dy = Math.max(0, Math.abs(y - H / 2) - hy);
+      const t = Math.min(1, Math.hypot(dx, dy) / reach);
+      const a = Math.pow(1 - t, 2.2);
+      const i = (y * W + x) * 4;
+      img.data[i] = img.data[i + 1] = img.data[i + 2] = 255;
+      img.data[i + 3] = Math.round(a * 255);
+    }
+  }
+  ctx.putImageData(img, 0, 0);
+  return { texture: finish(c, false), width: W / PPM, height: H / PPM };
+}

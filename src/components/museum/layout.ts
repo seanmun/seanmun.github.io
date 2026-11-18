@@ -41,6 +41,13 @@ export const ROOM_SLUGS = [
   'human-diet',
 ] as const;
 
+// OrdinalFrame hangs in the dark pool room, where its screen glows best.
+// It sits on the right wall, beside the near end of the table.
+export const ORDINAL = { slug: 'ordinalframe', room: 'rocket-pool-tour', dz: 1.2, y: 1.95, src: '/models/museum/ordinalframe.glb' };
+
+// Every project the museum shows a placard for
+export const PLACARD_SLUGS: readonly string[] = [...ROOM_SLUGS, ORDINAL.slug];
+
 export function roomBounds(index: number) {
   const z0 = GALLERY.z1 - ROOM.depth * index;
   const z1 = z0 - ROOM.depth;
@@ -113,10 +120,22 @@ export function buildStations(projects: MuseumProject[]): Station[] {
     const r = roomBounds(i);
     stations.push(
       { id: `${slug}-enter`, group: p.title, label: p.title, sub: ROOM_NOTES[slug] ?? '', slug, pos: [ROOM.doorX, 1.75, r.z0 - 1.5], look: enterLook(slug, r.zc) },
+      ...ordinalStop(slug, r.zc, projects),
       { id: `${slug}-screen`, group: p.title, label: p.title, sub: 'Open the placard to read about it', slug, pos: [-2.2, 1.8, r.zc + 0.8], look: [-7, 2.35, r.zc + 0.4] },
     );
   });
   return stations;
+}
+
+function ordinalStop(slug: string, zc: number, projects: MuseumProject[]): Station[] {
+  const p = projects.find((x) => x.slug === ORDINAL.slug);
+  if (slug !== ORDINAL.room || !p) return [];
+  const z = zc + ORDINAL.dz;
+  return [{
+    id: 'ordinalframe', group: p.title, label: p.title, slug: p.slug,
+    sub: 'Bitcoin Ordinals on a Raspberry Pi, in a gold frame',
+    pos: [4.2, 1.75, z], look: [ROOM.width / 2, ORDINAL.y - 0.05, z],
+  }];
 }
 
 // Where each room's entrance view points: at the thing that makes the room

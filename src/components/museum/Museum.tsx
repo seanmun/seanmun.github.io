@@ -10,7 +10,7 @@ import Link from 'next/link';
 import { buildStations, type MuseumProject } from './layout';
 import type { MuseumHandle } from './engine';
 
-export default function Museum({ projects }: { projects: MuseumProject[] }) {
+export default function Museum({ projects, ordinals }: { projects: MuseumProject[]; ordinals: string[] }) {
   const stations = useMemo(() => buildStations(projects), [projects]);
   const hostRef = useRef<HTMLDivElement>(null);
   const engineRef = useRef<MuseumHandle | null>(null);
@@ -31,6 +31,7 @@ export default function Museum({ projects }: { projects: MuseumProject[] }) {
         engineRef.current = createMuseum(host, {
           stations,
           projects,
+          ordinals,
           reduceMotion,
           onPlacard: (slug) => setPlacard(slug),
           onProgress: (loaded, total) => setProgress({ loaded, total }),
@@ -53,7 +54,7 @@ export default function Museum({ projects }: { projects: MuseumProject[] }) {
       engineRef.current?.dispose();
       engineRef.current = null;
     };
-  }, [stations, projects]);
+  }, [stations, projects, ordinals]);
 
   const goTo = useCallback((i: number) => {
     const smooth = !window.matchMedia('(prefers-reduced-motion: reduce)').matches;

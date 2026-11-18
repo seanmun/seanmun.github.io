@@ -298,6 +298,90 @@ def build_allnet():
     export('allnet')
 
 
+# ---------- 6. OrdinalFrame: a carved gold frame around a live screen ----------
+
+def build_ordinalframe():
+    """The frame only; the museum renders the screen inside it. The opening
+    is centered on the origin (5:3, the Waveshare panel scaled up), the back
+    sits on y=0."""
+    reset()
+    random.seed(29)
+    gold = mat('gold', '#c9a04a', 0.28, 1.0)
+    goldDeep = mat('goldDeep', '#8f6a27', 0.4, 1.0)
+    black = mat('backing', '#0a0a0a', 0.6)
+    W, H, M = 1.2, 0.72, 0.17  # opening and molding width
+    # A molding profile, swept around the opening: a flat lip, a cove, a
+    # raised bead, and a rounded outer roll.
+    prof = bpy.data.curves.new('profile', 'CURVE')
+    prof.dimensions = '2D'
+    sp = prof.splines.new('POLY')
+    pts = [(-M / 2, 0.0), (-M / 2, 0.03), (-0.07, 0.042), (-0.055, 0.036), (-0.04, 0.05), (-0.028, 0.068),
+           (-0.012, 0.062), (0.005, 0.072), (0.025, 0.09), (0.045, 0.094), (0.062, 0.084), (0.076, 0.06),
+           (0.083, 0.03), (M / 2, 0.0)]
+    sp.points.add(len(pts) - 1)
+    for p_, (x, y) in zip(sp.points, pts):
+        p_.co = (x, y, 0, 1)
+    sp.use_cyclic_u = True
+    profObj = bpy.data.objects.new('profile', prof)
+    bpy.context.collection.objects.link(profObj)
+
+    path = bpy.data.curves.new('path', 'CURVE')
+    path.dimensions = '3D'
+    a, b = W / 2 + M / 2, H / 2 + M / 2
+    ps = path.splines.new('POLY')
+    ps.points.add(3)
+    for p_, (x, y) in zip(ps.points, [(-a, -b), (a, -b), (a, b), (-a, b)]):
+        p_.co = (x, y, 0, 1)
+    ps.use_cyclic_u = True
+    path.bevel_mode = 'OBJECT'
+    path.bevel_object = profObj
+    frame = bpy.data.objects.new('frame', path)
+    bpy.context.collection.objects.link(frame)
+    bpy.context.view_layer.objects.active = frame
+    for o in bpy.context.scene.objects:
+        o.select_set(o == frame)
+    bpy.ops.object.convert(target='MESH')
+    frame = bpy.context.active_object
+    bpy.data.objects.remove(profObj)
+    assign(frame, gold)
+    bpy.ops.object.shade_smooth()
+    # lie the frame against the wall: its depth points toward the visitor (-Y)
+    frame.rotation_euler = (math.pi / 2, 0, 0)
+    bpy.ops.object.transform_apply(rotation=True)
+    # Pearl beading around the inner edge
+    step = 0.04
+    for (x0, z0, x1, z1) in [(-W / 2, -H / 2, W / 2, -H / 2), (W / 2, -H / 2, W / 2, H / 2),
+                             (W / 2, H / 2, -W / 2, H / 2), (-W / 2, H / 2, -W / 2, -H / 2)]:
+        n = int(math.hypot(x1 - x0, z1 - z0) / step)
+        for i in range(n):
+            t = i / n
+            bpy.ops.mesh.primitive_ico_sphere_add(subdivisions=2, radius=0.0085,
+                                                  location=(x0 + (x1 - x0) * t - math.copysign(0.012, x0 + x1) * 0,
+                                                            -0.046, z0 + (z1 - z0) * t))
+            o = bpy.context.active_object
+            bpy.ops.object.shade_smooth()
+            assign(o, gold)
+    # Corner cartouches: a shell-like boss on each corner
+    for sx in (-1, 1):
+        for sz in (-1, 1):
+            o = sphere(0.05, (sx * a, -0.1, sz * b), goldDeep, 20, 10)
+            o.scale = (1.0, 0.45, 1.0)
+            for k in range(5):
+                ang = math.pi * (k / 4) - math.pi / 2
+                leaf = sphere(0.022, (sx * a + 0.05 * math.cos(ang) * sx * -1 * 0 + sx * 0.035 * math.cos(ang),
+                                      -0.095, sz * b + sz * 0.035 * math.sin(ang + math.pi / 2) * 0 + 0.035 * math.sin(ang)),
+                              gold, 12, 6)
+                leaf.scale = (1, 0.5, 1)
+    # Black liner between the gold and the screen, and the backing board
+    t = 0.025
+    for (sx_, sz_, x, z) in [(W + 2 * t, t, 0, H / 2 + t / 2), (W + 2 * t, t, 0, -H / 2 - t / 2),
+                             (t, H, W / 2 + t / 2, 0), (t, H, -W / 2 - t / 2, 0)]:
+        box((sx_, 0.035, sz_), (x, -0.035, z), black)
+    box((W + 2 * M, 0.02, H + 2 * M), (0, -0.01, 0), black)
+    export('ordinalframe')
+
+
+build_ordinalframe()
 build_stack()
 build_flatball()
 build_hoopgarden()

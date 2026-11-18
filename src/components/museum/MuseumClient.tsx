@@ -7,6 +7,6 @@ const Museum = dynamic(() => import('./Museum'), {
   loading: () => <div className="fixed inset-0 bg-[#d9d5ce]" />,
 });
 
-export default function MuseumClient({ projects }: { projects: MuseumProject[] }) {
-  return <Museum projects={projects} />;
+export default function MuseumClient({ projects, ordinals }: { projects: MuseumProject[]; ordinals: string[] }) {
+  return <Museum projects={projects} ordinals={ordinals} />;
 }

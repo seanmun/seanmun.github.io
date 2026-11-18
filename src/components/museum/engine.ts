@@ -14,7 +14,7 @@ import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.j
 import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js';
 import * as T from './textures';
 import {
-  GALLERY, GALLERY_PIECES, LOBBY, ROOM, ROOM_SLUGS, STACK, roomBounds,
+  GALLERY, GALLERY_PIECES, LOBBY, ORDINAL, ROOM, ROOM_SLUGS, STACK, roomBounds,
   type MuseumProject, type Station, type V3,
 } from './layout';
 
@@ -26,6 +26,7 @@ export interface MuseumHandle {
 interface Options {
   stations: Station[];
   projects: MuseumProject[];
+  ordinals: string[]; // the owner's own inscriptions; generated stand-ins if empty
   reduceMotion: boolean;
   onPlacard(slug: string): void;
   onProgress(loaded: number, total: number): void;
@@ -400,6 +401,115 @@ export function createMuseum(host: HTMLElement, opts: Options): MuseumHandle {
   stackLight.position.set(STACK.x + 0.5, GALLERY.h - 0.4, STACK.z + 1);
   stackLight.target.position.set(STACK.x, 1, STACK.z);
   scene.add(stackLight, stackLight.target);
+
+  // ---------- OrdinalFrame, glowing in the dark pool room ----------
+
+  const ordinalProject = projects.find((x) => x.slug === ORDINAL.slug);
+  if (ordinalProject) {
+    const room = roomBounds(ROOM_SLUGS.indexOf(ORDINAL.room as (typeof ROOM_SLUGS)[number]));
+    const z = room.zc + ORDINAL.dz;
+    const g = new THREE.Group();
+    g.position.set(room.x1 - 0.005, ORDINAL.y, z);
+    g.rotation.y = -Math.PI / 2;
+    scene.add(g);
+    gltf.load(ORDINAL.src, (m) => g.add(m.scene));
+
+    // The screen: a slideshow canvas, crossfading between pieces
+    const slides: CanvasImageSource[] = [];
+    const colors: string[] = [];
+    const addSlide = (sl: CanvasImageSource, at = slides.length) => {
+      slides.splice(at, 0, sl);
+      colors.splice(at, 0, T.averageColor(sl));
+    };
+    const [W, H] = [1200, 720];
+    const screenCanvas = document.createElement('canvas');
+    screenCanvas.width = W;
+    screenCanvas.height = H;
+    const sctx = screenCanvas.getContext('2d')!;
+    const screenTex = track(new THREE.CanvasTexture(screenCanvas));
+    screenTex.colorSpace = THREE.SRGBColorSpace;
+    const screenMat = track(new THREE.MeshBasicMaterial({ map: screenTex, toneMapped: false }));
+    screenMat.color.setScalar(1.15); // LCD backlight: a touch brighter than the room
+    const screenMesh = new THREE.Mesh(track(new THREE.PlaneGeometry(1.2, 0.72)), screenMat);
+    screenMesh.position.z = 0.025;
+    screenMesh.userData.slug = ORDINAL.slug;
+    g.add(screenMesh);
+    clickable.push(screenMesh);
+    // A photo of the real screen already carries the device UI; skip the overlay on it
+    const cat = new Image();
+    if (opts.ordinals.length) {
+      // Load in folder order, then show them all
+      const loadedArt: (HTMLCanvasElement | null)[] = opts.ordinals.map(() => null);
+      let pending = opts.ordinals.length;
+      opts.ordinals.forEach((src, i) => {
+        const img = new Image();
+        const done = () => {
+          if (--pending > 0) return;
+          loadedArt.forEach((c) => c && addSlide(c));
+          if (slides.length) draw(0, 0, 0);
+        };
+        img.onload = () => { loadedArt[i] = T.ordinalArtSlide(img); done(); };
+        img.onerror = done;
+        img.src = src;
+      });
+    } else {
+      T.ordinalSlides().forEach((sl) => addSlide(sl));
+      cat.onload = () => { addSlide(cat, 0); draw(0, 0, 0); };
+      cat.src = '/media/museum/ordinal-cat.jpg';
+    }
+
+    // Light from the screen: a halo on the wall and a lamp that takes the art's color
+    const glow = T.screenGlow(0.74, 0.5, 0.6);
+    const halo = plane(glow.width, glow.height, track(new THREE.MeshBasicMaterial({
+      map: track(glow.texture), transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, toneMapped: false,
+    })), [0, 0, 0.003]);
+    scene.remove(halo);
+    g.add(halo);
+    const spill = new THREE.PointLight('#ffffff', 2.2, 4.5, 2);
+    spill.position.set(0, 0, 0.7);
+    g.add(spill);
+
+    const placardTex = track(T.placard(ordinalProject.title, `${ordinalProject.status} · ${ordinalProject.techStack.slice(0, 4).join(', ')}`, 'Click to read the placard →'));
+    const pg = new THREE.Group();
+    pg.position.set(1.3, -0.5, 0);
+    g.add(pg);
+    box([0.62, 0.4, 0.03], [0, 0, 0.015], placardFrame, pg);
+    const pf = new THREE.Mesh(track(new THREE.PlaneGeometry(0.56, 0.35)), track(new THREE.MeshStandardMaterial({ map: placardTex, roughness: 0.7 })));
+    pf.position.z = 0.031;
+    pf.userData.slug = ORDINAL.slug;
+    pg.add(pf);
+    clickable.push(pf);
+
+    const HOLD = 6, FADE = 1.2;
+    const cur = new THREE.Color(), nxt = new THREE.Color();
+    function draw(a: number, b: number, mix: number) {
+      if (!slides.length) return;
+      sctx.globalAlpha = 1;
+      sctx.drawImage(slides[a], 0, 0, W, H);
+      if (mix > 0 && a !== b) { sctx.globalAlpha = mix; sctx.drawImage(slides[b], 0, 0, W, H); }
+      sctx.globalAlpha = 1;
+      if (slides[b] !== cat || mix < 0.5) T.ordinalChrome(sctx, mix < 0.5 ? a : b, slides.length);
+      screenTex.needsUpdate = true;
+      cur.set(colors[a]);
+      nxt.set(colors[b]);
+      cur.lerp(nxt, mix);
+      (halo.material as THREE.MeshBasicMaterial).color.copy(cur).multiplyScalar(0.5);
+      spill.color.copy(cur);
+    }
+    draw(0, 0, 0);
+    let last = -1;
+    animators.push((now) => {
+      const t = Math.max(0, now); // the first frame's timestamp can land just before the timer started
+      const cycle = HOLD + FADE;
+      const n = slides.length;
+      if (!n) return;
+      const i = Math.floor(t / cycle) % n;
+      const phase = t % cycle;
+      if (reduceMotion) { if (i !== last) { draw(i, i, 0); last = i; } return; }
+      if (phase > HOLD) { draw(i, (i + 1) % n, (phase - HOLD) / FADE); last = -1; }
+      else if (i !== last) { draw(i, i, 0); last = i; }
+    });
+  }
 
   // ---------- camera route ----------
 
