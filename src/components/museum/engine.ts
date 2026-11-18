@@ -15,6 +15,7 @@ import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js';
 import { CSS3DObject, CSS3DRenderer } from 'three/examples/jsm/renderers/CSS3DRenderer.js';
 import { Sky } from 'three/examples/jsm/objects/Sky.js';
 import { buildTrees } from './trees';
+import { createPost } from './post';
 import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js';
 import * as T from './textures';
 import {
@@ -70,14 +71,18 @@ export function createMuseum(host: HTMLElement, opts: Options): MuseumHandle {
 
   const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, mobile ? 1.5 : 1.75));
-  renderer.toneMapping = THREE.ACESFilmicToneMapping;
-  renderer.toneMappingExposure = 0.98;
+  // Khronos PBR Neutral: true to the art's and screens' colors, where ACES
+  // shifts saturated reds and blues
+  renderer.toneMapping = THREE.NeutralToneMapping;
+  renderer.toneMappingExposure = mobile ? 1.0 : 0.8; // phones have no sun shadows, bloom or grading
   // Real shadows from the gallery spotlights: what makes the sculptures
   // read as objects on a wall rather than pictures of them. Off on phones.
   renderer.shadowMap.enabled = !mobile;
   renderer.shadowMap.type = THREE.PCFShadowMap;
   host.appendChild(renderer.domElement);
-  renderer.domElement.style.display = 'block';
+  // Fit the canvas to its host: its pixel buffer is sized for the screen's
+  // density, and without this a high-density screen shows only its top-left
+  Object.assign(renderer.domElement.style, { display: 'block', width: '100%', height: '100%' });
   renderer.domElement.setAttribute('aria-hidden', 'true');
 
   // Hologram panels are real HTML placed in the scene: crisp text, links
@@ -899,9 +904,12 @@ export function createMuseum(host: HTMLElement, opts: Options): MuseumHandle {
   renderer.domElement.addEventListener('pointerdown', onDown);
   renderer.domElement.addEventListener('pointerup', onUp);
 
+  // Post-processing on desktop; phones render straight to the screen
+  const post = mobile ? null : createPost(renderer, scene, camera, (o) => o === sky);
   const resize = () => {
     const w = host.clientWidth, h = host.clientHeight;
     renderer.setSize(w, h, false);
+    post?.setSize(w, h, renderer.getPixelRatio());
     cssRenderer.setSize(w, h);
     camera.aspect = w / h;
     camera.fov = w / h < 0.8 ? 72 : 55;
@@ -934,6 +942,9 @@ export function createMuseum(host: HTMLElement, opts: Options): MuseumHandle {
     (scene.background as THREE.Color).copy((scene.fog as THREE.Fog).color);
     camera.position.copy(camPos);
     let yaw = camYaw, pitch = camPitch;
+    // Tall, narrow screens see more above and below: aim a little lower so
+    // the art sits in the open middle of the screen, above the caption
+    if (camera.aspect < 0.8) pitch -= 0.14;
     if (!reduceMotion && !mobile) {
       pointerSmooth.lerp(pointer, 1 - Math.exp(-dt * 3));
       yaw -= pointerSmooth.x * 0.06;
@@ -945,7 +956,8 @@ export function createMuseum(host: HTMLElement, opts: Options): MuseumHandle {
     if (!reduceMotion) sPivot.rotation.y = t * 0.25;
     for (const a of animators) a(t, dt);
     updatePanels(scroll);
-    renderer.render(scene, camera);
+    if (post) post.render(dt, t);
+    else renderer.render(scene, camera);
     cssRenderer.render(cssScene, camera);
   };
   tick();
@@ -971,6 +983,7 @@ export function createMuseum(host: HTMLElement, opts: Options): MuseumHandle {
       });
       disposables.forEach((d) => d.dispose());
       pmrem.dispose();
+      post?.dispose();
       renderer.dispose();
       renderer.domElement.remove();
       cssRenderer.domElement.remove();
