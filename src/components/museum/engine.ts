@@ -465,7 +465,7 @@ export function createMuseum(host: HTMLElement, opts: Options): MuseumHandle {
     })), [0, 0, 0.003]);
     scene.remove(halo);
     g.add(halo);
-    const spill = new THREE.PointLight('#ffffff', 2.2, 4.5, 2);
+    const spill = new THREE.PointLight('#ffffff', 4, 4.5, 2);
     spill.position.set(0, 0, 0.7);
     g.add(spill);
 
@@ -493,7 +493,9 @@ export function createMuseum(host: HTMLElement, opts: Options): MuseumHandle {
       cur.set(colors[a]);
       nxt.set(colors[b]);
       cur.lerp(nxt, mix);
-      (halo.material as THREE.MeshBasicMaterial).color.copy(cur).multiplyScalar(0.5);
+      // Same strength for every piece: keep the hue, cap the brightness
+      cur.multiplyScalar(0.32 / Math.max(0.05, cur.r, cur.g, cur.b));
+      (halo.material as THREE.MeshBasicMaterial).color.copy(cur);
       spill.color.copy(cur);
     }
     draw(0, 0, 0);

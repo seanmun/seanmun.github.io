@@ -518,7 +518,7 @@ function slideBase(seed: number) {
   g.addColorStop(1, '#141a33');
   ctx.fillStyle = g;
   ctx.fillRect(0, 0, SLIDE_W, SLIDE_H);
-  return { c, ctx, r: rng(seed), x: (SLIDE_W - 540) / 2, y: (SLIDE_H - 540) / 2 - 10, s: 540 };
+  return { c, ctx, r: rng(seed), x: (SLIDE_W - 600) / 2, y: (SLIDE_H - 600) / 2 - 8, s: 600 };
 }
 
 // A mirrored pixel creature, the classic on-chain look
