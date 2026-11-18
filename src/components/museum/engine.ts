@@ -73,7 +73,10 @@ export function createMuseum(host: HTMLElement, opts: Options): MuseumHandle {
   const mobile = window.matchMedia('(max-width: 768px)').matches;
 
   const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, mobile ? 1.5 : 1.75));
+  // Desktop starts at up to 1.5x and steps down if the frame rate can't keep
+  // up (see the loop): post-processing at full Retina density is ~4x the work
+  let pixelRatio = Math.min(window.devicePixelRatio, 1.5);
+  renderer.setPixelRatio(pixelRatio);
   // Khronos PBR Neutral: true to the art's and screens' colors, where ACES
   // shifts saturated reds and blues
   renderer.toneMapping = THREE.NeutralToneMapping;
@@ -500,7 +503,8 @@ export function createMuseum(host: HTMLElement, opts: Options): MuseumHandle {
   let total = 0;
   manager.onStart = (_u, l, t) => { loaded = l; total = t; opts.onProgress(loaded, total); };
   manager.onProgress = (_u, l, t) => { loaded = l; total = t; opts.onProgress(loaded, total); };
-  manager.onLoad = () => { sunDirty = 90; };
+  let allLoaded = false;
+  manager.onLoad = () => { sunDirty = 90; allLoaded = true; };
   const gltf = new GLTFLoader(manager);
   gltf.setMeshoptDecoder(MeshoptDecoder);
   const draco = new DRACOLoader().setDecoderPath('/draco/');
@@ -942,11 +946,36 @@ export function createMuseum(host: HTMLElement, opts: Options): MuseumHandle {
 
   const timer = new THREE.Timer();
   let raf = 0;
+  // Adaptive quality: once everything has loaded, watch the frame rate in
+  // 1.5 s windows; under ~50 fps, render fewer pixels (down to 1x), and
+  // if 1x is still slow, drop ambient occlusion, the costliest pass
+  let perfFrames = 0, perfTime = 0, perfSettled = false;
+  const adapt = (dt: number) => {
+    if (perfSettled || !allLoaded || sunDirty > 0 || document.hidden) return;
+    perfFrames++;
+    perfTime += dt;
+    if (perfTime < 1.5) return;
+    const fps = perfFrames / perfTime;
+    perfFrames = 0;
+    perfTime = 0;
+    if (fps >= 50) { perfSettled = true; return; }
+    if (pixelRatio > 1) {
+      pixelRatio = Math.max(1, pixelRatio - 0.25);
+      renderer.setPixelRatio(pixelRatio);
+      resize();
+    } else if (post?.ao) {
+      post.ao = false;
+    } else {
+      perfSettled = true;
+    }
+  };
   const tick = (now?: number) => {
     raf = requestAnimationFrame(tick);
     timer.update(now);
-    const dt = Math.min(timer.getDelta(), 0.1);
+    const rawDt = timer.getDelta();
+    const dt = Math.min(rawDt, 0.1);
     const t = timer.getElapsed();
+    adapt(rawDt);
     routeAt(scroll);
     // Inertia: the camera glides after the scroll instead of tracking it
     // frame for frame, so a fast flick of the wheel still reads as a walk.
