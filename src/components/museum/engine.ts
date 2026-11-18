@@ -15,7 +15,7 @@ import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js';
 import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js';
 import * as T from './textures';
 import {
-  GALLERY, GALLERY_PIECES, LOBBY, ORDINAL, ROOM, ROOM_SLUGS, STACK, roomBounds,
+  CART, GALLERY, GALLERY_PIECES, LOBBY, ORDINAL, ROOM, ROOM_SLUGS, roomBounds,
   type MuseumProject, type Station, type V3,
 } from './layout';
 
@@ -429,18 +429,21 @@ export function createMuseum(host: HTMLElement, opts: Options): MuseumHandle {
     scene.add(s, s.target);
   }
 
-  // Stack, on a plinth in the middle of the floor
-  box([0.62, STACK.plinth, 0.62], [STACK.x, STACK.plinth / 2, STACK.z], plinthMat);
-  blob(STACK.x, STACK.z, 1.6);
-  gltf.load(STACK.src, (g) => {
-    g.scene.position.set(STACK.x, STACK.plinth, STACK.z);
-    scene.add(asArt(g.scene));
-    animators.push((t) => { if (!reduceMotion) g.scene.rotation.y = t * 0.15; });
+  // Blue Planet Cart, on its casters in the middle of the floor
+  blob(CART.x, CART.z, 2.2);
+  const cart = new THREE.Group();
+  cart.position.set(CART.x, 0, CART.z);
+  cart.rotation.y = CART.turn;
+  cart.scale.setScalar(CART.scale);
+  scene.add(cart);
+  gltf.load(CART.src, (g) => {
+    g.scene.position.z = -CART.depth / 2; // exported back-to-wall; center it on its footprint
+    cart.add(asArt(g.scene));
   });
-  const stackLight = shadowSpot(new THREE.SpotLight('#fff3e0', 40, 10, 0.32, 0.6, 1.4));
-  stackLight.position.set(STACK.x + 0.5, GALLERY.h - 0.4, STACK.z + 1);
-  stackLight.target.position.set(STACK.x, 1, STACK.z);
-  scene.add(stackLight, stackLight.target);
+  const cartLight = shadowSpot(new THREE.SpotLight('#fff3e0', 45, 11, 0.36, 0.6, 1.4));
+  cartLight.position.set(CART.x + 1.2, GALLERY.h - 0.4, CART.z + 2);
+  cartLight.target.position.set(CART.x, 0.7, CART.z);
+  scene.add(cartLight, cartLight.target);
 
   // ---------- OrdinalFrame, glowing in the dark pool room ----------
 

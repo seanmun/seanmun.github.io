@@ -78,11 +78,11 @@ export const GALLERY_PIECES: GalleryPiece[] = [
   { id: 'love', kind: 'photo', src: '/media/museum/photos/love.jpg', side: -1, z: -21.6, y: 2.0, size: 1.6, title: 'Love', note: 'Mural on a city wall' },
   // Bay B, right
   { id: 'moto', kind: 'photo', src: '/media/museum/photos/motoDeath.jpg', side: 1, z: -22.1, y: 2.0, size: 1.6, title: 'Last Ride', note: 'Wall mural' },
-  { id: 'flatball', kind: 'model', src: '/models/museum/flatball.glb', side: 1, z: -24.5, y: 1.15, title: 'Flat Ball', note: 'Twenty-four deflated balls on walnut' },
+  { id: 'deflated', kind: 'model', src: '/models/museum/deflated-legends.glb', side: 1, z: -24.5, y: 1.25, title: 'Deflated Legends', note: 'Twenty-four worn-out game balls, hung in a grid' },
   { id: 'hoody', kind: 'photo', src: '/media/museum/photos/hoody.jpg', side: 1, z: -26.9, y: 2.0, size: 1.6, title: 'Hoody', note: 'Hoodie and flag, in paint' },
   // Bay C, left
   { id: 'framehoop', kind: 'photo', src: '/media/museum/photos/framehoop.jpg', side: -1, z: -27.6, y: 2.0, size: 1.5, title: 'Frame Hoop', note: 'A hoop through the print' },
-  { id: 'hoopgarden', kind: 'model', src: '/models/museum/hoop-garden.glb', side: -1, z: -30.0, y: 0.22, title: 'Hoop Garden', note: 'A backboard over four shelves of potted plants' },
+  { id: 'hoopgarden', kind: 'model', src: '/models/museum/hoop-garden.glb', side: -1, z: -30.0, y: 0.7, title: 'Hoop Garden', note: 'A backboard over four shelves of potted plants' },
   { id: 'chandelier', kind: 'photo', src: '/media/museum/photos/chandelier.jpg', side: -1, z: -32.4, y: 2.0, size: 1.6, title: 'Chandelier', note: 'Shoes hung from crystal' },
   // Bay D, right
   { id: 'surfing', kind: 'photo', src: '/media/museum/photos/surfingEvolution.jpg', side: 1, z: -32.6, y: 2.0, size: 1.7, title: 'Surfing Evolution', note: 'A painted wall by the beach' },
@@ -95,7 +95,9 @@ export const GALLERY_PIECES: GalleryPiece[] = [
   { id: 'hang11', kind: 'photo', src: '/media/museum/photos/hang11.jpg', side: 1, z: -45.8, y: 2.0, size: 1.5, title: 'Hang 11', note: 'A sneaker on the line' },
 ];
 
-export const STACK = { x: 0, z: -40, plinth: 0.55, src: '/models/museum/stack.glb' };
+// Blue Planet Cart stands on the floor in the middle of the hall, on its
+// casters, turned a little toward the visitor walking up
+export const CART = { x: 0, z: -40, turn: -0.35, scale: 1.12, depth: 0.4, src: '/models/museum/blue-planet-cart.glb' };
 
 // Scroll per stop, in screen heights: room to linger at each piece
 export const STEP = 1.35;
@@ -129,10 +131,10 @@ export function buildStations(projects: MuseumProject[]): Station[] {
   ];
   stations.push(
     bay('nets', 'aj1', 'love'),
-    bay('flatball', 'moto', 'hoody'),
+    bay('deflated', 'moto', 'hoody'),
     bay('hoopgarden', 'framehoop', 'chandelier'),
     bay('scars', 'surfing', 'vibe'),
-    { id: 'stack', group: 'Gallery', label: 'Stack', sub: 'Five navy balls, balanced', pos: [-1.3, 1.55, -36.6], look: [STACK.x, 1.3, STACK.z] },
+    { id: 'cart', group: 'Gallery', label: 'Blue Planet Cart', sub: 'A rack of worn blue balls, painted like globes', pos: [-1.2, 1.6, -36.9], look: [CART.x, 0.75, CART.z] },
     { id: 'prints-left', group: 'Gallery', label: 'Prints', sub: 'Helmet, and Beached Hoop', ...bayView(-1, -44.5, 1.95) },
     { id: 'prints-right', group: 'Gallery', label: 'Prints', sub: 'Balance, and Hang 11', ...bayView(1, -44.5, 1.95) },
   );

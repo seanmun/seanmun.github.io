@@ -382,8 +382,7 @@ def build_ordinalframe():
 
 
 build_ordinalframe()
-build_stack()
-build_flatball()
-# Hoop Garden, Bronze Hoop and All Net are now Meshy models, cleaned by
-# clean_meshy.py (hoop-garden.glb, scars-of-the-game.glb, tangled-nets.glb).
-# Their builders stay above for reference but no longer run.
+# The sculptures are now Meshy models, cleaned by clean_meshy.py:
+# tangled-nets, deflated-legends, hoop-garden, scars-of-the-game and
+# blue-planet-cart. Their procedural builders stay above for reference but
+# no longer run.
