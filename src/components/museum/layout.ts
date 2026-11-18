@@ -227,7 +227,7 @@ export function buildStations(projects: MuseumProject[], tours: Record<string, P
   const stations: Station[] = [
     { id: 'entrance', group: 'Lobby', label: 'Sean Munley', sub: 'Selected works. Scroll to walk in.', pos: [0, EYE, 4.5], look: [0, 4.2, -14] },
     { id: 'mark', group: 'Lobby', label: 'The S', sub: 'Porcelain and gold leaf, on a marble plinth', pos: [0, 2.0, -4.2], look: [0, 1.9, -8.5] },
-    { id: 'gallery', group: 'Gallery', label: 'The Gallery', sub: 'Basketball art from the mood board, recreated in Blender', pos: [0, EYE, -11.5], look: [0, 2.2, -32] },
+    { id: 'gallery', group: 'Gallery', label: 'The Gallery', sub: 'Basketball art from the mood board, under a glass roof', pos: [0, EYE, -11.5], look: [0, 3.1, -32] },
   ];
   stations.push(
     bay('nets', 'aj1', 'love'),

@@ -14,6 +14,7 @@ import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.j
 import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js';
 import { CSS3DObject, CSS3DRenderer } from 'three/examples/jsm/renderers/CSS3DRenderer.js';
 import { Sky } from 'three/examples/jsm/objects/Sky.js';
+import { buildTrees } from './trees';
 import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js';
 import * as T from './textures';
 import {
@@ -229,10 +230,10 @@ export function createMuseum(host: HTMLElement, opts: Options): MuseumHandle {
     }
   }
 
-  // The sun: high in the east-southeast, about 40° up. On desktop it casts
+  // The sun: high in the east-southeast. On desktop it casts
   // shadows from the whole building, so it only lands where an opening lets
   // it in. Phones skip shadows and keep the old soft fill instead.
-  const SUN_DIR = new THREE.Vector3(0.62, 0.6, 0.35).normalize();
+  const SUN_DIR = new THREE.Vector3(0.5, 0.78, 0.38).normalize(); // about 50° up
   const MUSEUM_CENTER = new THREE.Vector3(0, 0, -63);
   let sunDirty = 150; // frames left to re-render the sun's shadow
   const sun = new THREE.DirectionalLight('#fff1dc', mobile ? 1.4 : 6.5);
@@ -295,12 +296,43 @@ export function createMuseum(host: HTMLElement, opts: Options): MuseumHandle {
 
   // ---------- gallery ----------
 
-  // A clerestory band above the art: daylight from both sides, sun from the east
-  const GALLERY_WINDOWS: Win = { y0: 5.0, y1: 7.2, w: 2.6, zs: Array.from({ length: 8 }, (_, i) => -16.4 - i * 4.2) };
-  space(GALLERY, M.plaster, M.polished, M.ceiling, { windows: GALLERY_WINDOWS });
-  // Track lights run the length of the gallery ceiling
+  // An atrium: nearly the whole ceiling is glass on a steel grid, so the sun
+  // pours in from above and lays the grid's shadow across the floor and walls
+  const ATRIUM: Hole = { x0: GALLERY.x0 + 0.5, x1: GALLERY.x1 - 0.5, z0: GALLERY.z0 - 0.6, z1: GALLERY.z1 + 0.6 };
+  space(GALLERY, M.plaster, M.polished, M.ceiling, { skylights: [ATRIUM] });
+  {
+    const steel = color('#2a2c2f', { roughness: 0.5, metalness: 0.75 });
+    const y = GALLERY.h;
+    const w = ATRIUM.x1 - ATRIUM.x0, len = ATRIUM.z0 - ATRIUM.z1, zc = (ATRIUM.z0 + ATRIUM.z1) / 2;
+    // Deep cross beams every 2.4 m, and lighter rafters running the length
+    const beams = Math.round(len / 2.4);
+    for (let i = 0; i <= beams; i++) {
+      box([w + 0.3, 0.5, 0.16], [0, y + 0.05, ATRIUM.z1 + (i * len) / beams], steel).castShadow = true;
+    }
+    for (let k = 0; k <= 6; k++) {
+      box([0.09, 0.22, len], [ATRIUM.x0 + (k * w) / 6, y + 0.2, zc], steel).castShadow = true;
+    }
+    const roofGlass = plane(w, len, track(new THREE.MeshStandardMaterial({
+      color: '#dcebf2', transparent: true, opacity: 0.12, roughness: 0.04, metalness: 0.1, depthWrite: false, side: THREE.DoubleSide,
+    })), [0, y + 0.32, zc]);
+    roofGlass.rotation.x = -Math.PI / 2;
+  }
+
+  // Big trees outside the gallery, their crowns hanging over the glass.
+  // Nothing may grow inside the lobby, the gallery or a room.
+  const inside = (p: THREE.Vector3) =>
+    (p.z > LOBBY.z1 - 0.5 && p.z < LOBBY.z0 + 0.5 && Math.abs(p.x) < LOBBY.x1 + 0.6 && p.y < LOBBY.h + 0.4) ||
+    (p.z > GALLERY.z1 && p.z < GALLERY.z0 + 0.5 && Math.abs(p.x) < GALLERY.x1 + 0.6 && p.y < GALLERY.h + 0.6) ||
+    (p.z < GALLERY.z1 + 0.5 && Math.abs(p.x) < ROOM.width / 2 + 0.6 && p.y < ROOM.h + 0.4);
+  disposables.push(buildTrees(scene, [
+    { x: -9.8, z: -22, lean: 1, seed: 11 },
+    { x: -9.8, z: -38, lean: 1, seed: 23 },
+    { x: 9.8, z: -27, lean: -1, seed: 37 },
+    { x: 9.8, z: -42, lean: -1, seed: 41 },
+  ], inside));
+  // Track lights hang just under the atrium's beams
   const trackMat = color('#2a2a2a', { roughness: 0.5, metalness: 0.6 });
-  for (const x of [-3, 3]) box([0.06, 0.06, 33], [x, GALLERY.h - 0.25, (GALLERY.z0 + GALLERY.z1) / 2], trackMat);
+  for (const x of [-3, 3]) box([0.06, 0.06, 33], [x, GALLERY.h - 0.35, (GALLERY.z0 + GALLERY.z1) / 2], trackMat);
 
   // ---------- windows: glass, mullions, and sun through them ----------
 
