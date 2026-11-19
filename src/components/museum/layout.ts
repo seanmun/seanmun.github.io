@@ -162,6 +162,7 @@ export interface GalleryPiece {
   size?: number; // photos: the longer edge, meters
   artist?: string; // sculptures recreate real artworks: credit the artist
   width?: number; // sculptures: meters, to place the wall label beside them
+  labelY?: number; // wall label height, when two pieces share one wall
 }
 
 // Hung in bays: each sculpture flanked by two photos, so one stop takes in
@@ -171,12 +172,13 @@ export interface GalleryPiece {
 export const GALLERY_PIECES: GalleryPiece[] = [
   // Bay A, left
   { id: 'aj1', kind: 'photo', src: '/media/museum/photos/aj1hanging.jpg', side: -1, z: -16.8, y: 2.0, size: 1.5, title: 'Hung Up', note: 'Jordan 1s on a sconce' },
-  { id: 'nets', kind: 'model', src: '/models/museum/tangled-nets.glb', side: -1, z: -19.2, y: 0.72, title: 'Tangled Nets', artist: 'Tyrell Winston', width: 1.5, note: 'Frayed nets in red, white and blue, hung from a brass rod' },
+  // Tyrell Winston, together: the deflated balls hang above the nets
+  { id: 'nets', kind: 'model', src: '/models/museum/tangled-nets.glb', side: -1, z: -19.2, y: 0.72, title: 'Tangled Nets', artist: 'Tyrell Winston', width: 1.6, note: 'Frayed nets in red, white and blue, hung from a brass rod' },
+  { id: 'deflated', kind: 'model', src: '/models/museum/deflated-legends.glb', side: -1, z: -19.2, y: 2.4, title: 'Deflated Legends', artist: 'Tyrell Winston', width: 1.6, labelY: 1.79, note: 'Twenty-four worn-out game balls, hung in a grid' },
   { id: 'love', kind: 'photo', src: '/media/museum/photos/love.jpg', side: -1, z: -21.6, y: 2.0, size: 1.6, title: 'Love', note: 'Mural on a city wall' },
   // Bay B, right
-  { id: 'moto', kind: 'photo', src: '/media/museum/photos/motoDeath.jpg', side: 1, z: -22.1, y: 2.0, size: 1.6, title: 'Last Ride', note: 'Wall mural' },
-  { id: 'deflated', kind: 'model', src: '/models/museum/deflated-legends.glb', side: 1, z: -24.5, y: 1.25, title: 'Deflated Legends', artist: 'Tyrell Winston', width: 1.6, note: 'Twenty-four worn-out game balls, hung in a grid' },
-  { id: 'hoody', kind: 'photo', src: '/media/museum/photos/hoody.jpg', side: 1, z: -26.9, y: 2.0, size: 1.6, title: 'Hoody', note: 'Hoodie and flag, in paint' },
+  { id: 'moto', kind: 'photo', src: '/media/museum/photos/motoDeath.jpg', side: 1, z: -23.2, y: 2.0, size: 1.6, title: 'Last Ride', note: 'Wall mural' },
+  { id: 'hoody', kind: 'photo', src: '/media/museum/photos/hoody.jpg', side: 1, z: -25.8, y: 2.0, size: 1.6, title: 'Hoody', note: 'Hoodie and flag, in paint' },
   // Bay C, left
   { id: 'framehoop', kind: 'photo', src: '/media/museum/photos/framehoop.jpg', side: -1, z: -27.6, y: 2.0, size: 1.5, title: 'Frame Hoop', note: 'A hoop through the print' },
   { id: 'hoopgarden', kind: 'model', src: '/models/museum/hoop-garden.glb', side: -1, z: -30.0, y: 1.2, title: 'Hoop Garden', artist: 'Teddy Santis', width: 1.8, note: 'A backboard over four shelves of potted plants' },
@@ -230,8 +232,12 @@ export function buildStations(projects: MuseumProject[], tours: Record<string, P
     { id: 'gallery', group: 'Gallery', label: 'The Gallery', sub: 'Basketball art from the mood board, under a glass roof', pos: [0, EYE, -11.5], look: [0, 3.1, -32] },
   ];
   stations.push(
-    bay('nets', 'aj1', 'love'),
-    bay('deflated', 'moto', 'hoody'),
+    {
+      id: 'winston', group: 'Gallery', label: 'Tangled Nets & Deflated Legends', artist: 'Tyrell Winston',
+      sub: 'Twenty-four worn-out game balls over frayed red, white and blue nets. Flanked by Hung Up and Love.',
+      ...bayView(-1, piece('nets').z, 2.0),
+    },
+    { id: 'prints-b', group: 'Gallery', label: 'Prints', sub: 'Last Ride, and Hoody', ...bayView(1, -24.5, 1.95) },
     bay('hoopgarden', 'framehoop', 'chandelier'),
     bay('scars', 'surfing', 'vibe'),
     { id: 'cart', group: 'Gallery', label: CART.title, artist: CART.artist, sub: 'A rack of eroded blue balls, painted like globes', pos: [-1.2, 1.6, -36.9], look: [CART.x, 0.75, CART.z] },

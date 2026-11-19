@@ -579,7 +579,7 @@ export function createMuseum(host: HTMLElement, opts: Options): MuseumHandle {
       // Wall label to the right of the piece, at reading height
       if (p.artist) {
         const label = new THREE.Group();
-        label.position.set((p.width ?? 1.5) / 2 + 0.42, 1.45, 0);
+        label.position.set((p.width ?? 1.5) / 2 + 0.42, p.labelY ?? 1.45, 0);
         group.add(label);
         box([0.4, 0.26, 0.012], [0, 0, 0.006], labelBacking, label);
         const face = new THREE.Mesh(track(new THREE.PlaneGeometry(0.384, 0.24)),
@@ -587,7 +587,8 @@ export function createMuseum(host: HTMLElement, opts: Options): MuseumHandle {
         face.position.z = 0.0125;
         label.add(face);
       }
-      pieceLights.push([p.side * 3.2, GALLERY.h - 0.4, p.z]);
+      // one light per wall spot, even when two pieces share it
+      if (!pieceLights.some((l) => l[2] === p.z && Math.sign(l[0]) === p.side)) pieceLights.push([p.side * 3.2, GALLERY.h - 0.4, p.z]);
     } else {
       photoLoader.load(p.src, (t) => {
         t.colorSpace = THREE.SRGBColorSpace;
@@ -611,11 +612,19 @@ export function createMuseum(host: HTMLElement, opts: Options): MuseumHandle {
 
   // Gallery spotlights on the sculptures
   for (const lp of pieceLights) {
-    const s = shadowSpot(new THREE.SpotLight('#fff3e0', 45, 12, 0.5, 0.65, 1.4));
+    // the Tyrell Winston pair is taller: a wider cone, aimed higher
+    const pair = GALLERY_PIECES.filter((p) => p.kind === 'model' && p.z === lp[2] && p.side === Math.sign(lp[0])).length > 1;
+    const s = shadowSpot(new THREE.SpotLight('#fff3e0', pair ? 55 : 45, 12, pair ? 0.6 : 0.5, 0.65, 1.4));
     s.position.set(...lp);
-    s.target.position.set(Math.sign(lp[0]) * 6, 1.6, lp[2]);
+    s.target.position.set(Math.sign(lp[0]) * 6, pair ? 2.0 : 1.6, lp[2]);
     scene.add(s, s.target);
   }
+
+  // A softer wash on the prints-only wall across from the Winston pair
+  const printWash = new THREE.SpotLight('#fff3e0', 32, 12, 0.62, 0.7, 1.4);
+  printWash.position.set(3.2, GALLERY.h - 0.4, -24.5);
+  printWash.target.position.set(6, 1.9, -24.5);
+  scene.add(printWash, printWash.target);
 
   // Blue Planet Cart, on its casters in the middle of the floor
   blob(CART.x, CART.z, 2.2);
