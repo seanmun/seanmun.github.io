@@ -1109,6 +1109,61 @@ function hoop(k: Kit, pos: V3, rotY: number) {
   g.add(net);
 }
 
+// A phone the size of a person, on a plinth like a sculpture, its screen a
+// portrait video (448 x 960). Stands at [x, z] with its back to a wall;
+// rotY turns it (0 faces +z).
+function giantPhone(k: Kit, at: [number, number], rotY: number, video: string, poster: string, label: [string, string, string, string]) {
+  const phone = new THREE.Group();
+  phone.position.set(at[0], 0.5, at[1]);
+  phone.rotation.y = rotY;
+  k.scene.add(phone);
+  const PW = 1.56, PH = 3.2, SW = 1.42, SH = SW / (448 / 960);
+  k.box([2.0, 0.5, 0.9], [0, -0.25, 0.05], k.color('#f3f1ec', { roughness: 0.55 }), phone);
+  const lean = new THREE.Group(); // resting back against the wall
+  lean.rotation.x = -0.07;
+  lean.position.set(0, 0, 0.12);
+  phone.add(lean);
+  const body = new THREE.Mesh(k.track(new RoundedBoxGeometry(PW, PH, 0.14, 6, 0.17)),
+    k.color('#1c1d21', { roughness: 0.28, metalness: 0.75 }));
+  body.position.set(0, PH / 2, 0);
+  body.castShadow = true;
+  lean.add(body);
+  // Black glass around the screen (a flat rounded plate)
+  const plate = new THREE.Shape();
+  const gw = PW - 0.05, gh = PH - 0.05, gr = 0.15;
+  plate.moveTo(-gw / 2 + gr, -gh / 2);
+  plate.lineTo(gw / 2 - gr, -gh / 2); plate.quadraticCurveTo(gw / 2, -gh / 2, gw / 2, -gh / 2 + gr);
+  plate.lineTo(gw / 2, gh / 2 - gr); plate.quadraticCurveTo(gw / 2, gh / 2, gw / 2 - gr, gh / 2);
+  plate.lineTo(-gw / 2 + gr, gh / 2); plate.quadraticCurveTo(-gw / 2, gh / 2, -gw / 2, gh / 2 - gr);
+  plate.lineTo(-gw / 2, -gh / 2 + gr); plate.quadraticCurveTo(-gw / 2, -gh / 2, -gw / 2 + gr, -gh / 2);
+  const glass = new THREE.Mesh(k.track(new THREE.ShapeGeometry(plate, 6)), k.color('#050506', { roughness: 0.12, metalness: 0.1 }));
+  glass.position.set(0, PH / 2, 0.072);
+  lean.add(glass);
+  const screen = new THREE.Mesh(k.track(new THREE.PlaneGeometry(SW, SH)), k.videoMat(video, poster));
+  screen.position.set(0, PH / 2, 0.078);
+  lean.add(screen);
+  const island = new THREE.Mesh(k.track(new RoundedBoxGeometry(0.36, 0.1, 0.02, 4, 0.009)), k.color('#000', { roughness: 0.3 }));
+  island.position.set(0, PH / 2 + SH / 2 - 0.1, 0.08);
+  lean.add(island);
+  // Side buttons
+  for (const [y, h, sx] of [[2.45, 0.32, 1], [2.25, 0.18, -1], [1.98, 0.18, -1]] as const) {
+    k.box([0.02, h, 0.05], [sx * (PW / 2 + 0.008), y, 0], k.color('#2a2b30', { roughness: 0.3, metalness: 0.8 }), lean);
+  }
+  // Wall label on the plinth
+  const face = new THREE.Mesh(k.track(new THREE.PlaneGeometry(0.42, 0.2625)),
+    k.track(new THREE.MeshStandardMaterial({ map: k.track(T.artLabel(label[0], label[1], [label[2], label[3]])), roughness: 0.8 })));
+  face.position.set(0.62, -0.25, 0.502);
+  phone.add(face);
+  // A spot from the ceiling, and the screen's glow on the plinth
+  const spot = new THREE.SpotLight('#fff4e4', 30, 9, 0.42, 0.6, 1.4);
+  spot.position.set(0, ROOM.h - 0.8, 3.0);
+  spot.target.position.set(0, 1.4, 0.2);
+  phone.add(spot, spot.target);
+  const spill = new THREE.PointLight('#7fb4ff', 1.6, 2.6, 2);
+  spill.position.set(0, 1.5, 1.0);
+  phone.add(spill);
+}
+
 const DRESS: Record<string, (k: Kit) => void> = {
   // The mailroom: a wall of walnut pigeonholes with envelopes in the slots
   'kinetic-email'(k) {
@@ -1141,55 +1196,8 @@ const DRESS: Record<string, (k: Kit) => void> = {
 
     // On the back wall, a phone the size of a person, on a plinth like a
     // sculpture: Bolt, the Kinetic game, playing on its screen
-    const PX = -4.2;
-    const phone = new THREE.Group();
-    phone.position.set(PX, 0.5, r.z1 + WALL_T / 2 + 0.42);
-    k.scene.add(phone);
-    const PW = 1.56, PH = 3.2, SW = 1.42, SH = SW / (448 / 960);
-    k.box([2.0, 0.5, 0.9], [0, -0.25, 0.05], k.color('#f3f1ec', { roughness: 0.55 }), phone);
-    const lean = new THREE.Group(); // resting back against the wall
-    lean.rotation.x = -0.07;
-    lean.position.set(0, 0, 0.12);
-    phone.add(lean);
-    const body = new THREE.Mesh(k.track(new RoundedBoxGeometry(PW, PH, 0.14, 6, 0.17)),
-      k.color('#1c1d21', { roughness: 0.28, metalness: 0.75 }));
-    body.position.set(0, PH / 2, 0);
-    body.castShadow = true;
-    lean.add(body);
-    // Black glass around the screen (a flat rounded plate)
-    const plate = new THREE.Shape();
-    const gw = PW - 0.05, gh = PH - 0.05, gr = 0.15;
-    plate.moveTo(-gw / 2 + gr, -gh / 2);
-    plate.lineTo(gw / 2 - gr, -gh / 2); plate.quadraticCurveTo(gw / 2, -gh / 2, gw / 2, -gh / 2 + gr);
-    plate.lineTo(gw / 2, gh / 2 - gr); plate.quadraticCurveTo(gw / 2, gh / 2, gw / 2 - gr, gh / 2);
-    plate.lineTo(-gw / 2 + gr, gh / 2); plate.quadraticCurveTo(-gw / 2, gh / 2, -gw / 2, gh / 2 - gr);
-    plate.lineTo(-gw / 2, -gh / 2 + gr); plate.quadraticCurveTo(-gw / 2, -gh / 2, -gw / 2 + gr, -gh / 2);
-    const glass = new THREE.Mesh(k.track(new THREE.ShapeGeometry(plate, 6)), k.color('#050506', { roughness: 0.12, metalness: 0.1 }));
-    glass.position.set(0, PH / 2, 0.072);
-    lean.add(glass);
-    const screen = new THREE.Mesh(k.track(new THREE.PlaneGeometry(SW, SH)), k.videoMat('/media/kinetic/bolt.mp4', '/media/kinetic/bolt.jpg'));
-    screen.position.set(0, PH / 2, 0.078);
-    lean.add(screen);
-    const island = new THREE.Mesh(k.track(new RoundedBoxGeometry(0.36, 0.1, 0.02, 4, 0.009)), k.color('#000', { roughness: 0.3 }));
-    island.position.set(0, PH / 2 + SH / 2 - 0.1, 0.08);
-    lean.add(island);
-    // Side buttons
-    for (const [y, h, sx] of [[2.45, 0.32, 1], [2.25, 0.18, -1], [1.98, 0.18, -1]] as const) {
-      k.box([0.02, h, 0.05], [sx * (PW / 2 + 0.008), y, 0], k.color('#2a2b30', { roughness: 0.3, metalness: 0.8 }), lean);
-    }
-    // Wall label on the plinth
-    const label = new THREE.Mesh(k.track(new THREE.PlaneGeometry(0.42, 0.2625)),
-      k.track(new THREE.MeshStandardMaterial({ map: k.track(T.artLabel('Bolt', 'Kinetic.Email', ['One email, Deploy to click', 'Play at bolt.kinetic.email'])), roughness: 0.8 })));
-    label.position.set(0.62, -0.25, 0.502);
-    phone.add(label);
-    // A spot from the ceiling, and the screen's glow on the plinth
-    const spot = new THREE.SpotLight('#fff4e4', 30, 9, 0.42, 0.6, 1.4);
-    spot.position.set(PX, ROOM.h - 0.3, r.z1 + 3.4);
-    spot.target.position.set(PX, 1.9, r.z1 + 0.6);
-    k.scene.add(spot, spot.target);
-    const spill = new THREE.PointLight('#7fb4ff', 1.6, 2.6, 2);
-    spill.position.set(PX, 2.0, r.z1 + 1.4);
-    k.scene.add(spill);
+    giantPhone(k, [-4.2, r.z1 + WALL_T / 2 + 0.42], 0, '/media/kinetic/bolt.mp4', '/media/kinetic/bolt.jpg',
+      ['Bolt', 'Kinetic.Email', 'One email, Deploy to click', 'Play at bolt.kinetic.email']);
   },
 
   // Center court: painted hardwood, a hoop, and the market on the ribbon board
@@ -1226,6 +1234,11 @@ const DRESS: Record<string, (k: Kit) => void> = {
       if (k.reduceMotion) return;
       for (const b of bands) b.mat.map!.offset.x = (b.mat.map!.offset.x + dt * 0.06) % 1;
     });
+    // On the right wall under the ribbon board, a giant phone showing a
+    // roster against the cap (sample team, real NBA contracts)
+    giantPhone(k, [r.x1 - 0.47, r.zc - 1.9], -Math.PI / 2, '/media/mns/roster.mp4', '/media/mns/roster.jpg',
+      ['The roster', 'MNS Fantasy', 'Real NBA contracts, a real cap', 'Sample team, mnsfantasy.com']);
+
     // a ball at the free throw line
     const ball = new THREE.Mesh(k.track(new THREE.SphereGeometry(0.12, 24, 16)), k.color('#c8642c', { roughness: 0.8 }));
     ball.position.set(-1.6, 0.12, r.z1 + 4.3);
