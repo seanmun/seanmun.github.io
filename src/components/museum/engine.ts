@@ -525,6 +525,24 @@ export function createMuseum(host: HTMLElement, opts: Options): MuseumHandle {
   disposables.push(draco);
 
   // Art casts and catches shadows, and its textures stay sharp at an angle
+  // Phones: sculpture textures come in at 2048, ~22 MB of GPU memory each
+  // with mipmaps, and a dozen of them crash iOS Safari's tab. Halve them to
+  // 1024 (a quarter of the memory) before they upload; at phone size the
+  // difference doesn't show.
+  const shrunk = new WeakSet<THREE.Texture>();
+  const shrink = (t: THREE.Texture) => {
+    const img = t.image as { width: number; height: number; close?: () => void } | undefined;
+    if (shrunk.has(t) || !img || Math.max(img.width, img.height) <= 1024) return;
+    shrunk.add(t);
+    const k = 1024 / Math.max(img.width, img.height);
+    const c = document.createElement('canvas');
+    c.width = Math.round(img.width * k);
+    c.height = Math.round(img.height * k);
+    c.getContext('2d')!.drawImage(img as CanvasImageSource, 0, 0, c.width, c.height);
+    img.close?.(); // ImageBitmaps hold their pixels until closed
+    t.image = c;
+    t.needsUpdate = true;
+  };
   const asArt = (root: THREE.Object3D) => {
     root.traverse((o) => {
       const m = o as THREE.Mesh;
@@ -533,7 +551,12 @@ export function createMuseum(host: HTMLElement, opts: Options): MuseumHandle {
       m.receiveShadow = true;
       const mats = Array.isArray(m.material) ? m.material : [m.material];
       for (const mat of mats as THREE.MeshStandardMaterial[]) {
-        for (const t of [mat.map, mat.normalMap, mat.roughnessMap]) if (t) t.anisotropy = 8;
+        const maps = [mat.map, mat.normalMap, mat.roughnessMap, mat.metalnessMap, mat.aoMap, mat.emissiveMap];
+        for (const t of maps) {
+          if (!t) continue;
+          t.anisotropy = mobile ? 4 : 8;
+          if (mobile) shrink(t);
+        }
       }
     });
     return root;
