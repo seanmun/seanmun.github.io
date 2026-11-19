@@ -620,12 +620,6 @@ export function createMuseum(host: HTMLElement, opts: Options): MuseumHandle {
     scene.add(s, s.target);
   }
 
-  // A softer wash on the prints-only wall across from the Winston pair
-  const printWash = new THREE.SpotLight('#fff3e0', 32, 12, 0.62, 0.7, 1.4);
-  printWash.position.set(3.2, GALLERY.h - 0.4, -24.5);
-  printWash.target.position.set(6, 1.9, -24.5);
-  scene.add(printWash, printWash.target);
-
   // Blue Planet Cart, on its casters in the middle of the floor
   blob(CART.x, CART.z, 2.2);
   const cart = new THREE.Group();
