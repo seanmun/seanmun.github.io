@@ -48,7 +48,7 @@ export interface PanelContent {
 export type TourPanel =
   | { kind: 'overview' }
   | { kind: 'section'; heading: string }
-  | { kind: 'finale'; heading?: string };
+  | { kind: 'finale'; heading?: string; link?: { label: string; href: string } };
 
 export interface TourStop {
   id: string;
@@ -80,7 +80,7 @@ export function roomTour(slug: string, index: number): TourStop[] | null {
         arrive([6, 1.7, r.zc - 0.5]),
         { id: 'mailroom', label: 'The mailroom', panel: { kind: 'section', heading: 'The Problem' }, pos: [3.0, 1.7, r.zc + 3.0], look: [7, 1.8, r.zc - 0.5], place: [-0.6, -0.05, 2.4] },
         screen('Describe an email → get two production builds'),
-        finale('The generation pipeline'),
+        { id: 'finale', label: 'Bolt', panel: { kind: 'finale', heading: 'Bolt: the game that markets it', link: { label: 'Play Bolt', href: 'https://bolt.kinetic.email/' } }, pos: [-2.4, 1.75, r.z1 + 5.8], look: [-4.2, 2.1, r.z1], place: [1.05, -0.05, 2.5] },
       ];
     case 'outlooksucks':
       return [

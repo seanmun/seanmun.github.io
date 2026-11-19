@@ -14,6 +14,7 @@ import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.j
 import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js';
 import { CSS3DObject, CSS3DRenderer } from 'three/examples/jsm/renderers/CSS3DRenderer.js';
 import { Sky } from 'three/examples/jsm/objects/Sky.js';
+import { RoundedBoxGeometry } from 'three/examples/jsm/geometries/RoundedBoxGeometry.js';
 import { buildTrees } from './trees';
 import { createPost } from './post';
 import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js';
@@ -469,14 +470,26 @@ export function createMuseum(host: HTMLElement, opts: Options): MuseumHandle {
       screenMat.color.set('#fff');
       fit(16 / 9);
     }
-    if (media.video) {
+    // A video that starts loading when the visitor nears this room
+    const addVideo = (src: string, mat: THREE.MeshBasicMaterial) => {
       const video = document.createElement('video');
       video.muted = true;
       video.loop = true;
       video.playsInline = true;
       video.preload = 'none';
-      videoScreens.push({ index: i, video, src: media.video, mat: screenMat, loaded: false });
-    }
+      videoScreens.push({ index: i, video, src, mat, loaded: false });
+    };
+    if (media.video) addVideo(media.video, screenMat);
+    const videoMat = (src: string, poster: string) => {
+      const mat = track(new THREE.MeshBasicMaterial({ color: '#111', toneMapped: false }));
+      loader.load(poster, (t) => {
+        t.colorSpace = THREE.SRGBColorSpace;
+        track(t);
+        if (!mat.map) { mat.map = t; mat.color.set('#fff'); mat.needsUpdate = true; }
+      });
+      addVideo(src, mat);
+      return mat;
+    };
 
     const toured = stations.some((st) => st.slug === slug && st.panel !== undefined);
     if (p && !toured) {
@@ -493,7 +506,7 @@ export function createMuseum(host: HTMLElement, opts: Options): MuseumHandle {
       clickable.push(face);
     }
 
-    DRESS[slug]?.({ r, scene, box, plane, color, basic, track, animators, reduceMotion, slab, clickable });
+    DRESS[slug]?.({ r, scene, box, plane, color, basic, track, animators, reduceMotion, slab, clickable, videoMat });
   });
 
   // ---------- art ----------
@@ -1065,6 +1078,7 @@ interface Kit {
   animators: ((t: number, dt: number) => void)[];
   clickable: THREE.Object3D[];
   reduceMotion: boolean;
+  videoMat(src: string, poster: string): THREE.MeshBasicMaterial;
 }
 
 function hoop(k: Kit, pos: V3, rotY: number) {
@@ -1121,6 +1135,58 @@ const DRESS: Record<string, (k: Kit) => void> = {
     }
     env.count = n;
     k.scene.add(env);
+
+    // On the back wall, a phone the size of a person, on a plinth like a
+    // sculpture: Bolt, the Kinetic game, playing on its screen
+    const PX = -4.2;
+    const phone = new THREE.Group();
+    phone.position.set(PX, 0.5, r.z1 + WALL_T / 2 + 0.42);
+    k.scene.add(phone);
+    const PW = 1.56, PH = 3.2, SW = 1.42, SH = SW / (448 / 960);
+    k.box([2.0, 0.5, 0.9], [0, -0.25, 0.05], k.color('#f3f1ec', { roughness: 0.55 }), phone);
+    const lean = new THREE.Group(); // resting back against the wall
+    lean.rotation.x = -0.07;
+    lean.position.set(0, 0, 0.12);
+    phone.add(lean);
+    const body = new THREE.Mesh(k.track(new RoundedBoxGeometry(PW, PH, 0.14, 6, 0.17)),
+      k.color('#1c1d21', { roughness: 0.28, metalness: 0.75 }));
+    body.position.set(0, PH / 2, 0);
+    body.castShadow = true;
+    lean.add(body);
+    // Black glass around the screen (a flat rounded plate)
+    const plate = new THREE.Shape();
+    const gw = PW - 0.05, gh = PH - 0.05, gr = 0.15;
+    plate.moveTo(-gw / 2 + gr, -gh / 2);
+    plate.lineTo(gw / 2 - gr, -gh / 2); plate.quadraticCurveTo(gw / 2, -gh / 2, gw / 2, -gh / 2 + gr);
+    plate.lineTo(gw / 2, gh / 2 - gr); plate.quadraticCurveTo(gw / 2, gh / 2, gw / 2 - gr, gh / 2);
+    plate.lineTo(-gw / 2 + gr, gh / 2); plate.quadraticCurveTo(-gw / 2, gh / 2, -gw / 2, gh / 2 - gr);
+    plate.lineTo(-gw / 2, -gh / 2 + gr); plate.quadraticCurveTo(-gw / 2, -gh / 2, -gw / 2 + gr, -gh / 2);
+    const glass = new THREE.Mesh(k.track(new THREE.ShapeGeometry(plate, 6)), k.color('#050506', { roughness: 0.12, metalness: 0.1 }));
+    glass.position.set(0, PH / 2, 0.072);
+    lean.add(glass);
+    const screen = new THREE.Mesh(k.track(new THREE.PlaneGeometry(SW, SH)), k.videoMat('/media/kinetic/bolt.mp4', '/media/kinetic/bolt.jpg'));
+    screen.position.set(0, PH / 2, 0.078);
+    lean.add(screen);
+    const island = new THREE.Mesh(k.track(new RoundedBoxGeometry(0.36, 0.1, 0.02, 4, 0.009)), k.color('#000', { roughness: 0.3 }));
+    island.position.set(0, PH / 2 + SH / 2 - 0.1, 0.08);
+    lean.add(island);
+    // Side buttons
+    for (const [y, h, sx] of [[2.45, 0.32, 1], [2.25, 0.18, -1], [1.98, 0.18, -1]] as const) {
+      k.box([0.02, h, 0.05], [sx * (PW / 2 + 0.008), y, 0], k.color('#2a2b30', { roughness: 0.3, metalness: 0.8 }), lean);
+    }
+    // Wall label on the plinth
+    const label = new THREE.Mesh(k.track(new THREE.PlaneGeometry(0.42, 0.2625)),
+      k.track(new THREE.MeshStandardMaterial({ map: k.track(T.artLabel('Bolt', 'Kinetic.Email', ['One email, Deploy to click', 'Play at bolt.kinetic.email'])), roughness: 0.8 })));
+    label.position.set(0.62, -0.25, 0.502);
+    phone.add(label);
+    // A spot from the ceiling, and the screen's glow on the plinth
+    const spot = new THREE.SpotLight('#fff4e4', 30, 9, 0.42, 0.6, 1.4);
+    spot.position.set(PX, ROOM.h - 0.3, r.z1 + 3.4);
+    spot.target.position.set(PX, 1.9, r.z1 + 0.6);
+    k.scene.add(spot, spot.target);
+    const spill = new THREE.PointLight('#7fb4ff', 1.6, 2.6, 2);
+    spill.position.set(PX, 2.0, r.z1 + 1.4);
+    k.scene.add(spill);
   },
 
   // Center court: painted hardwood, a hoop, and the market on the ribbon board

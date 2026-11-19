@@ -98,6 +98,7 @@ function panelFor(p: Project, stop: TourStop, k: number, count: number, stats?: 
         bullets: pickBullets(s?.bullets, 2),
         stats: statRows,
         links: [
+          ...(stop.panel.link ? [{ ...stop.panel.link, external: true }] : []),
           ...(p.link ? [{ label: `Visit ${new URL(p.link).hostname.replace(/^www\./, '')}`, href: p.link, external: true }] : []),
           caseStudy,
           { label: 'Work with me', href: '/#work-with-me' },

@@ -193,6 +193,15 @@ export const projects: Project[] = [
           footer: "The model split is deliberate: Sonnet where code quality matters, Haiku everywhere speed and cost matter. Cheap models validate the expensive model's work."
         },
         {
+          heading: "Bolt: the game that markets it",
+          body: "Kinetic's ad arm is a game. Bolt is a free 3D browser game, three or four minutes long, made to be shared on LinkedIn: Bolt, the Kinetic lightning-bolt mascot, carries one email from the Deploy button to the reader's click. Every level teaches a real email concept, so playing it is the pitch.",
+          bullets: [
+            "Five levels: the Mailroom, the Auth Gates (SPF, DKIM, DMARC), a Spam Folder boss fight, the Inbox, and The Scroll, a platformer down a reader's feed",
+            "Phone-first: touch sticks and a FIRE button, built for LinkedIn's in-app browser as much as desktop",
+            "React Three Fiber and three.js, with Meshy characters and no physics engine; no game over, mistakes only cost points"
+          ]
+        },
+        {
           heading: "Waiting is a feature",
           body: "Generation takes a minute-plus, so instead of a spinner, the UI speed-reads the email's copy blueprint back to the user with a Spritz-style RSVP reader (~450 words per minute) while the code generates. Users review the copy in the time it takes Claude to write the code."
         },
