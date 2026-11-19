@@ -652,15 +652,13 @@ export function createMuseum(host: HTMLElement, opts: Options): MuseumHandle {
   cartLight.target.position.set(CART.x, 0.7, CART.z);
   scene.add(cartLight, cartLight.target);
 
-  // ---------- OrdinalFrame, glowing in the dark pool room ----------
+  // ---------- OrdinalFrame, on the lobby's left wall ----------
 
   const ordinalProject = projects.find((x) => x.slug === ORDINAL.slug);
   if (ordinalProject) {
-    const room = roomBounds(ROOM_SLUGS.indexOf(ORDINAL.room as (typeof ROOM_SLUGS)[number]));
-    const z = room.zc + ORDINAL.dz;
     const g = new THREE.Group();
-    g.position.set(room.x1 - 0.005, ORDINAL.y, z);
-    g.rotation.y = -Math.PI / 2;
+    g.position.set(ORDINAL.x + 0.005, ORDINAL.y, ORDINAL.z);
+    g.rotation.y = Math.PI / 2;
     scene.add(g);
     gltf.load(ORDINAL.src, (m) => g.add(asArt(m.scene)));
 
