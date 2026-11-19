@@ -136,10 +136,10 @@ export const ROOM_SLUGS = [
   'human-diet',
 ] as const;
 
-// OrdinalFrame hangs in the dark pool room, where its screen glows best.
-// It sits on the right wall, beside the near end of the table.
-// OrdinalFrame hangs in the lobby, on the left wall, the first piece you meet
-export const ORDINAL = { slug: 'ordinalframe', x: LOBBY.x0, z: -1, y: 1.95, src: '/models/museum/ordinalframe.glb' };
+// OrdinalFrame closes the gallery: on the end wall, left of the doorway
+// into the rooms, the last piece of art before the projects. z is the
+// wall's face (the partition is 0.4 thick); it faces back down the hall.
+export const ORDINAL = { slug: 'ordinalframe', x: -3, z: GALLERY.z1 + 0.2, y: 1.95, src: '/models/museum/ordinalframe.glb' };
 
 // Every project the museum shows a placard for
 export const PLACARD_SLUGS: readonly string[] = [...ROOM_SLUGS, ORDINAL.slug];
@@ -234,7 +234,6 @@ function bay(id: string, left: string, right: string): Station {
 export function buildStations(projects: MuseumProject[], tours: Record<string, PanelContent[]> = {}): Station[] {
   const stations: Station[] = [
     { id: 'entrance', group: 'Lobby', label: 'Sean Munley', sub: 'Selected works. Scroll to walk in.', pos: [0, EYE, 4.5], look: [0, 4.2, -14] },
-    ...ordinalStop(projects),
     { id: 'mark', group: 'Lobby', label: 'The S', sub: 'Porcelain and gold leaf, on a marble plinth', pos: [0, 2.0, -4.2], look: [0, 1.9, -8.5] },
     { id: 'gallery', group: 'Gallery', label: 'The Gallery', sub: 'Basketball art from the mood board, under a glass roof', pos: [0, EYE, -11.5], look: [0, 3.1, -32] },
   ];
@@ -249,6 +248,7 @@ export function buildStations(projects: MuseumProject[], tours: Record<string, P
     { id: 'cart', group: 'Gallery', label: CART.title, artist: CART.artist, sub: 'A rack of eroded blue balls, painted like globes', pos: [-1.2, 1.6, CART.z + 3.1], look: [CART.x, 0.75, CART.z] },
     { id: 'prints-right', group: 'Gallery', label: 'Prints', sub: 'Vibe, Balance, and Hang 11', ...bayView(1, piece('balance').z, 1.95) },
     { id: 'prints-left', group: 'Gallery', label: 'Prints', sub: 'Helmet, and Beached Hoop', ...bayView(-1, (piece('helmet').z + piece('beached').z) / 2, 1.95) },
+    ...ordinalStop(projects),
   );
 
   ROOM_SLUGS.forEach((slug, i) => {
@@ -277,9 +277,10 @@ function ordinalStop(projects: MuseumProject[]): Station[] {
   const p = projects.find((x) => x.slug === ORDINAL.slug);
   if (!p) return [];
   return [{
-    id: 'ordinalframe', group: 'Lobby', label: p.title, slug: p.slug,
+    id: 'ordinalframe', group: 'Gallery', label: p.title, slug: p.slug,
     sub: 'Bitcoin Ordinals on a Raspberry Pi, in a gold frame',
-    pos: [ORDINAL.x + 3.4, 1.75, ORDINAL.z - 0.4], look: [ORDINAL.x, ORDINAL.y - 0.05, ORDINAL.z],
+    // centered on the frame, far enough back that a phone fits it whole
+    pos: [ORDINAL.x + 0.2, 1.75, ORDINAL.z + 5.2], look: [ORDINAL.x + 0.2, ORDINAL.y - 0.15, ORDINAL.z],
   }];
 }
 

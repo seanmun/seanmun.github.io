@@ -675,13 +675,12 @@ export function createMuseum(host: HTMLElement, opts: Options): MuseumHandle {
   cartLight.target.position.set(CART.x, 0.7, CART.z);
   scene.add(cartLight, cartLight.target);
 
-  // ---------- OrdinalFrame, on the lobby's left wall ----------
+  // ---------- OrdinalFrame, on the gallery's end wall ----------
 
   const ordinalProject = projects.find((x) => x.slug === ORDINAL.slug);
   if (ordinalProject) {
     const g = new THREE.Group();
-    g.position.set(ORDINAL.x + 0.005, ORDINAL.y, ORDINAL.z);
-    g.rotation.y = Math.PI / 2;
+    g.position.set(ORDINAL.x, ORDINAL.y, ORDINAL.z + 0.005);
     scene.add(g);
     gltf.load(ORDINAL.src, (m) => g.add(asArt(m.scene)));
 
