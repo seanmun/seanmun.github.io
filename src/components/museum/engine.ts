@@ -1530,6 +1530,11 @@ const DRESS: Record<string, (k: Kit) => void> = {
       k.scene.add(bulb);
     }
 
+    // On the back wall, left of the doorway: a giant phone running the RRO
+    // score tracker (the live demo, scoring a five-rack match)
+    giantPhone(k, [-4.2, r.z1 + WALL_T / 2 + 0.42], 0, '/media/rocket/rro-phone.mp4', '/media/rocket/rro-phone.jpg',
+      ['The RRO app', 'Rocket Pool Tour', 'Every rack scored as you tap', 'Live demo, nothing saved']);
+
     // a cue rack on the right wall
     for (let i = 0; i < 5; i++) {
       const stick = new THREE.Mesh(k.track(new THREE.CylinderGeometry(0.008, 0.014, 1.45, 8)), k.color('#c9a06a', { roughness: 0.5 }));

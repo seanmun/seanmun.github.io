@@ -99,7 +99,7 @@ export function roomTour(slug: string, index: number): TourStop[] | null {
     case 'rocket-pool-tour':
       return [
         arrive([3.2, 0.9, r.zc - 1]),
-        { id: 'table', label: 'The table', panel: { kind: 'section', heading: 'The RRO app: every rack, rated' }, pos: [0.6, 1.75, r.zc + 1.0], look: [3.2, 0.85, r.zc - 0.8], place: [-0.6, 0.25, 2.3] },
+        { id: 'rro', label: 'The RRO app', panel: { kind: 'section', heading: 'The RRO app: every rack, rated' }, pos: [-2.4, 1.75, r.z1 + 5.8], look: [-4.2, 2.1, r.z1], place: [1.05, -0.05, 2.5] },
         screen('A pitch deck for every partner'),
         finale('A CRM built for the deal flow'),
       ];
