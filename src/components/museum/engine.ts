@@ -409,6 +409,10 @@ export function createMuseum(host: HTMLElement, opts: Options): MuseumHandle {
   const placardFrame = color('#1b1a18', { roughness: 0.5 });
   const loader = new THREE.TextureLoader();
 
+  // Rooms can place GLB models; they load once the loader below is set up
+  const pendingModels: [string, (root: THREE.Object3D) => void][] = [];
+  const model = (src: string, onLoad: (root: THREE.Object3D) => void) => { pendingModels.push([src, onLoad]); };
+
   ROOM_SLUGS.forEach((slug, i) => {
     const r = roomBounds(i);
     const style = roomStyle[slug];
@@ -506,7 +510,7 @@ export function createMuseum(host: HTMLElement, opts: Options): MuseumHandle {
       clickable.push(face);
     }
 
-    DRESS[slug]?.({ r, scene, box, plane, color, basic, track, animators, reduceMotion, slab, clickable, videoMat });
+    DRESS[slug]?.({ r, scene, box, plane, color, basic, track, animators, reduceMotion, slab, clickable, videoMat, model, mobile });
   });
 
   // ---------- art ----------
@@ -561,6 +565,7 @@ export function createMuseum(host: HTMLElement, opts: Options): MuseumHandle {
     });
     return root;
   };
+  for (const [src, onLoad] of pendingModels) gltf.load(src, (g) => onLoad(asArt(g.scene)));
   const shadowSpot = (light: THREE.SpotLight, far = 12) => {
     light.castShadow = !mobile;
     light.shadow.mapSize.set(1024, 1024);
@@ -1102,6 +1107,8 @@ interface Kit {
   clickable: THREE.Object3D[];
   reduceMotion: boolean;
   videoMat(src: string, poster: string): THREE.MeshBasicMaterial;
+  model(src: string, onLoad: (root: THREE.Object3D) => void): void;
+  mobile: boolean;
 }
 
 function hoop(k: Kit, pos: V3, rotY: number) {
@@ -1333,37 +1340,116 @@ const DRESS: Record<string, (k: Kit) => void> = {
   'rocket-pool-tour'(k) {
     const { r } = k;
     const cx = 3.2, cz = r.zc - 0.5;
-    const wood = k.color('#4a2412', { roughness: 0.45 });
-    const cloth = new THREE.MeshStandardMaterial({ map: k.track(T.felt('#1f5fa8')), roughness: 0.95 });
-    k.track(cloth);
-    k.box([1.5, 0.7, 2.7], [cx, 0.42, cz], wood);
-    k.box([1.3, 0.04, 2.5], [cx, 0.79, cz], cloth);
-    for (const sx of [-1, 1]) k.box([0.1, 0.08, 2.7], [cx + sx * 0.7, 0.82, cz], wood);
-    for (const sz of [-1, 1]) k.box([1.5, 0.08, 0.1], [cx, 0.82, cz + sz * 1.3], wood);
-    const pocket = k.color('#050505');
-    for (const sx of [-1, 1]) for (const sz of [-1, 0, 1]) {
-      const p = new THREE.Mesh(k.track(new THREE.CylinderGeometry(0.06, 0.06, 0.02, 16)), pocket);
-      p.position.set(cx + sx * 0.64, 0.82, cz + sz * 1.24);
-      k.scene.add(p);
-    }
-    const colors = ['#f2c12e', '#2a5bd7', '#d2322d', '#5b2a86', '#e8742a', '#1f7a3a', '#7a1f1f', '#111111', '#f2c12e'];
-    let b = 0;
-    for (let row = 0; row < 4; row++) for (let i = 0; i <= row; i++) {
-      const ball = new THREE.Mesh(k.track(new THREE.SphereGeometry(0.028, 16, 12)), k.color(colors[b++ % colors.length], { roughness: 0.2 }));
-      ball.position.set(cx + (i - row / 2) * 0.058, 0.838, cz - 0.6 - row * 0.05);
+    // The table (Meshy, 2.8 x 1.73 m, felt at 0.74 m), long side down the room
+    k.model('/models/museum/pool-table.glb', (m) => {
+      m.position.set(cx, 0, cz);
+      m.rotation.y = Math.PI / 2;
+      k.scene.add(m);
+    });
+    const FELT = 0.74, BR = 0.028;
+    const colors = ['#f2c12e', '#2a5bd7', '#d2322d', '#5b2a86', '#e8742a', '#1f7a3a', '#7a1f1f', '#111111', '#f2c12e', '#2a5bd7'];
+    const ballGeo = k.track(new THREE.SphereGeometry(BR, 20, 14));
+    const addBall = (c: string, x: number, z: number) => {
+      const ball = new THREE.Mesh(ballGeo, k.color(c, { roughness: 0.15 }));
+      ball.position.set(x, FELT + BR, z);
+      ball.castShadow = true;
       k.scene.add(ball);
+    };
+    let b = 0;
+    for (let row = 0; row < 4; row++) for (let i = 0; i <= row; i++) addBall(colors[b++], cx + (i - row / 2) * 0.058, cz + 0.6 + row * 0.05);
+    addBall('#f6f3ea', cx, cz - 0.65);
+
+    // The lamp: the Rocket Pool Tour stained-glass shade (Meshy, 2.0 m long,
+    // its chain tops 0.45 m either side of centre, 1.0 m above its base). Its
+    // shade's lower edge hangs about a metre above the felt.
+    const LY = 1.62, CHAIN = 0.45, TOP = LY + 1.0;
+    k.model('/models/museum/pool-lamp.glb', (m) => {
+      m.position.set(cx, LY, cz);
+      m.rotation.y = Math.PI / 2;
+      // lit from inside: the glass glows its own colours
+      m.traverse((o) => {
+        const mesh = o as THREE.Mesh;
+        if (!mesh.isMesh) return;
+        mesh.castShadow = false;
+        const mat = mesh.material as THREE.MeshStandardMaterial;
+        mat.emissive = new THREE.Color('#ffd2a0');
+        mat.emissiveMap = mat.map;
+        mat.emissiveIntensity = 0.55;
+      });
+      k.scene.add(m);
+    });
+    // Chains up to the ceiling: oval links, each turned a quarter from the last
+    const LINK = 0.05;
+    const linkGeo = k.track(new THREE.TorusGeometry(0.019, 0.0055, 6, 14));
+    linkGeo.scale(1, 1.55, 1);
+    const n = Math.ceil((ROOM.h - TOP) / LINK);
+    const chain = new THREE.InstancedMesh(linkGeo, k.color('#2b2b2e', { roughness: 0.35, metalness: 0.85 }), n * 2);
+    const mtx = new THREE.Matrix4(), q = new THREE.Quaternion(), one = new THREE.Vector3(1, 1, 1), up = new THREE.Vector3(0, 1, 0);
+    let li = 0;
+    for (const sz of [-1, 1]) {
+      for (let j = 0; j < n; j++) {
+        q.setFromAxisAngle(up, j % 2 ? Math.PI / 2 : 0);
+        mtx.compose(new THREE.Vector3(cx, TOP + LINK * (j + 0.4), cz + sz * CHAIN), q, one);
+        chain.setMatrixAt(li++, mtx);
+      }
+      // a canopy where each chain meets the ceiling
+      const cap = new THREE.Mesh(k.track(new THREE.CylinderGeometry(0.06, 0.08, 0.05, 20)), k.color('#2b2b2e', { roughness: 0.35, metalness: 0.85 }));
+      cap.position.set(cx, ROOM.h - 0.025, cz + sz * CHAIN);
+      k.scene.add(cap);
     }
-    const cue = new THREE.Mesh(k.track(new THREE.SphereGeometry(0.028, 16, 12)), k.color('#f6f3ea', { roughness: 0.2 }));
-    cue.position.set(cx, 0.838, cz + 0.65);
-    k.scene.add(cue);
-    // the lamp: a long green shade glowing underneath
-    k.box([0.5, 0.18, 1.8], [cx, 2.2, cz], k.color('#1d4d32', { roughness: 0.4, metalness: 0.3 }));
-    k.box([0.42, 0.01, 1.7], [cx, 2.105, cz], k.track(new THREE.MeshBasicMaterial({ color: '#fff3d6', toneMapped: false })));
-    k.box([0.02, ROOM.h - 2.3, 0.02], [cx, (ROOM.h + 2.3) / 2, cz], k.color('#222'));
-    const lamp = new THREE.SpotLight('#fff1d6', 30, 6, 0.95, 0.5, 1.5);
-    lamp.position.set(cx, 2.1, cz);
+    k.scene.add(chain);
+
+    // Incandescent light: three warm bulbs under the shade, one spot casting
+    // the pool of light on the felt, and faint beams through the haze
+    const WARM = '#ffb070';
+    const lamp = new THREE.SpotLight(WARM, 22, 4, 0.98, 0.6, 1.3);
+    lamp.position.set(cx, LY + 0.3, cz);
     lamp.target.position.set(cx, 0, cz);
+    if (!k.mobile) {
+      lamp.castShadow = true;
+      lamp.shadow.mapSize.set(1024, 1024);
+      lamp.shadow.camera.near = 0.2;
+      lamp.shadow.camera.far = 3;
+      lamp.shadow.bias = -0.0004;
+      lamp.shadow.radius = 4;
+    }
     k.scene.add(lamp, lamp.target);
+    // Soft beams: brightest at the bulb, fading toward the felt, and to
+    // nothing at the cone's edges, so they read as light in the air, not glass
+    const beamMat = k.track(new THREE.ShaderMaterial({
+      uniforms: { color: { value: new THREE.Color('#ffc58a') }, strength: { value: 0.22 } },
+      vertexShader: `
+        varying float vUp; varying vec3 vN; varying vec3 vView;
+        void main() {
+          vUp = uv.y;
+          vec4 mv = modelViewMatrix * vec4(position, 1.0);
+          vN = normalize(normalMatrix * normal);
+          vView = normalize(-mv.xyz);
+          gl_Position = projectionMatrix * mv;
+        }`,
+      fragmentShader: `
+        uniform vec3 color; uniform float strength;
+        varying float vUp; varying vec3 vN; varying vec3 vView;
+        void main() {
+          float facing = pow(abs(dot(normalize(vN), normalize(vView))), 2.0);
+          gl_FragColor = vec4(color * strength * facing * vUp * vUp, 1.0);
+        }`,
+      transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide,
+    }));
+    const beamH = LY + 0.22 - FELT;
+    const beamGeo = k.track(new THREE.CylinderGeometry(0.1, 0.5, beamH, 32, 1, true));
+    const bulbMat = k.track(new THREE.MeshBasicMaterial({ color: '#ffe2b8', toneMapped: false }));
+    const bulbGeo = k.track(new THREE.CircleGeometry(0.075, 24));
+    for (const dz of [-0.6, 0, 0.6]) {
+      const beam = new THREE.Mesh(beamGeo, beamMat);
+      beam.position.set(cx, FELT + beamH / 2, cz + dz);
+      k.scene.add(beam);
+      const bulb = new THREE.Mesh(bulbGeo, bulbMat);
+      bulb.rotation.x = Math.PI / 2;
+      bulb.position.set(cx, LY + 0.24, cz + dz);
+      k.scene.add(bulb);
+    }
+
     // a cue rack on the right wall
     for (let i = 0; i < 5; i++) {
       const stick = new THREE.Mesh(k.track(new THREE.CylinderGeometry(0.008, 0.014, 1.45, 8)), k.color('#c9a06a', { roughness: 0.5 }));

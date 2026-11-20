@@ -61,3 +61,6 @@ next-env.d.ts
 
 # Raw Meshy exports (hundreds of MB); the optimized copies live in public/models/museum
 museum-src/
+
+# raw Meshy exports, before Blender clean-up
+/models-src/
