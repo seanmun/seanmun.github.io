@@ -36,6 +36,9 @@ export default function Museum({ projects, ordinals, tours }: { projects: Museum
   const [narrow, setNarrow] = useState(false);
   const sheetRef = useRef<HTMLDivElement>(null);
   const insetRef = useRef(0);
+  // While a dialog or the room map is open, gestures belong to it
+  const blockRef = useRef(false);
+  useEffect(() => { blockRef.current = placard !== null || mapOpen; }, [placard, mapOpen]);
 
   useEffect(() => {
     const mq = window.matchMedia('(max-aspect-ratio: 4/5)');
@@ -109,10 +112,92 @@ export default function Museum({ projects, ordinals, tours }: { projects: Museum
       }, 260);
     };
     window.addEventListener('scroll', onScroll, { passive: true });
+
+    // One gesture, one stop. A wheel flick, a trackpad swipe (however long
+    // its momentum runs), a touch swipe or an arrow key moves exactly one
+    // stop, so a fast scroll can't fly past whole rooms. The scrollbar and
+    // the room map still jump anywhere.
+    const last = stations.length - 1;
+    let target = restedAt;
+    let lastStep = -Infinity;
+    const go = (dir: number) => {
+      const now = performance.now();
+      // after a pause, start from wherever the page actually is (the map or
+      // the scrollbar may have moved it)
+      if (now - lastStep > 1200) target = Math.round(window.scrollY / (STEP * window.innerHeight));
+      lastStep = now;
+      const next = Math.min(last, Math.max(0, target + dir));
+      if (next === target) return;
+      target = restedAt = next;
+      window.scrollTo({ top: next * STEP * window.innerHeight, behavior: reduceMotion ? 'auto' : 'smooth' });
+    };
+    // Let a scrollable box under the pointer (a long panel, the placard)
+    // scroll itself until it reaches its end
+    const scrollsItself = (el: EventTarget | null, dy: number) => {
+      for (let n = el instanceof Element ? el : null; n && n !== document.body; n = n.parentElement) {
+        const oy = getComputedStyle(n).overflowY;
+        if ((oy === 'auto' || oy === 'scroll') && n.scrollHeight > n.clientHeight + 1) {
+          if (dy > 0 ? n.scrollTop + n.clientHeight < n.scrollHeight - 1 : n.scrollTop > 0) return true;
+        }
+      }
+      return false;
+    };
+    const blocked = () => blockRef.current;
+
+    let lastWheel = -Infinity, lastMag = 0;
+    const onWheel = (e: WheelEvent) => {
+      if (e.ctrlKey || blocked()) return; // pinch zoom, or a dialog is open
+      if (scrollsItself(e.target, e.deltaY)) return;
+      e.preventDefault();
+      const now = performance.now();
+      const mag = Math.abs(e.deltaY) * (e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? window.innerHeight : 1);
+      // A new gesture starts after a quiet gap, or when the wheel speeds up
+      // sharply mid-stream; a trackpad's momentum tail only ever slows down
+      const fresh = now - lastWheel > 300 || (mag > 30 && mag > lastMag * 2.2);
+      lastWheel = now;
+      lastMag = mag;
+      if (fresh && mag >= 4 && now - lastStep > 500) go(Math.sign(e.deltaY));
+    };
+    let touch: { y: number; t: number; native: boolean | null } | null = null;
+    const onTouchStart = (e: TouchEvent) => {
+      touch = e.touches.length === 1 && !blocked() ? { y: e.touches[0].clientY, t: performance.now(), native: null } : null;
+    };
+    const onTouchMove = (e: TouchEvent) => {
+      if (!touch) return;
+      const dy = touch.y - e.touches[0].clientY;
+      if (touch.native === null && Math.abs(dy) > 4) touch.native = scrollsItself(e.target, dy);
+      if (touch.native === false) e.preventDefault();
+    };
+    const onTouchEnd = (e: TouchEvent) => {
+      if (!touch || touch.native !== false) { touch = null; return; }
+      const dy = touch.y - e.changedTouches[0].clientY;
+      const quick = performance.now() - touch.t < 300;
+      touch = null;
+      if (Math.abs(dy) > 50 || (quick && Math.abs(dy) > 20)) go(Math.sign(dy));
+    };
+    const onKey = (e: KeyboardEvent) => {
+      if (blocked() || e.altKey || e.metaKey || e.ctrlKey) return;
+      const el = e.target as HTMLElement | null;
+      if (el && (el.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(el.tagName))) return;
+      const dir = { ArrowDown: 1, PageDown: 1, ' ': e.shiftKey ? -1 : 1, ArrowUp: -1, PageUp: -1 }[e.key];
+      if (dir === undefined) return;
+      e.preventDefault();
+      if (!e.repeat || performance.now() - lastStep > 420) go(dir);
+    };
+    window.addEventListener('wheel', onWheel, { passive: false });
+    window.addEventListener('touchstart', onTouchStart, { passive: true });
+    window.addEventListener('touchmove', onTouchMove, { passive: false });
+    window.addEventListener('touchend', onTouchEnd, { passive: true });
+    window.addEventListener('keydown', onKey);
     return () => {
       disposed = true;
       window.clearTimeout(settle);
       window.removeEventListener('scroll', onScroll);
+      window.removeEventListener('wheel', onWheel);
+      window.removeEventListener('touchstart', onTouchStart);
+      window.removeEventListener('touchmove', onTouchMove);
+      window.removeEventListener('touchend', onTouchEnd);
+      window.removeEventListener('keydown', onKey);
       engineRef.current?.dispose();
       engineRef.current = null;
     };

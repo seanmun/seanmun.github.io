@@ -216,7 +216,7 @@ export const MNS_ART = {
   wall: [
     { src: '/models/museum/tangled-nets.glb', wall: 'left', at: -4.6, y: 0.72, width: 1.6, title: 'Tangled Nets', artist: 'Tyrell Winston', labelY: 1.45 },
     { src: '/models/museum/deflated-legends.glb', wall: 'left', at: -4.6, y: 2.4, width: 1.6, title: 'Deflated Legends', artist: 'Tyrell Winston', labelY: 1.79 },
-    { src: '/models/museum/scars-of-the-game.glb', wall: 'right', at: -4.8, y: 0.78, width: 1.6, title: 'Shooting Hoops', artist: 'New York Sunshine', labelY: 1.45 },
+    { src: '/models/museum/scars-of-the-game.glb', wall: 'back', at: -3.5, y: 1.2, width: 1.6, title: 'Shooting Hoops', artist: 'New York Sunshine', labelY: 1.45 },
     { src: '/models/museum/hoop-garden.glb', wall: 'back', at: 5.0, y: 1.2, width: 1.8, title: 'Hoop Garden', artist: 'Teddy Santis', labelY: 1.45 },
   ] as { src: string; wall: 'left' | 'right' | 'back'; at: number; y: number; width: number; title: string; artist: string; labelY: number }[],
   cart: { x: 3.5, dz: -2.3, turn: -0.9, scale: 1.12, depth: 0.4, src: '/models/museum/blue-planet-cart.glb', title: 'Relic Rack', artist: 'Daniel Arsham' },

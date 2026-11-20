@@ -927,28 +927,52 @@ export function createMuseum(host: HTMLElement, opts: Options): MuseumHandle {
 
   // ---------- video lifecycle ----------
 
+  // Phones also unload a room's videos once the visitor is 4 stops past it:
+  // Safari keeps every loaded video's decoder and frames alive otherwise.
+  // The screen falls back to its poster until they come back.
+  type Live = { tex: THREE.VideoTexture | null; poster: THREE.Texture | null; posterColor: THREE.Color; onPlaying: () => void };
+  const live = new Map<(typeof videoScreens)[number], Live>();
   function updateVideos(s: number) {
     for (const v of videoScreens) {
       const slug = ROOM_SLUGS[v.index];
       const first = stations.findIndex((st) => st.slug === slug);
-      const last = stations.length - 1 - [...stations].reverse().findIndex((st) => st.slug === slug);
+      const last = stations.findLastIndex((st) => st.slug === slug);
       const near = s > first - 1.6 && s < last + 1.4;
+      const far = s < first - 4 || s > last + 4;
       if (near && !v.loaded) {
         v.loaded = true;
-        v.video.src = v.src;
-        v.video.load();
-        v.video.addEventListener('playing', () => {
+        const l: Live = { tex: null, poster: null, posterColor: v.mat.color.clone(), onPlaying: () => {
           const vt = track(new THREE.VideoTexture(v.video));
           vt.colorSpace = THREE.SRGBColorSpace;
+          l.tex = vt;
+          l.poster = v.mat.map;
+          l.posterColor = v.mat.color.clone();
           v.mat.map = vt;
           v.mat.color.set('#fff');
           v.mat.needsUpdate = true;
-        }, { once: true });
+        } };
+        live.set(v, l);
+        v.video.addEventListener('playing', l.onPlaying, { once: true });
+        v.video.src = v.src;
+        v.video.load();
       }
-      if (v.loaded) {
-        if (near && v.video.paused) v.video.play().catch(() => {});
-        else if (!near && !v.video.paused) v.video.pause();
-      }
+      if (!v.loaded) continue;
+      if (mobile && far) {
+        const l = live.get(v)!;
+        v.video.removeEventListener('playing', l.onPlaying);
+        v.video.pause();
+        v.video.removeAttribute('src');
+        v.video.load();
+        if (l.tex) {
+          v.mat.map = l.poster;
+          v.mat.color.copy(l.posterColor);
+          v.mat.needsUpdate = true;
+          l.tex.dispose();
+        }
+        live.delete(v);
+        v.loaded = false;
+      } else if (near && v.video.paused) v.video.play().catch(() => {});
+      else if (!near && !v.video.paused) v.video.pause();
     }
   }
 
@@ -1139,32 +1163,6 @@ interface Kit {
   mobile: boolean;
 }
 
-// The lit tubes of a neon sign, from its colour texture: pale, greenish
-// pixels become MNS green light, everything else (the board, the white
-// net) stays dark. Returns an emissive map.
-function tubeMask(img: CanvasImageSource & { width: number; height: number }) {
-  const k = Math.min(1, 1024 / Math.max(img.width, img.height));
-  const c = document.createElement('canvas');
-  c.width = Math.round(img.width * k);
-  c.height = Math.round(img.height * k);
-  const g = c.getContext('2d', { willReadFrequently: true })!;
-  g.drawImage(img, 0, 0, c.width, c.height);
-  const px = g.getImageData(0, 0, c.width, c.height);
-  const d = px.data;
-  for (let i = 0; i < d.length; i += 4) {
-    const r = d[i], gr = d[i + 1], b = d[i + 2];
-    const lum = 0.3 * r + 0.59 * gr + 0.11 * b;
-    const green = gr - Math.max(r, b * 0.9);
-    const a = Math.min(1, Math.max(0, (lum - 95) / 60)) * Math.min(1, Math.max(0, green / 18));
-    d[i] = 40 * a; d[i + 1] = 255 * a; d[i + 2] = 150 * a; d[i + 3] = 255;
-  }
-  g.putImageData(px, 0, 0);
-  const t = new THREE.CanvasTexture(c);
-  t.colorSpace = THREE.SRGBColorSpace;
-  t.flipY = false; // glTF textures aren't flipped
-  return t;
-}
-
 // A museum wall label (title, artist) on a small backing, at pos in parent
 function artLabel(k: Kit, parent: THREE.Object3D, pos: V3, title: string, artist: string, backing?: THREE.Material) {
   const label = new THREE.Group();
@@ -1268,57 +1266,25 @@ const DRESS: Record<string, (k: Kit) => void> = {
       ['Bolt', 'Kinetic.Email', 'One email, Deploy to click', 'Play at bolt.kinetic.email']);
   },
 
-  // Center court: painted hardwood, a hoop, and the market on the ribbon board
+  // Center court: painted hardwood, the art, and the market on the ribbon board
   'money-never-sleeps'(k) {
     const { r } = k;
     // Black hardwood, its lines laid in neon: green, cyan and purple
     const court = T.neonCourt(-3.5);
+    // Phones: the court's two 2048 canvases are ~45 MB of GPU memory; at
+    // 1024 they're a quarter of that and look the same on a small screen
+    if (k.mobile) for (const t of [court.map, court.glow]) {
+      const src = t.image as HTMLCanvasElement;
+      const c = document.createElement('canvas');
+      c.width = c.height = 1024;
+      c.getContext('2d')!.drawImage(src, 0, 0, 1024, 1024);
+      t.image = c;
+      t.needsUpdate = true;
+    }
     const floor = k.plane(14, 14, k.track(new THREE.MeshStandardMaterial({
       map: k.track(court.map), emissive: '#ffffff', emissiveMap: k.track(court.glow), emissiveIntensity: 1.6, roughness: 0.28, metalness: 0.1,
     })), [0, 0.003, r.zc]);
     floor.rotation.x = -Math.PI / 2;
-
-    // The hoop (Meshy): a Money Never Sleeps backboard drawn like a $100 bill
-    // in tube lettering. Its pale green tubes are found in the texture and lit
-    // as neon: a glow map of just the tubes, a green spill on the wall, and
-    // the hum and stutter of a gas-discharge sign.
-    const HX = -3.5, wallZ = r.z1 + WALL_T / 2, RIM = 0.467;
-    const neon = { mats: [] as THREE.MeshStandardMaterial[], base: 2.4 };
-    k.model('/models/museum/neon-hoop.glb', (m) => {
-      neon.mats.length = 0; // phones reload the hoop after freeing it
-      m.position.set(HX, 3.05 - RIM, wallZ + 0.315 + 0.32);
-      k.scene.add(m);
-      m.traverse((o) => {
-        const mesh = o as THREE.Mesh;
-        if (!mesh.isMesh) return;
-        const mat = mesh.material as THREE.MeshStandardMaterial;
-        if (!mat.map?.image) return;
-        mat.emissive = new THREE.Color('#ffffff');
-        mat.emissiveMap = tubeMask(mat.map.image as CanvasImageSource & { width: number; height: number }); // freed with the model
-        mat.emissiveIntensity = neon.base;
-        mat.needsUpdate = true;
-        neon.mats.push(mat);
-      });
-    });
-    // the arm from the wall to the board
-    k.box([0.14, 0.14, 0.34], [HX, 3.05 + 0.2, wallZ + 0.17], k.color('#15151b', { roughness: 0.4, metalness: 0.6 }));
-    const spill = new THREE.PointLight('#00ff87', 4, 5, 1.6);
-    spill.position.set(HX, 3.45, wallZ + 0.9);
-    k.scene.add(spill);
-    // Neon hums: a faint 50 Hz shimmer, and every so often a tube stutters
-    let next = 4, stutter = 0;
-    k.animators.push((t, dt) => {
-      if (k.reduceMotion || !neon.mats.length) return;
-      next -= dt;
-      if (next <= 0) { stutter = 0.35 + Math.random() * 0.3; next = 6 + Math.random() * 8; }
-      let v = 1 + 0.025 * Math.sin(t * 50 * Math.PI * 2 / 60 * 7.3);
-      if (stutter > 0) {
-        stutter -= dt;
-        v *= Math.sin(t * 61) > 0.1 ? 1 : 0.25 + Math.random() * 0.2;
-      }
-      for (const mat of neon.mats) mat.emissiveIntensity = neon.base * v;
-      spill.intensity = 4 * v;
-    });
 
     const tick = T.ticker([
       { label: 'MNS', value: '4.2%', up: true }, { label: 'CAP', value: '$154.6M', up: true },
