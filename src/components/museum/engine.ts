@@ -814,36 +814,66 @@ export function createMuseum(host: HTMLElement, opts: Options): MuseumHandle {
     scene.add(g);
     gltf.load(ORDINAL.src, (m) => g.add(asArt(m.scene)));
 
-    // The screen: a slideshow canvas, crossfading between pieces
+    // The display: a square screen showing only the art, crossfading between
+    // pieces, set in a soft white mat that fills the frame's opening
     const slides: CanvasImageSource[] = [];
     const colors: string[] = [];
-    const addSlide = (sl: CanvasImageSource, at = slides.length) => {
-      slides.splice(at, 0, sl);
-      colors.splice(at, 0, T.averageColor(sl));
+    const addSlide = (sl: CanvasImageSource) => {
+      slides.push(sl);
+      colors.push(T.averageColor(sl));
     };
-    const [W, H] = [1200, 720];
+    const W = T.ART_PX, H = T.ART_PX;
     const screenCanvas = document.createElement('canvas');
     screenCanvas.width = W;
     screenCanvas.height = H;
     const sctx = screenCanvas.getContext('2d')!;
     const screenTex = track(new THREE.CanvasTexture(screenCanvas));
     screenTex.colorSpace = THREE.SRGBColorSpace;
+    screenTex.anisotropy = 4;
     const screenMat = track(new THREE.MeshBasicMaterial({ map: screenTex, toneMapped: false }));
-    screenMat.color.setScalar(1.15); // LCD backlight: a touch brighter than the room
-    // The gilded frame (Meshy, 1.71 x 1.46 m, its back on the wall; the white
-    // mat about 3 cm out, around a 1.14 x 0.90 m opening). The screen sits
-    // behind the mat, its sides tucked under it, on a black panel that
-    // fills the opening above and below
-    const screenMesh = new THREE.Mesh(track(new THREE.PlaneGeometry(1.2, 0.72)), screenMat);
-    screenMesh.position.z = 0.02;
-    const backing = plane(1.22, 0.96, color('#0b0b0c', { roughness: 0.6 }), [0, 0, 0.012]);
-    scene.remove(backing);
-    g.add(backing);
+    screenMat.color.setScalar(1.1); // backlit: a touch brighter than the room
+    // The gilded frame (Meshy, 1.71 x 1.46 m, its back on the wall; its own
+    // white lip about 3 cm out, around a 1.14 x 0.90 m opening). Inside it,
+    // the mat board, then a slim black bezel, the screen and its glass
+    const SCREEN = 0.72, BEZEL = 0.016;
+    const MAT_W = 1.22, MAT_H = 0.96;
+    const mat = plane(MAT_W, MAT_H, track(new THREE.MeshStandardMaterial({
+      map: track(T.ordinalMat(MAT_W, MAT_H, SCREEN + BEZEL * 2)), roughness: 0.92,
+    })), [0, 0, 0.012]);
+    scene.remove(mat);
+    mat.receiveShadow = true;
+    g.add(mat);
+    const bezel = box([SCREEN + BEZEL * 2, SCREEN + BEZEL * 2, 0.008], [0, 0, 0.016], color('#070708', { roughness: 0.35, metalness: 0.2 }), g);
+    bezel.castShadow = true;
+    const screenMesh = new THREE.Mesh(track(new THREE.PlaneGeometry(SCREEN, SCREEN)), screenMat);
+    screenMesh.position.z = 0.0205;
     screenMesh.userData.slug = ORDINAL.slug;
     g.add(screenMesh);
     clickable.push(screenMesh);
-    // A photo of the real screen already carries the device UI; skip the overlay on it
-    const cat = new Image();
+    // The glass: the room mirrored in it (environment reflection, added on
+    // top of the picture) plus a painted sheen that slides as the view moves
+    // (unlit, so the room's lamps don't leave hotspots on the art)
+    const glass = new THREE.Mesh(track(new THREE.PlaneGeometry(SCREEN, SCREEN)), track(new THREE.MeshBasicMaterial({
+      color: '#000000', envMap: scene.environment, combine: THREE.AddOperation, reflectivity: 0.5,
+      transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, toneMapped: false,
+    })));
+    glass.position.z = 0.021;
+    g.add(glass);
+    const glareTex = track(T.screenGlare());
+    glareTex.repeat.set(0.5, 0.5);
+    glareTex.offset.set(0.25, 0.25);
+    const glare = new THREE.Mesh(track(new THREE.PlaneGeometry(SCREEN, SCREEN)), track(new THREE.MeshBasicMaterial({
+      map: glareTex, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, toneMapped: false,
+    })));
+    glare.position.z = 0.0215;
+    g.add(glare);
+    const glassAt = new THREE.Vector3();
+    animators.push(() => {
+      glare.getWorldPosition(glassAt);
+      const dx = THREE.MathUtils.clamp((camera.position.x - glassAt.x) * 0.06, -0.2, 0.2);
+      const dy = THREE.MathUtils.clamp((camera.position.y - glassAt.y) * 0.06, -0.2, 0.2);
+      glareTex.offset.set(0.25 - dx, 0.25 - dy);
+    });
     if (opts.ordinals.length) {
       // Load in folder order, then show them all
       const loadedArt: (HTMLCanvasElement | null)[] = opts.ordinals.map(() => null);
@@ -861,12 +891,10 @@ export function createMuseum(host: HTMLElement, opts: Options): MuseumHandle {
       });
     } else {
       T.ordinalSlides().forEach((sl) => addSlide(sl));
-      cat.onload = () => { addSlide(cat, 0); draw(0, 0, 0); };
-      cat.src = '/media/museum/ordinal-cat.jpg';
     }
 
     // Light from the screen: a halo on the wall and a lamp that takes the art's color
-    const glow = T.screenGlow(0.74, 0.5, 0.6);
+    const glow = T.screenGlow(0.62, 0.5, 0.6);
     const halo = plane(glow.width, glow.height, track(new THREE.MeshBasicMaterial({
       map: track(glow.texture), transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, toneMapped: false,
     })), [0, 0, 0.003]);
@@ -895,7 +923,6 @@ export function createMuseum(host: HTMLElement, opts: Options): MuseumHandle {
       sctx.drawImage(slides[a], 0, 0, W, H);
       if (mix > 0 && a !== b) { sctx.globalAlpha = mix; sctx.drawImage(slides[b], 0, 0, W, H); }
       sctx.globalAlpha = 1;
-      if (slides[b] !== cat || mix < 0.5) T.ordinalChrome(sctx, mix < 0.5 ? a : b, slides.length);
       screenTex.needsUpdate = true;
       cur.set(colors[a]);
       nxt.set(colors[b]);

@@ -568,27 +568,10 @@ export function blob() {
 }
 
 // ---------- OrdinalFrame slides ----------
-// Generated stand-ins for inscriptions, drawn inside the same UI the real
-// device shows (controls top left, "tap to cycle" top right, page dots).
+// Generated stand-ins for inscriptions, drawn as a square of art centered on
+// a landscape slide (ordinalSlides crops them back to the square).
 
 const SLIDE_W = 1200, SLIDE_H = 720;
-
-export function ordinalChrome(ctx: CanvasRenderingContext2D, index: number, count: number) {
-  ctx.strokeStyle = 'rgba(255,255,255,0.55)';
-  ctx.lineWidth = 2;
-  for (const x of [46, 94]) { ctx.beginPath(); ctx.arc(x, 44, 18, 0, Math.PI * 2); ctx.stroke(); }
-  ctx.fillStyle = 'rgba(255,255,255,0.8)';
-  ctx.font = '600 15px ui-monospace, Menlo, monospace';
-  ctx.textAlign = 'right';
-  ctx.fillText('TAP TO CYCLE · AUTO 30s', SLIDE_W - 32, 50);
-  ctx.textAlign = 'left';
-  for (let i = 0; i < count; i++) {
-    ctx.fillStyle = i === index ? '#f7931a' : 'rgba(255,255,255,0.6)';
-    ctx.beginPath();
-    ctx.arc(SLIDE_W / 2 + (i - (count - 1) / 2) * 20, SLIDE_H - 18, 5, 0, Math.PI * 2);
-    ctx.fill();
-  }
-}
 
 function slideBase(seed: number) {
   const [c, ctx] = canvas(SLIDE_W, SLIDE_H);
@@ -663,20 +646,111 @@ function squareSlide() {
   return c;
 }
 
-// One of the owner's inscriptions on the device screen: contained in the art
-// square, with pixel art kept crisp instead of blurred by scaling.
+// The display is square and shows only the art, edge to edge: no device UI.
+export const ART_PX = 1024;
+
+// One of the owner's inscriptions, cover-fitted to the square screen, with
+// pixel art kept crisp instead of blurred by scaling.
 export function ordinalArtSlide(img: HTMLImageElement) {
-  const { c, ctx, x, y, s } = slideBase(1);
-  const w = img.naturalWidth || s, h = img.naturalHeight || s;
-  const k = Math.min(s / w, s / h);
+  const [c, ctx] = canvas(ART_PX, ART_PX);
+  const w = img.naturalWidth || ART_PX, h = img.naturalHeight || ART_PX;
+  const k = Math.max(ART_PX / w, ART_PX / h);
+  ctx.fillStyle = '#000';
+  ctx.fillRect(0, 0, ART_PX, ART_PX);
   ctx.imageSmoothingEnabled = Math.max(w, h) > 256;
-  ctx.drawImage(img, x + (s - w * k) / 2, y + (s - h * k) / 2, w * k, h * k);
+  ctx.drawImage(img, (ART_PX - w * k) / 2, (ART_PX - h * k) / 2, w * k, h * k);
   ctx.imageSmoothingEnabled = true;
   return c;
 }
 
+// Stand-ins when no inscriptions are in the folder: the generated art squares
 export function ordinalSlides() {
-  return [pixelSlide(), ringSlide(), squareSlide()];
+  return [pixelSlide(), ringSlide(), squareSlide()].map((full) => {
+    const [c, ctx] = canvas(ART_PX, ART_PX);
+    const { x, y, s } = slideBase(0);
+    ctx.drawImage(full, x, y, s, s, 0, 0, ART_PX, ART_PX);
+    return c;
+  });
+}
+
+// The white mat around the display: soft off-white board with a faint tooth,
+// a bevelled cut around the window and a soft shadow where the screen sits.
+// w, h and win are meters; the window is centered.
+export function ordinalMat(w: number, h: number, win: number) {
+  const PPM = 700;
+  const W = Math.round(w * PPM), H = Math.round(h * PPM);
+  const [c, ctx] = canvas(W, H);
+  ctx.fillStyle = '#f2efe9';
+  ctx.fillRect(0, 0, W, H);
+  // Tooth: fine speckle, lighter and darker
+  const r = rng(77);
+  for (let i = 0; i < W * H * 0.06; i++) {
+    ctx.fillStyle = r() < 0.5 ? 'rgba(255,255,255,0.35)' : 'rgba(120,110,95,0.07)';
+    ctx.fillRect(r() * W, r() * H, 1.5, 1.5);
+  }
+  // A gentle falloff toward the edges, as if lit from the front
+  const v = ctx.createRadialGradient(W / 2, H / 2, Math.min(W, H) * 0.3, W / 2, H / 2, Math.max(W, H) * 0.7);
+  v.addColorStop(0, 'rgba(0,0,0,0)');
+  v.addColorStop(1, 'rgba(60,50,35,0.10)');
+  ctx.fillStyle = v;
+  ctx.fillRect(0, 0, W, H);
+  const s = win * PPM, x = (W - s) / 2, y = (H - s) / 2, bevel = 0.012 * PPM;
+  // Soft shadow the screen throws onto the board
+  ctx.save();
+  ctx.shadowColor = 'rgba(30,24,16,0.35)';
+  ctx.shadowBlur = 0.03 * PPM;
+  ctx.shadowOffsetY = 0.008 * PPM;
+  ctx.fillStyle = '#f2efe9';
+  ctx.fillRect(x - bevel, y - bevel, s + bevel * 2, s + bevel * 2);
+  ctx.restore();
+  // The bevel: four trapezoids, lit from above (top bright, bottom shaded)
+  const o = [x - bevel, y - bevel, x + s + bevel, y + s + bevel];
+  const sides: [number[][], string][] = [
+    [[[o[0], o[1]], [o[2], o[1]], [x + s, y], [x, y]], '#fffdf8'],
+    [[[o[0], o[3]], [o[2], o[3]], [x + s, y + s], [x, y + s]], '#ddd7cc'],
+    [[[o[0], o[1]], [o[0], o[3]], [x, y + s], [x, y]], '#f7f3ec'],
+    [[[o[2], o[1]], [o[2], o[3]], [x + s, y + s], [x + s, y]], '#e6e0d6'],
+  ];
+  for (const [pts, col] of sides) {
+    ctx.fillStyle = col;
+    ctx.beginPath();
+    pts.forEach(([px, py], i) => (i ? ctx.lineTo(px, py) : ctx.moveTo(px, py)));
+    ctx.closePath();
+    ctx.fill();
+  }
+  const t = new THREE.CanvasTexture(c);
+  t.colorSpace = THREE.SRGBColorSpace;
+  t.anisotropy = 4;
+  return t;
+}
+
+// Glare on the display's glass: a soft diagonal sheen and a faint window
+// reflection, drawn twice the screen's size so it can slide with the view.
+export function screenGlare() {
+  const S = 512;
+  const [c, ctx] = canvas(S, S);
+  ctx.translate(S / 2, S / 2);
+  ctx.rotate(-0.55);
+  const band = (off: number, wid: number, a: number) => {
+    const g = ctx.createLinearGradient(off - wid, 0, off + wid, 0);
+    g.addColorStop(0, 'rgba(255,255,255,0)');
+    g.addColorStop(0.5, `rgba(255,255,255,${a})`);
+    g.addColorStop(1, 'rgba(255,255,255,0)');
+    ctx.fillStyle = g;
+    ctx.fillRect(off - wid, -S, wid * 2, S * 2);
+  };
+  band(-40, 70, 0.16);
+  band(60, 14, 0.12);
+  band(110, 34, 0.06);
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  // A blurred bright rectangle: the room's ceiling light caught in the glass
+  ctx.filter = 'blur(18px)';
+  ctx.fillStyle = 'rgba(255,250,240,0.10)';
+  ctx.fillRect(S * 0.58, S * 0.14, S * 0.16, S * 0.1);
+  ctx.filter = 'none';
+  const t = new THREE.CanvasTexture(c);
+  t.colorSpace = THREE.SRGBColorSpace;
+  return t;
 }
 
 export function averageColor(source: CanvasImageSource) {
