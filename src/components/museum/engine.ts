@@ -409,10 +409,15 @@ export function createMuseum(host: HTMLElement, opts: Options): MuseumHandle {
   const placardFrame = color('#1b1a18', { roughness: 0.5 });
   const loader = new THREE.TextureLoader();
 
-  // Rooms can place GLB models; they load once the loader below is set up
+  // Rooms can place GLB models; they load once the loader below is set up.
+  // Each model remembers its room, so phones can load a room's models only
+  // as the visitor nears it and free them once they've walked on.
   type OnModel = (root: THREE.Object3D, clips: THREE.AnimationClip[]) => void;
-  const pendingModels: [string, OnModel][] = [];
-  const model = (src: string, onLoad: OnModel) => { pendingModels.push([src, onLoad]); };
+  type RoomModel = { room: number; src: string; onLoad: OnModel; root: THREE.Object3D | null; want: boolean; busy: boolean };
+  const roomModels: RoomModel[] = [];
+  const model = (room: number) => (src: string, onLoad: OnModel) => {
+    roomModels.push({ room, src, onLoad, root: null, want: false, busy: false });
+  };
 
   ROOM_SLUGS.forEach((slug, i) => {
     const r = roomBounds(i);
@@ -511,7 +516,7 @@ export function createMuseum(host: HTMLElement, opts: Options): MuseumHandle {
       clickable.push(face);
     }
 
-    DRESS[slug]?.({ r, scene, box, plane, color, basic, track, animators, reduceMotion, slab, clickable, videoMat, model, mobile });
+    DRESS[slug]?.({ r, scene, box, plane, color, basic, track, animators, reduceMotion, slab, clickable, videoMat, model: model(i), mobile });
   });
 
   // ---------- art ----------
@@ -566,7 +571,59 @@ export function createMuseum(host: HTMLElement, opts: Options): MuseumHandle {
     });
     return root;
   };
-  for (const [src, onLoad] of pendingModels) gltf.load(src, (g) => onLoad(asArt(g.scene), g.animations));
+  // Room models. Desktop loads them all up front, behind the loading
+  // screen. Phones can't hold them all (eight Meshy pieces are ~17 MB of
+  // GPU memory each, and iOS Safari drops the tab near 450 MB), so there a
+  // room's models load as the visitor approaches it and are freed again a
+  // few stops after they leave. A separate loader keeps these late loads
+  // out of the loading screen's progress.
+  const lazyGltf = new GLTFLoader();
+  lazyGltf.setMeshoptDecoder(MeshoptDecoder);
+  lazyGltf.setDRACOLoader(draco);
+  const freeModel = (root: THREE.Object3D) => {
+    root.removeFromParent();
+    root.traverse((o) => {
+      const mesh = o as THREE.SkinnedMesh;
+      if (!mesh.isMesh) return;
+      mesh.geometry.dispose();
+      mesh.skeleton?.dispose();
+      const mats = (Array.isArray(mesh.material) ? mesh.material : [mesh.material]) as THREE.MeshStandardMaterial[];
+      for (const mat of mats) {
+        for (const t of [mat.map, mat.normalMap, mat.roughnessMap, mat.metalnessMap, mat.aoMap, mat.emissiveMap]) t?.dispose();
+        mat.dispose();
+      }
+    });
+  };
+  const loadModel = (m: RoomModel, loader: GLTFLoader) => {
+    m.busy = true;
+    loader.load(m.src, (g) => {
+      m.busy = false;
+      const root = asArt(g.scene);
+      m.onLoad(root, g.animations);
+      m.root = root;
+      if (!m.want) { freeModel(root); m.root = null; } // left the room while it loaded
+    }, undefined, () => { m.busy = false; });
+  };
+  // the stretch of stops, in scroll units, where each room's models are kept
+  const roomSpan = ROOM_SLUGS.map((slug) => {
+    const first = stations.findIndex((st) => st.slug === slug);
+    const last = stations.findLastIndex((st) => st.slug === slug);
+    return first < 0 ? null : { first, last };
+  });
+  // Load from 2.5 stops ahead; free once 4 stops past either end. The gap
+  // between the two keeps a visitor hovering at a doorway from reloading.
+  const updateModels = (s: number) => {
+    for (const m of roomModels) {
+      const span = roomSpan[m.room];
+      const near = !span || (s > span.first - 2.5 && s < span.last + 2.5);
+      const far = span && (s < span.first - 4 || s > span.last + 4);
+      if (near) m.want = true;
+      else if (far) m.want = false;
+      if (m.want && !m.root && !m.busy) loadModel(m, lazyGltf);
+      else if (!m.want && m.root) { freeModel(m.root); m.root = null; }
+    }
+  };
+  if (!mobile) for (const m of roomModels) { m.want = true; loadModel(m, gltf); }
   const shadowSpot = (light: THREE.SpotLight, far = 12) => {
     light.castShadow = !mobile;
     light.shadow.mapSize.set(1024, 1024);
@@ -1009,6 +1066,7 @@ export function createMuseum(host: HTMLElement, opts: Options): MuseumHandle {
     if (sunDirty > 0) { sun.shadow.needsUpdate = true; sunDirty--; }
     if (!reduceMotion) sPivot.rotation.y = t * 0.25;
     for (const a of animators) a(t, dt);
+    if (mobile) updateModels(scroll);
     updatePanels(scroll);
     if (post) post.render(dt, t);
     else renderer.render(scene, camera);
@@ -1031,6 +1089,7 @@ export function createMuseum(host: HTMLElement, opts: Options): MuseumHandle {
       ro.disconnect();
       window.removeEventListener('pointermove', onMove);
       for (const v of videoScreens) { v.video.pause(); v.video.removeAttribute('src'); v.video.load(); }
+      for (const m of roomModels) { m.want = false; if (m.root) freeModel(m.root); m.root = null; }
       scene.traverse((o) => {
         const mesh = o as THREE.Mesh;
         if (mesh.isMesh && o.parent && !disposables.includes(mesh.geometry)) {
@@ -1226,6 +1285,7 @@ const DRESS: Record<string, (k: Kit) => void> = {
     const HX = -3.5, wallZ = r.z1 + WALL_T / 2, RIM = 0.467;
     const neon = { mats: [] as THREE.MeshStandardMaterial[], base: 2.4 };
     k.model('/models/museum/neon-hoop.glb', (m) => {
+      neon.mats.length = 0; // phones reload the hoop after freeing it
       m.position.set(HX, 3.05 - RIM, wallZ + 0.315 + 0.32);
       k.scene.add(m);
       m.traverse((o) => {
@@ -1234,7 +1294,7 @@ const DRESS: Record<string, (k: Kit) => void> = {
         const mat = mesh.material as THREE.MeshStandardMaterial;
         if (!mat.map?.image) return;
         mat.emissive = new THREE.Color('#ffffff');
-        mat.emissiveMap = k.track(tubeMask(mat.map.image as CanvasImageSource & { width: number; height: number }));
+        mat.emissiveMap = tubeMask(mat.map.image as CanvasImageSource & { width: number; height: number }); // freed with the model
         mat.emissiveIntensity = neon.base;
         mat.needsUpdate = true;
         neon.mats.push(mat);
