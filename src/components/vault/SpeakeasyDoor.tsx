@@ -198,6 +198,25 @@ export function SpeakeasyDoor() {
     );
   };
 
+  // Arriving from the museum's bunker, the visitor has already knocked:
+  // the slot is open and the question waiting (the answer is still checked
+  // by /api/vault, as always)
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('knocked') !== '1') return;
+    const t1 = window.setTimeout(() => {
+      setSlotOpen(true);
+      setMood('suspicious');
+    }, 350);
+    const t2 = window.setTimeout(() => {
+      window.history.replaceState(null, '', window.location.pathname); // a reload starts at the knock again
+      setLine("What's the password?");
+      setPhase('password');
+      window.setTimeout(() => inputRef.current?.focus(), 100);
+    }, 850);
+    return () => { window.clearTimeout(t1); window.clearTimeout(t2); };
+  }, []);
+
   const knock = () => {
     if (phase !== 'closed') return;
     setPhase('knocking');

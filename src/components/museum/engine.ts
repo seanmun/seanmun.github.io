@@ -33,6 +33,8 @@ export interface MuseumHandle {
   // Pixels covered by the info sheet at the bottom of a narrow screen: the
   // view shifts its center up into the open area above it
   setInset(px: number): void;
+  // The classified door: rap on it and open its slot
+  knock(): void;
   dispose(): void;
 }
 
@@ -43,6 +45,7 @@ interface Options {
   panels: { station: number; element: HTMLElement }[]; // hologram panels, rendered by React
   reduceMotion: boolean;
   onPlacard(slug: string): void;
+  onKnock(): void; // the classified door was clicked
   onProgress(loaded: number, total: number): void;
 }
 
@@ -301,7 +304,20 @@ export function createMuseum(host: HTMLElement, opts: Options): MuseumHandle {
     sunDirty = Math.max(sunDirty, 2);
   };
   // Less fill on desktop, so sunlit and shaded areas read as daylight does
-  scene.add(new THREE.HemisphereLight('#eef2f6', '#4a4741', mobile ? 0.6 : 0.5));
+  const hemi = new THREE.HemisphereLight('#eef2f6', '#4a4741', mobile ? 0.6 : 0.5);
+  scene.add(hemi);
+  // Underground (the bunker's corridor) the daylight fill fades away; on
+  // phones, with no shadow maps to block it, the sun does too
+  const LIGHT_BASE = { sun: sun.intensity, hemi: hemi.intensity, env: scene.environmentIntensity };
+  let below = 0;
+  const setBelow = (camY: number) => {
+    const b = Math.min(1, Math.max(0, (-0.3 - camY) / 1.8));
+    if (Math.abs(b - below) < 0.002) return;
+    below = b;
+    hemi.intensity = LIGHT_BASE.hemi * (1 - 0.9 * b);
+    scene.environmentIntensity = LIGHT_BASE.env * (1 - 0.6 * b);
+    if (mobile) sun.intensity = LIGHT_BASE.sun * (1 - b);
+  };
 
   // A physically based sky outside every opening, with the sun in it
   const sky = new Sky();
@@ -555,6 +571,7 @@ export function createMuseum(host: HTMLElement, opts: Options): MuseumHandle {
     roomModels.push({ room, src, onLoad, root: null, want: false, busy: false });
   };
 
+  let vault: { knock(): void } | null = null;
   ROOM_SLUGS.forEach((slug, i) => {
     const r = roomBounds(i);
     const style = roomStyle[slug];
@@ -584,7 +601,7 @@ export function createMuseum(host: HTMLElement, opts: Options): MuseumHandle {
     };
 
     if (slug === OUTDOOR_SLUG) {
-      DRESS[slug]?.({ r, scene, box, plane, color, basic, track, animators, reduceMotion, slab, clickable, videoMat, model: model(i), mobile });
+      vault = DRESS[slug]?.({ r, scene, box, plane, color, basic, track, animators, reduceMotion, slab, clickable, videoMat, model: model(i), mobile }) || null;
       return;
     }
     space(r, style.wall, style.floor ?? M.polished, style.ceil);
@@ -1008,8 +1025,8 @@ export function createMuseum(host: HTMLElement, opts: Options): MuseumHandle {
     });
   };
   buildRoute(false);
-  const fogColors = stations.map((s) => new THREE.Color(s.slug ? roomStyle[s.slug]?.fog ?? '#d9d5ce' : '#d9d5ce'));
-  const fogRanges = stations.map((s) => (s.slug && roomStyle[s.slug]?.fogRange) || FOG_RANGE);
+  const fogColors = stations.map((s) => new THREE.Color(s.fog ?? (s.slug ? roomStyle[s.slug]?.fog ?? '#d9d5ce' : '#d9d5ce')));
+  const fogRanges = stations.map((s) => s.fogRange ?? ((s.slug && roomStyle[s.slug]?.fogRange) || FOG_RANGE));
   const fogNearFar = new THREE.Vector2(...FOG_RANGE), fogNearFarTarget = fogNearFar.clone();
   // Stops out on the course (the sun's shadow follows the visitor outdoors)
   const firstOutdoor = stations.findIndex((s) => s.slug === OUTDOOR_SLUG);
@@ -1178,7 +1195,7 @@ export function createMuseum(host: HTMLElement, opts: Options): MuseumHandle {
     ndc.set(((e.clientX - rect.left) / rect.width) * 2 - 1, -((e.clientY - rect.top) / rect.height) * 2 + 1);
     raycaster.setFromCamera(ndc, camera);
     const h = raycaster.intersectObjects(clickable, false)[0];
-    return h && h.distance < 12 ? (h.object.userData.slug as string) : null;
+    return h && h.distance < 12 ? (h.object.userData as { slug?: string; action?: string }) : null;
   };
   const onMove = (e: PointerEvent) => {
     pointer.set((e.clientX / window.innerWidth) * 2 - 1, (e.clientY / window.innerHeight) * 2 - 1);
@@ -1187,8 +1204,9 @@ export function createMuseum(host: HTMLElement, opts: Options): MuseumHandle {
   const onDown = (e: PointerEvent) => { downAt = { x: e.clientX, y: e.clientY }; };
   const onUp = (e: PointerEvent) => {
     if (!downAt || Math.hypot(e.clientX - downAt.x, e.clientY - downAt.y) > 8) return;
-    const slug = hit(e);
-    if (slug) opts.onPlacard(slug);
+    const target = hit(e);
+    if (target?.action === 'knock') opts.onKnock();
+    else if (target?.slug) opts.onPlacard(target.slug);
   };
   window.addEventListener('pointermove', onMove);
   renderer.domElement.addEventListener('pointerdown', onDown);
@@ -1274,6 +1292,7 @@ export function createMuseum(host: HTMLElement, opts: Options): MuseumHandle {
     setOutdoors(firstOutdoor >= 0 && scroll > firstOutdoor - 0.6, dt);
     (scene.background as THREE.Color).copy((scene.fog as THREE.Fog).color);
     camera.position.copy(camPos);
+    setBelow(camPos.y);
     let yaw = camYaw, pitch = camPitch;
     // Tall, narrow screens see more above and below: aim a little lower so
     // the art sits in the open middle of the screen, above the caption
@@ -1304,6 +1323,9 @@ export function createMuseum(host: HTMLElement, opts: Options): MuseumHandle {
       if (Math.abs(px - inset) < 2) return;
       inset = px;
       applyView();
+    },
+    knock() {
+      vault?.knock();
     },
     dispose() {
       cancelAnimationFrame(raf);
@@ -1427,7 +1449,8 @@ function giantPhone(k: Kit, at: [number, number], rotY: number, video: string, p
   return { phone, spot };
 }
 
-const DRESS: Record<string, (k: Kit) => void> = {
+// A room's dressing; the course returns the classified door's knock
+const DRESS: Record<string, (k: Kit) => void | { knock(): void }> = {
   // The app at work: on the right wall, three screens loop the real product,
   // left to right: describe an email and get a build, the AMP version live in
   // Gmail, and Kineticize turning an old email interactive
@@ -1602,7 +1625,7 @@ const DRESS: Record<string, (k: Kit) => void> = {
   // standing on the grass beside the green
   'buddy-cup'(k) {
     const C = COURSE;
-    buildCourse({ scene: k.scene, track: k.track, animators: k.animators, mobile: k.mobile, reduceMotion: k.reduceMotion });
+    const door = buildCourse({ scene: k.scene, track: k.track, animators: k.animators, mobile: k.mobile, reduceMotion: k.reduceMotion, clickable: k.clickable });
     // The iPhone app: entering a hole's scores, then the cup page (sample players)
     const { phone, spot } = giantPhone(k, [C.phone.x, C.phone.z], C.phone.rotY, '/media/buddycup/phone.mp4', '/media/buddycup/phone.jpg',
       ['The app', 'Buddy Cup', 'Score a hole, watch the cup move', 'Sample trip, invented players']);
@@ -1613,6 +1636,7 @@ const DRESS: Record<string, (k: Kit) => void> = {
     }));
     phone.position.y += lowest - 0.04;
     spot.intensity = 0; // the sun lights it out here
+    return door;
   },
 
   // The pool hall: a table under a low lamp, a rack ready to break

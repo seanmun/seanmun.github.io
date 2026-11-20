@@ -29,6 +29,9 @@ export interface Station {
   pos: V3;
   look: V3;
   narrow?: { pos: V3; look: V3 }; // a different view on tall, narrow screens
+  fog?: string; // fog color and range here, when not the room's
+  fogRange?: [number, number];
+  knock?: boolean; // the classified door: the caption offers a knock
 }
 
 // ---------- room tours ----------
@@ -178,10 +181,28 @@ export const COURSE = {
   doorX: ROOM.doorX,
   green: { x: -1.5, z: COURSE_Z0 - 19, rx: 9.5, rz: 7, rot: 0.15 },
   cup: { x: 0.6, z: COURSE_Z0 - 20 },
-  bunker: { x: -10.6, z: COURSE_Z0 - 12.6, rx: 3.9, rz: 1.9, rot: 0.45 },
+  bunker: { x: -11.4, z: COURSE_Z0 - 12.2, rx: 5.4, rz: 2.6, rot: 0.45 },
   tree: { x: -15, z: COURSE_Z0 - 50 },
   phone: { x: 9.2, z: COURSE_Z0 - 14.5, rotY: -0.5 },
 };
+
+// The bunker under the bunker: a steel hatch open in the sand trap, stairs
+// down, and a short concrete corridor to a door. Laid out in its own frame:
+// u runs down the stairs (along the trap's long axis, the way you walk in
+// from the green), v across, origin at the trap's center.
+export const VAULT = {
+  theta: Math.PI - COURSE.bunker.rot, // the frame's turn about y
+  half: 0.8, // half the stairwell's width
+  open: [-2.2, 2.4] as const, // the hatch opening, in u
+  end: 6.8, // the door's wall
+  floor: -4.2,
+  ceil: -1.6, // the corridor's ceiling
+  href: '/projects/classified?knocked=1',
+};
+export function vaultPoint(u: number, v: number, y: number): V3 {
+  const c = Math.cos(VAULT.theta), s = Math.sin(VAULT.theta);
+  return [COURSE.bunker.x + u * c + v * s, y, COURSE.bunker.z - u * s + v * c];
+}
 
 // OrdinalFrame closes the gallery: on the end wall, left of the doorway
 // into the rooms, the last piece of art before the projects. z is the
@@ -295,6 +316,17 @@ export function buildStations(projects: MuseumProject[], tours: Record<string, P
       { id: `${slug}-screen`, group: p.title, label: p.title, sub: 'Open the placard to read about it', slug, pos: [-2.2, 1.8, r.zc + 0.8], look: [-7, 2.35, r.zc + 0.4] },
     );
   });
+  // Past the last room, in the trap beside the green: the hatch, then down
+  // the stairs to the door of the classified projects
+  if (stations.some((st) => st.slug === OUTDOOR_SLUG)) {
+    stations.push(
+      { id: 'bunker-hatch', group: 'Classified', label: 'The bunker', sub: 'Every course has one. This one goes down.',
+        pos: vaultPoint(-3.7, 0.15, 1.85), look: vaultPoint(1.2, 0, -2.6), fog: '#c3d0da', fogRange: [32, 185],
+        narrow: { pos: vaultPoint(-5.4, 0.1, 2.5), look: vaultPoint(1.0, 0, -2.6) } },
+      { id: 'bunker-door', group: 'Classified', label: 'Classified', sub: 'Members only. Knock, and have the password ready.',
+        pos: vaultPoint(3.3, 0, VAULT.floor + 1.7), look: vaultPoint(VAULT.end, 0, VAULT.floor + 1.25), fog: '#17130f', fogRange: [6, 32], knock: true },
+    );
+  }
   return stations;
 }
 

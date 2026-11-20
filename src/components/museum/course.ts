@@ -13,6 +13,7 @@
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { COURSE } from './layout';
+import { buildVault, hatchDist, inHatch } from './vault';
 
 function rng(seed: number) {
   let s = seed >>> 0;
@@ -63,6 +64,8 @@ function fairwayDist(x: number, z: number) {
 
 // ---------- height ----------
 
+const HATCH_PAD = -0.62; // the sand's level round the hatch
+
 export function courseHeight(x: number, z: number) {
   const { z0 } = COURSE;
   // In and right beside the building the ground sits just under the floors
@@ -80,6 +83,9 @@ export function courseHeight(x: number, z: number) {
   const bd = blobDist(BUNKER, x, z);
   h -= 0.85 * smoothstep(0.2, -1.4, bd);
   h += 0.2 * Math.exp(-(((bd - 0.3) / 0.4) ** 2));
+  // A level pad of sand round the hatch, so its curb sits square
+  const hd = hatchDist(x, z);
+  if (hd < 1.4) h = THREE.MathUtils.lerp(h, HATCH_PAD, 1 - smoothstep(0.4, 1.4, hd));
 
   // Hills beyond the hole, and out to the sides
   const R = Math.hypot(x - COURSE.green.x, (z - COURSE.green.z) * 0.8);
@@ -237,7 +243,8 @@ diffuseColor.rgb *= col;`);
   return mat;
 }
 
-function terrain(w: number, d: number, cx: number, cz: number, step: number, drop: number) {
+// cut: where to leave the ground out (the hatch's opening)
+function terrain(w: number, d: number, cx: number, cz: number, step: number, drop: number, cut: (x: number, z: number) => boolean) {
   const g = new THREE.PlaneGeometry(w, d, Math.round(w / step), Math.round(d / step));
   g.rotateX(-Math.PI / 2);
   const p = g.attributes.position;
@@ -245,6 +252,14 @@ function terrain(w: number, d: number, cx: number, cz: number, step: number, dro
     const x = p.getX(i) + cx, z = p.getZ(i) + cz;
     p.setXYZ(i, x, courseHeight(x, z) - drop, z);
   }
+  // A triangle with any corner in the cut goes, so no teeth poke into the
+  // opening (the hatch's coping covers the ragged edge this leaves)
+  const index = g.index!.array, keep: number[] = [];
+  for (let t = 0; t < index.length; t += 3) {
+    const a = index[t], b = index[t + 1], c = index[t + 2];
+    if (![a, b, c].some((i) => cut(p.getX(i), p.getZ(i)))) keep.push(a, b, c);
+  }
+  g.setIndex(keep);
   g.computeVertexNormals();
   return g;
 }
@@ -440,13 +455,17 @@ export function buildCourse(o: {
   animators: ((t: number, dt: number) => void)[];
   mobile: boolean;
   reduceMotion: boolean;
+  clickable: THREE.Object3D[];
 }) {
   const { scene, track, mobile } = o;
   const mat = terrainMaterial(track);
 
-  // Around the hole, fine enough for the bunker's lip; beyond, coarse
-  const fine = new THREE.Mesh(track(terrain(MASK.w, MASK.d, MASK.x0 + MASK.w / 2, MASK.z1 + MASK.d / 2, mobile ? 0.4 : 0.22, 0)), mat);
-  const far = new THREE.Mesh(track(terrain(440, 330, 0, COURSE.z0 - 95, 2.5, 0.04)), mat);
+  // Around the hole, fine enough for the bunker's lip; beyond, coarse. Both
+  // leave out the hatch's opening (the coarse one a wide margin round it,
+  // where the fine one covers)
+  const step = mobile ? 0.4 : 0.22;
+  const fine = new THREE.Mesh(track(terrain(MASK.w, MASK.d, MASK.x0 + MASK.w / 2, MASK.z1 + MASK.d / 2, step, 0, (x, z) => inHatch(x, z))), mat);
+  const far = new THREE.Mesh(track(terrain(440, 330, 0, COURSE.z0 - 95, 2.5, 0.04, (x, z) => inHatch(x, z, 3))), mat);
   fine.receiveShadow = far.receiveShadow = true;
   scene.add(fine, far);
 
@@ -484,4 +503,7 @@ export function buildCourse(o: {
     shade.position.set(tree.center.x - 2.5, courseHeight(tree.center.x - 2.5, tree.center.z - 2) + 0.05, tree.center.z - 2);
     scene.add(shade);
   }
+
+  // The hatch in the trap, and the way down to the classified door
+  return buildVault({ scene, track, animators: o.animators, clickable: o.clickable, reduceMotion: o.reduceMotion, rim: step * 1.6 });
 }
