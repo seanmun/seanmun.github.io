@@ -527,10 +527,11 @@ export function createMuseum(host: HTMLElement, opts: Options): MuseumHandle {
     partition(r.z1, r.x0 - WALL_T, r.x1 + WALL_T, ROOM.h, style.wall, next ? roomStyle[next].wall : style.wall,
       next ? { x: ROOM.doorX, w: ROOM.doorW, h: ROOM.doorH } : undefined);
 
-    // Room name over its doorway, on the side you approach from
-    if (p) {
-      const dark = i > 0 ? ['money-never-sleeps', 'buddy-cup', 'rocket-pool-tour'].includes(ROOM_SLUGS[i - 1]) : false;
-      const label = T.lettering(p.title.toUpperCase(), { size: 90, weight: 400, color: dark ? '#e9e5dc' : '#2b2a28', spacing: 0.25 });
+    // The first room's name over its doorway, out in the gallery. Later rooms
+    // go unsigned: their sign would hang inside the previous room, naming the
+    // next project while you're still looking at this one
+    if (p && i === 0) {
+      const label = T.lettering(p.title.toUpperCase(), { size: 90, weight: 400, color: '#2b2a28', spacing: 0.25 });
       track(label.texture);
       const w = Math.min(4.2, 0.42 * label.aspect);
       plane(w, w / label.aspect, basic(label.texture, true), [ROOM.doorX, ROOM.doorH + 0.55, r.z0 + WALL_T / 2 + 0.02]);
