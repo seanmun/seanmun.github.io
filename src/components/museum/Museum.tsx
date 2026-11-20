@@ -8,8 +8,8 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { STEP, VAULT, buildStations, type MuseumProject, type PanelContent } from './layout';
+import { STEP, buildStations, type MuseumProject, type PanelContent } from './layout';
+import { BunkerDoor } from './BunkerDoor';
 import type { MuseumHandle } from './engine';
 
 export default function Museum({ projects, ordinals, tours }: { projects: MuseumProject[]; ordinals: string[]; tours: Record<string, PanelContent[]> }) {
@@ -27,20 +27,11 @@ export default function Museum({ projects, ordinals, tours }: { projects: Museum
   }), [stations, tours]);
   const hostRef = useRef<HTMLDivElement>(null);
   const engineRef = useRef<MuseumHandle | null>(null);
-  const router = useRouter();
-  // The classified door: three raps, the slot slides open, and then the
-  // live door at /projects/classified takes over (it checks the password)
-  const knockedRef = useRef(false);
-  const knock = useCallback(() => {
-    if (knockedRef.current) return;
-    knockedRef.current = true;
-    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    knockSounds();
-    engineRef.current?.knock();
-    window.setTimeout(() => router.push(VAULT.href), reduce ? 400 : 2300);
-  }, [router]);
-  const knockRef = useRef(knock);
-  useEffect(() => { knockRef.current = knock; }, [knock]);
+  // The bunker's door: BunkerDoor runs the conversation; clicking the door
+  // in the scene knocks through this
+  const knockRef = useRef<() => void>(() => {});
+  const registerKnock = useCallback((fn: () => void) => { knockRef.current = fn; }, []);
+  const doorControls = useCallback(() => engineRef.current?.door() ?? null, []);
   const [active, setActive] = useState(0);
   const [progress, setProgress] = useState({ loaded: 0, total: 1 });
   const [failed, setFailed] = useState(false);
@@ -318,13 +309,7 @@ export default function Museum({ projects, ordinals, tours }: { projects: Museum
           </div>
           {station.artist && <p className="text-sm text-white/90 mt-0.5">by {station.artist}</p>}
           <p className="text-sm text-white/75 mt-1">{station.sub}</p>
-          {station.knock && (
-            <div className="mt-3">
-              <button onClick={knock} className="rounded-full bg-[#b08a3e] text-black px-5 py-1.5 text-sm font-semibold hover:bg-[#c49c4d]">
-                Knock
-              </button>
-            </div>
-          )}
+          {station.knock && <BunkerDoor door={doorControls} register={registerKnock} />}
           {station.slug && (
             <div className="mt-3 flex flex-wrap gap-2">
               <button onClick={() => setPlacard(station.slug!)} className="rounded-full bg-white text-black px-4 py-1.5 text-sm font-medium hover:bg-white/85">
@@ -399,49 +384,6 @@ export default function Museum({ projects, ordinals, tours }: { projects: Museum
 ${HOLO_CSS}`}</style>
     </div>
   );
-}
-
-// ---------- the classified door ----------
-
-// Knuckles on wood, three times, then the slot's iron cover sliding back:
-// a few lines of Web Audio (only ever started by a click)
-function knockSounds() {
-  try {
-    const Ctor = window.AudioContext ?? (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
-    const c = new Ctor();
-    const noise = (at: number, secs: number, type: BiquadFilterType, freq: number, level: number) => {
-      const buf = c.createBuffer(1, Math.floor(c.sampleRate * secs), c.sampleRate);
-      const d = buf.getChannelData(0);
-      for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / d.length);
-      const src = c.createBufferSource();
-      src.buffer = buf;
-      const f = c.createBiquadFilter();
-      f.type = type;
-      f.frequency.value = freq;
-      const g = c.createGain();
-      g.gain.value = level;
-      src.connect(f).connect(g).connect(c.destination);
-      src.start(c.currentTime + at);
-    };
-    [0, 0.24, 0.48].forEach((at, i) => {
-      const t = c.currentTime + at, strength = i === 2 ? 1 : 0.8;
-      const osc = c.createOscillator();
-      osc.frequency.setValueAtTime(150, t);
-      osc.frequency.exponentialRampToValueAtTime(55, t + 0.14);
-      const g = c.createGain();
-      g.gain.setValueAtTime(0.0001, t);
-      g.gain.exponentialRampToValueAtTime(0.45 * strength, t + 0.006);
-      g.gain.exponentialRampToValueAtTime(0.0001, t + 0.2);
-      osc.connect(g).connect(c.destination);
-      osc.start(t);
-      osc.stop(t + 0.22);
-      noise(at, 0.05, 'lowpass', 1100, 0.18 * strength);
-    });
-    noise(1.1, 0.28, 'bandpass', 2400, 0.12);
-    window.setTimeout(() => c.close().catch(() => {}), 3000);
-  } catch {
-    // No audio: the door still opens
-  }
 }
 
 // ---------- hologram panel ----------

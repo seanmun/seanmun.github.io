@@ -219,7 +219,47 @@ export function buildVault(o: {
   add(box(track, len + (U1 - U0), 0.3, H * 2 + 0.4), darkConcrete, U1 + len / 2 - (U1 - U0) / 2, FLOOR - 0.15, 0);
   for (const side of [-1, 1]) add(box(track, len, CEIL - FLOOR, 0.3), concrete, U1 + len / 2, (FLOOR + CEIL) / 2, side * (H + 0.15));
   add(box(track, len, 0.35, H * 2 + 0.6), darkConcrete, U1 + len / 2, CEIL + 0.175, 0);
-  add(box(track, 0.3, CEIL - FLOOR + 0.35, H * 2 + 0.6), concrete, END + 0.15, (FLOOR + CEIL) / 2, 0);
+  // The end wall, with a doorway (the door hangs in it), and behind it the
+  // room: dark until the door swings, then warm light and a bar back wall
+  const DW = 1.0, DH = 2.1, side = H + 0.3;
+  for (const s of [-1, 1]) add(box(track, 0.3, CEIL - FLOOR + 0.35, side - DW / 2 - 0.08), concrete, END + 0.15, (FLOOR + CEIL) / 2, s * (side + DW / 2 + 0.08) / 2);
+  add(box(track, 0.3, CEIL + 0.35 - (FLOOR + DH + 0.08), DW + 0.16), concrete, END + 0.15, (FLOOR + DH + 0.08 + CEIL + 0.35) / 2, 0);
+  const ROOM = 2.6;
+  const roomMat = track(new THREE.MeshStandardMaterial({ color: '#5a3a24', roughness: 0.8, side: THREE.BackSide }));
+  const room = add(box(track, ROOM, CEIL - FLOOR, 2.8), roomMat, END + 0.3 + ROOM / 2, (FLOOR + CEIL) / 2, 0);
+  room.castShadow = false;
+  // The back bar: shelves of bottles in silhouette against amber light
+  const barTex = (() => {
+    const c = document.createElement('canvas');
+    c.width = 512; c.height = 256;
+    const ctx = c.getContext('2d')!;
+    const grad = ctx.createLinearGradient(0, 0, 0, 256);
+    grad.addColorStop(0, '#3a1e0e'); grad.addColorStop(0.5, '#b8692a'); grad.addColorStop(1, '#2a160a');
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, 512, 256);
+    let q = 3;
+    const r = () => ((q = (q * 16807) % 2147483647) / 2147483647);
+    for (const y of [92, 168]) {
+      ctx.fillStyle = '#1a0d06';
+      ctx.fillRect(0, y, 512, 6);
+      for (let x = 8; x < 500; x += 14 + r() * 10) {
+        const bh = 34 + r() * 30, bw = 8 + r() * 6;
+        ctx.fillStyle = `rgba(20,10,4,${0.75 + r() * 0.2})`;
+        ctx.fillRect(x, y - bh, bw, bh);
+        ctx.fillRect(x + bw / 2 - 2, y - bh - 12, 4, 12);
+      }
+    }
+    const t = new THREE.CanvasTexture(c);
+    t.colorSpace = THREE.SRGBColorSpace;
+    return t;
+  })();
+  const bar = new THREE.Mesh(track(new THREE.PlaneGeometry(2.6, 1.3)), track(new THREE.MeshBasicMaterial({ map: track(barTex), color: '#000000' })));
+  bar.position.set(END + 0.3 + ROOM - 0.02, FLOOR + 1.45, 0);
+  bar.rotation.y = -Math.PI / 2;
+  g.add(bar);
+  const glow = new THREE.PointLight('#ffa552', 0, 6, 1.6);
+  glow.position.set(END + 1.2, FLOOR + 2.0, 0);
+  g.add(glow);
 
   // Caged bulbs: one halfway down the corridor, one over the door
   const bulbMat = track(new THREE.MeshBasicMaterial({ color: '#ffd9a0', toneMapped: false }));
@@ -249,20 +289,24 @@ export function buildVault(o: {
   signM.rotation.y = -Math.PI / 2;
   g.add(signM);
 
-  // The door, as it looks at /projects/classified: navy planks, two riveted
-  // straps, a silver ring pull, and a wide slot near the top
+  // The door, a sibling of the one at /projects/classified: navy planks,
+  // two riveted straps, a silver ring pull, and a wide slot near the top.
+  // It hangs on its left edge and swings away, into the room.
   const door = new THREE.Group(); // its face toward -u
   door.position.set(END - 0.02, FLOOR, 0);
   door.rotation.y = -Math.PI / 2;
   g.add(door);
-  const DW = 1.0, DH = 2.1;
   for (const [w, h, x, y] of [[0.08, DH + 0.08, -DW / 2 - 0.04, DH / 2], [0.08, DH + 0.08, DW / 2 + 0.04, DH / 2], [DW + 0.16, 0.08, 0, DH + 0.04]] as const) {
     const f = new THREE.Mesh(box(track, w, h, 0.12), iron);
     f.position.set(x, y, 0.02);
     door.add(f);
   }
+  const hinge = new THREE.Group();
+  hinge.position.x = -DW / 2;
+  door.add(hinge);
   const slab = new THREE.Group();
-  door.add(slab);
+  slab.position.x = DW / 2;
+  hinge.add(slab);
   const wood = track(new THREE.MeshStandardMaterial({ map: track(woodTex()), roughness: 0.7 }));
   const panel = new THREE.Mesh(track(new THREE.BoxGeometry(DW, DH, 0.07)), wood);
   panel.position.set(0, DH / 2, 0);
@@ -294,14 +338,16 @@ export function buildVault(o: {
   const hollow = new THREE.Mesh(track(new THREE.PlaneGeometry(SW, SH)), track(new THREE.MeshBasicMaterial({ color: '#030406' })));
   hollow.position.set(0, SY, 0.0505);
   slab.add(hollow);
+  const eyes: THREE.Mesh[] = [], pupils: THREE.Mesh[] = [];
   for (const x of [-0.075, 0.075]) {
     const eye = new THREE.Mesh(track(new THREE.CircleGeometry(0.034, 18)), eyeMat);
-    eye.scale.y = 0.55;
     eye.position.set(x, SY, 0.051);
     slab.add(eye);
+    eyes.push(eye);
     const pupil = new THREE.Mesh(track(new THREE.CircleGeometry(0.013, 12)), pupilMat);
     pupil.position.set(x, SY, 0.052);
     slab.add(pupil);
+    pupils.push(pupil);
   }
   const coverMat = track(new THREE.MeshStandardMaterial({ color: '#2b2c2e', roughness: 0.5, metalness: 0.5 }));
   const cover = new THREE.Mesh(box(track, SW + 0.02, SH + 0.02, 0.015), coverMat);
@@ -313,22 +359,43 @@ export function buildVault(o: {
   slab.add(cover);
   o.clickable.push(cover);
 
-  // Knock: three raps shake the door, then the slot slides open and the
-  // eyes look out
-  let knockedAt = -1, clock = 0;
-  o.animators.push((t) => {
-    clock = t;
-    if (knockedAt < 0) return;
-    const k = t - knockedAt;
-    const rap = [0, 0.24, 0.48].some((r) => k > r && k < r + 0.1);
-    slab.position.x = reduceMotion || !rap ? 0 : Math.sin(k * 140) * 0.006;
-    const open = reduceMotion ? 1 : Math.min(1, Math.max(0, (k - 1.1) / 0.3));
-    cover.position.y = SY + (SH + 0.03) * open; // slides up, out of the way
-    eyeMat.opacity = pupilMat.opacity = Math.min(1, Math.max(0, (k - 1.35) / 0.25));
+  // The door's moves, driven by the conversation at it (Museum's BunkerDoor):
+  // each eases toward its goal every frame
+  const state = { shake: -1, shakeAmp: 0, slot: 0, slotGoal: 0, slotSpeed: 4, lid: 0.55, lidGoal: 0.55, swing: 0, swingGoal: 0, clock: 0, blinkAt: 3 };
+  o.animators.push((t, dt) => {
+    state.clock = t;
+    const ease = (v: number, goal: number, speed: number) => (reduceMotion ? goal : v + (goal - v) * Math.min(1, dt * speed));
+    // raps, or a slam's jolt
+    const k = t - state.shake;
+    slab.position.x = DW / 2 + (!reduceMotion && state.shake >= 0 && k < 0.6 && [0, 0.24, 0.48].some((r) => k > r && k < r + 0.1)
+      ? Math.sin(k * 140) * state.shakeAmp : 0);
+    state.slot = ease(state.slot, state.slotGoal, state.slotSpeed);
+    cover.position.y = SY + (SH + 0.03) * state.slot;
+    const seen = Math.min(1, Math.max(0, (state.slot - 0.5) * 2));
+    eyeMat.opacity = pupilMat.opacity = seen;
+    // eyelids: a mood, and a blink every few seconds
+    state.lid = ease(state.lid, state.lidGoal, 8);
+    const blink = t > state.blinkAt && t < state.blinkAt + 0.14;
+    if (t > state.blinkAt + 0.14) state.blinkAt = t + 2.4 + ((t * 7919) % 3);
+    for (const e of eyes) e.scale.y = blink ? 0.08 : state.lid;
+    for (const p of pupils) p.scale.y = blink ? 0.08 : Math.min(1, state.lid * 1.6);
+    // the swing, and light pouring out of the room
+    state.swing = ease(state.swing, state.swingGoal, 1.6);
+    hinge.rotation.y = 1.75 * state.swing;
+    glow.intensity = 9 * state.swing;
+    (bar.material as THREE.MeshBasicMaterial).color.setScalar(state.swing);
   });
+  const LIDS = { neutral: 0.55, suspicious: 0.3, pleased: 0.38 };
   return {
-    knock() {
-      if (knockedAt < 0) knockedAt = clock;
+    knock() { state.shake = state.clock; state.shakeAmp = 0.006; },
+    slot(open: boolean, slam = false) {
+      state.slotGoal = open ? 1 : 0;
+      state.slotSpeed = slam ? 30 : 4;
+      if (slam) { state.shake = state.clock - 0.48; state.shakeAmp = 0.012; } // one hard jolt
     },
+    mood(m: keyof typeof LIDS) { state.lidGoal = LIDS[m]; },
+    swing() { state.swingGoal = 1; },
   };
 }
+
+export type DoorControls = ReturnType<typeof buildVault>;

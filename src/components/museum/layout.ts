@@ -197,7 +197,6 @@ export const VAULT = {
   end: 6.8, // the door's wall
   floor: -4.2,
   ceil: -1.6, // the corridor's ceiling
-  href: '/projects/classified?knocked=1',
 };
 export function vaultPoint(u: number, v: number, y: number): V3 {
   const c = Math.cos(VAULT.theta), s = Math.sin(VAULT.theta);

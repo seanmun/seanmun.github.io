@@ -20,6 +20,7 @@ import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js
 import orbitronName from './orbitron-name.json'; // Orbitron Black, just the letters of the name (SIL OFL)
 import { buildTrees } from './trees';
 import { buildCourse, courseHeight } from './course';
+import type { DoorControls } from './vault';
 import { createPost } from './post';
 import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js';
 import * as T from './textures';
@@ -33,8 +34,8 @@ export interface MuseumHandle {
   // Pixels covered by the info sheet at the bottom of a narrow screen: the
   // view shifts its center up into the open area above it
   setInset(px: number): void;
-  // The classified door: rap on it and open its slot
-  knock(): void;
+  // The classified door in the bunker, for the conversation at it
+  door(): DoorControls | null;
   dispose(): void;
 }
 
@@ -571,7 +572,7 @@ export function createMuseum(host: HTMLElement, opts: Options): MuseumHandle {
     roomModels.push({ room, src, onLoad, root: null, want: false, busy: false });
   };
 
-  let vault: { knock(): void } | null = null;
+  let vault: DoorControls | null = null;
   ROOM_SLUGS.forEach((slug, i) => {
     const r = roomBounds(i);
     const style = roomStyle[slug];
@@ -1324,8 +1325,8 @@ export function createMuseum(host: HTMLElement, opts: Options): MuseumHandle {
       inset = px;
       applyView();
     },
-    knock() {
-      vault?.knock();
+    door() {
+      return vault;
     },
     dispose() {
       cancelAnimationFrame(raf);
@@ -1450,7 +1451,7 @@ function giantPhone(k: Kit, at: [number, number], rotY: number, video: string, p
 }
 
 // A room's dressing; the course returns the classified door's knock
-const DRESS: Record<string, (k: Kit) => void | { knock(): void }> = {
+const DRESS: Record<string, (k: Kit) => void | DoorControls> = {
   // The app at work: on the right wall, three screens loop the real product,
   // left to right: describe an email and get a build, the AMP version live in
   // Gmail, and Kineticize turning an old email interactive
