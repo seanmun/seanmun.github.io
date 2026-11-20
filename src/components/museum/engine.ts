@@ -589,14 +589,15 @@ export function createMuseum(host: HTMLElement, opts: Options): MuseumHandle {
       videoScreens.push({ index: i, video, src, mat, loaded: false });
     };
     if (media.video) addVideo(media.video, screenMat);
-    const videoMat = (src: string, poster: string) => {
+    // still: the poster only, never the video (to spare a phone's decoders)
+    const videoMat = (src: string, poster: string, still = false) => {
       const mat = track(new THREE.MeshBasicMaterial({ color: '#111', toneMapped: false }));
       loader.load(poster, (t) => {
         t.colorSpace = THREE.SRGBColorSpace;
         track(t);
         if (!mat.map) { mat.map = t; mat.color.set('#fff'); mat.needsUpdate = true; }
       });
-      addVideo(src, mat);
+      if (!still) addVideo(src, mat);
       return mat;
     };
 
@@ -952,13 +953,23 @@ export function createMuseum(host: HTMLElement, opts: Options): MuseumHandle {
   // Position follows a smooth curve through every stop. Heading is yaw and
   // pitch, turned the short way round, so the view never swings a look-at
   // point through the camera (which reads as a sudden 180° whip).
+  // A stop can frame itself differently on tall, narrow screens (view());
+  // the route is rebuilt when the screen changes shape
   const n = stations.length;
-  const P = stations.map((s) => new THREE.Vector3(...s.pos));
-  const path = new THREE.CatmullRomCurve3(P, false, 'centripetal', 0.5);
-  const heading = stations.map((s) => {
-    const d = new THREE.Vector3(...s.look).sub(new THREE.Vector3(...s.pos)).normalize();
-    return { yaw: Math.atan2(-d.x, -d.z), pitch: Math.asin(d.y) };
-  });
+  const view = (s: Station, narrow: boolean) => (narrow && s.narrow) || s;
+  let P: THREE.Vector3[] = [];
+  let path!: THREE.CatmullRomCurve3;
+  let heading: { yaw: number; pitch: number }[] = [];
+  const buildRoute = (narrow: boolean) => {
+    P = stations.map((s) => new THREE.Vector3(...view(s, narrow).pos));
+    path = new THREE.CatmullRomCurve3(P, false, 'centripetal', 0.5);
+    heading = stations.map((s) => {
+      const v = view(s, narrow);
+      const d = new THREE.Vector3(...v.look).sub(new THREE.Vector3(...v.pos)).normalize();
+      return { yaw: Math.atan2(-d.x, -d.z), pitch: Math.asin(d.y) };
+    });
+  };
+  buildRoute(false);
   const fogColors = stations.map((s) => new THREE.Color(s.slug ? roomStyle[s.slug]?.fog ?? '#d9d5ce' : '#d9d5ce'));
   const camPos = P[0].clone();
   let camYaw = heading[0].yaw;
@@ -1024,8 +1035,9 @@ export function createMuseum(host: HTMLElement, opts: Options): MuseumHandle {
   function placePanels(narrow: boolean) {
     for (const h of holos) {
       const st = stations[h.station];
-      const pos = new THREE.Vector3(...st.pos);
-      const fwd = new THREE.Vector3(...st.look).sub(pos).normalize();
+      const v = view(st, narrow);
+      const pos = new THREE.Vector3(...v.pos);
+      const fwd = new THREE.Vector3(...v.look).sub(pos).normalize();
       const right = new THREE.Vector3().crossVectors(fwd, UP).normalize();
       const up = new THREE.Vector3().crossVectors(right, fwd);
       // On a narrow screen the panel moves to the middle, a little lower and closer
@@ -1155,7 +1167,9 @@ export function createMuseum(host: HTMLElement, opts: Options): MuseumHandle {
     post?.setSize(w, h, renderer.getPixelRatio());
     cssRenderer.setSize(w, h);
     camera.aspect = w / h;
+    const wasNarrow = narrow;
     narrow = w / h < 0.8;
+    if (narrow !== wasNarrow) buildRoute(narrow);
     camera.fov = narrow ? 62 : 55;
     applyView();
     placePanels(narrow);
@@ -1291,7 +1305,7 @@ interface Kit {
   animators: ((t: number, dt: number) => void)[];
   clickable: THREE.Object3D[];
   reduceMotion: boolean;
-  videoMat(src: string, poster: string): THREE.MeshBasicMaterial;
+  videoMat(src: string, poster: string, still?: boolean): THREE.MeshBasicMaterial;
   model(src: string, onLoad: (root: THREE.Object3D, clips: THREE.AnimationClip[]) => void): void;
   mobile: boolean;
 }
@@ -1364,34 +1378,38 @@ function giantPhone(k: Kit, at: [number, number], rotY: number, video: string, p
 }
 
 const DRESS: Record<string, (k: Kit) => void> = {
-  // The mailroom: a wall of walnut pigeonholes with envelopes in the slots
+  // The app at work: on the right wall, three screens loop the real product,
+  // left to right: describe an email and get a build, the AMP version live in
+  // Gmail, and Kineticize turning an old email interactive
   'kinetic-email'(k) {
     const { r } = k;
-    const walnut = k.color('#5a3a22', { roughness: 0.6 });
-    const cols = 12, rows = 7, cell = 0.36, depth = 0.4;
-    const x = r.x1 - depth / 2;
-    const z0 = r.zc - (cols * cell) / 2;
-    const y0 = 0.7;
-    k.box([0.02, rows * cell, cols * cell], [r.x1 - 0.012, y0 + (rows * cell) / 2, r.zc], k.color('#2a1a10', { roughness: 0.9 }));
-    for (let c = 0; c <= cols; c++) k.box([depth, rows * cell, 0.02], [x, y0 + (rows * cell) / 2, z0 + c * cell], walnut);
-    for (let rr = 0; rr <= rows; rr++) k.box([depth, 0.02, cols * cell], [x, y0 + rr * cell, r.zc], walnut);
-    const paper = k.color('#f5f2ea', { roughness: 0.9 });
-    const env = new THREE.InstancedMesh(k.track(new THREE.BoxGeometry(0.3, 0.012, 0.22)), paper, 60);
-    const m = new THREE.Matrix4();
-    let n = 0;
-    for (let c = 0; c < cols; c++) {
-      for (let rr = 0; rr < rows; rr++) {
-        if ((c * 7 + rr * 3) % 5 === 0) continue;
-        const stack = 1 + ((c + rr) % 3);
-        for (let s = 0; s < stack && n < 60; s++) {
-          m.makeRotationY(((c + s) % 3 - 1) * 0.12);
-          m.setPosition(x - 0.02, y0 + rr * cell + 0.02 + s * 0.014, z0 + (c + 0.5) * cell);
-          env.setMatrixAt(n++, m);
-        }
-      }
-    }
-    env.count = n;
-    k.scene.add(env);
+    const H = 0.9, Y = 2.0, x = r.x1 - WALL_T / 2;
+    const bezel = k.color('#111214', { roughness: 0.35, metalness: 0.4 });
+    const clips = [
+      { name: 'generate', aspect: 1100 / 826, dz: -1.75, title: 'Describe it', artist: '01 · AI Playground → interactive build' },
+      { name: 'amp', aspect: 1100 / 890, dz: 0, title: 'Live in the inbox', artist: '02 · The AMP build, running in Gmail' },
+      { name: 'kineticize', aspect: 1100 / 720, dz: 1.75, title: 'Kineticize', artist: '03 · An old email, made interactive' },
+    ];
+    clips.forEach((c, i) => {
+      const g = new THREE.Group();
+      g.position.set(x, Y, r.zc - 0.5 + c.dz);
+      g.rotation.y = -Math.PI / 2;
+      k.scene.add(g);
+      const W = H * c.aspect;
+      k.box([W + 0.1, H + 0.1, 0.06], [0, 0, 0.03], bezel, g).castShadow = true;
+      // Phones play only the middle one; the others hold a still
+      const scr = new THREE.Mesh(k.track(new THREE.PlaneGeometry(W, H)),
+        k.videoMat(`/media/kinetic/${c.name}.mp4`, `/media/kinetic/${c.name}.jpg`, k.mobile && i !== 1));
+      scr.position.z = 0.062;
+      scr.userData.slug = 'kinetic-email';
+      g.add(scr);
+      k.clickable.push(scr);
+      artLabel(k, g, [W / 2 - 0.2, -H / 2 - 0.3, 0], c.title, c.artist);
+      // Screen light on the wall and floor, the cool violet of the app
+      const glow = new THREE.PointLight('#8f7dff', 1.4, 2.4, 2);
+      glow.position.set(0, -0.2, 0.8);
+      g.add(glow);
+    });
 
     // On the back wall, a phone the size of a person, on a plinth like a
     // sculpture: Bolt, the Kinetic game, playing on its screen

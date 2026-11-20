@@ -28,6 +28,7 @@ export interface Station {
   slug?: string; // project rooms: opens that project's placard
   pos: V3;
   look: V3;
+  narrow?: { pos: V3; look: V3 }; // a different view on tall, narrow screens
 }
 
 // ---------- room tours ----------
@@ -60,6 +61,7 @@ export interface TourStop {
   pos: V3;
   look: V3;
   place: V3;
+  narrow?: { pos: V3; look: V3 };
 }
 
 export function roomTour(slug: string, index: number): TourStop[] | null {
@@ -81,11 +83,15 @@ export function roomTour(slug: string, index: number): TourStop[] | null {
     case 'kinetic-email':
       return [
         arrive([6, 1.7, r.zc - 0.5]),
-        { id: 'mailroom', label: 'The mailroom', panel: { kind: 'section', heading: 'The Problem', bullets: [
-          "It's hard: CSS :checked hacks and AMP4Email, across a client compatibility matrix, with zero JavaScript",
-          'No tooling: ESPs don\'t generate it, and testing means sending to a dozen real inboxes',
-          'Nobody teaches it: the know-how lives in scattered blog posts and a few hundred heads',
-        ] }, pos: [3.0, 1.7, r.zc + 3.0], look: [7, 1.8, r.zc - 0.5], place: [-0.6, -0.05, 2.4] },
+        { id: 'atwork', label: 'The app at work', panel: { kind: 'section', heading: 'Interactive email, without the hacks', bullets: [
+          'Describe it: the AI Playground turns a plain-English prompt into an interactive build',
+          'Live in the inbox: the AMP version runs right in Gmail, carousels and forms included',
+          'Kineticize: drop in an old email and pick the part that should come alive',
+        ] },
+          // Desktop: square to the wall, the screens to the right of the panel.
+          // Phones (no panel): back far enough to see all three, centered
+          pos: [0.5, 1.75, r.zc - 2.75], look: [7, 1.9, r.zc - 2.75], place: [-0.85, -0.05, 2.4],
+          narrow: { pos: [-3.2, 1.75, r.zc - 0.45], look: [7, 1.85, r.zc - 0.45] } },
         screen('Describe an email → get two production builds'),
         { id: 'finale', label: 'Bolt', panel: { kind: 'finale', heading: 'Bolt: the game that markets it', link: { label: 'Play Bolt', href: 'https://bolt.kinetic.email/' } }, pos: [-2.4, 1.75, r.z1 + 5.8], look: [-4.2, 2.1, r.z1], place: [1.05, -0.05, 2.5] },
       ];
@@ -259,7 +265,7 @@ export function buildStations(projects: MuseumProject[], tours: Record<string, P
       tour.forEach((t, k) => {
         stations.push({
           id: `${slug}-${t.id}`, group: p.title, label: p.title, sub: t.label, slug,
-          pos: t.pos, look: t.look, panel: k, place: t.place,
+          pos: t.pos, look: t.look, panel: k, place: t.place, narrow: t.narrow,
         });
       });
       return;
@@ -286,7 +292,7 @@ function ordinalStop(projects: MuseumProject[]): Station[] {
 // Where each room's entrance view points: at the thing that makes the room
 function enterLook(slug: string, zc: number): V3 {
   switch (slug) {
-    case 'kinetic-email': return [6, 1.7, zc - 0.5]; // the pigeonhole wall
+    case 'kinetic-email': return [6, 1.8, zc - 0.5]; // the screens of the app at work
     case 'money-never-sleeps': return [-3, 2.4, zc - 4]; // the hoop and ribbon board
     case 'outlooksucks': return [3.6, 1.1, zc - 2.2]; // into the cubicle
     case 'buddy-cup': return [-6, 2.2, zc]; // the sim screen
@@ -297,7 +303,7 @@ function enterLook(slug: string, zc: number): V3 {
 }
 
 export const ROOM_NOTES: Record<string, string> = {
-  'kinetic-email': 'The mailroom: interactive email, built by AI',
+  'kinetic-email': 'Interactive email, built by AI, at work on the wall',
   'money-never-sleeps': 'Center court, with the market on the ribbon board',
   outlooksucks: 'A cubicle, circa 2007. Outlook is still rendering.',
   'buddy-cup': 'The simulator bay. Match play, scored live.',
