@@ -97,6 +97,7 @@ function panelFor(p: Project, stop: TourStop, k: number, count: number, stats?: 
         body: sentences(s?.body ?? '', 220),
         bullets: stop.panel.bullets ?? pickBullets(s?.bullets, 2),
         stats: statRows,
+        ...(stop.panel.figure ? { figure: stop.panel.figure } : {}),
         links: [
           ...(stop.panel.link ? [{ ...stop.panel.link, external: true }] : []),
           ...(p.link ? [{ label: `Visit ${new URL(p.link).hostname.replace(/^www\./, '')}`, href: p.link, external: true }] : []),

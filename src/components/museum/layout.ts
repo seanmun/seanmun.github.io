@@ -44,7 +44,11 @@ export interface PanelContent {
   chips: string[];
   stats: { label: string; value: string }[];
   links: { label: string; href: string; external?: boolean }[];
+  figure?: PanelFigure;
 }
+
+// A device drawn into a panel beside its text (sample data only)
+export type PanelFigure = 'watch-score';
 
 // A panel's copy comes from the case study section with this heading.
 // `bullets` replaces the section's bullets when they're too long to read
@@ -52,7 +56,7 @@ export interface PanelContent {
 export type TourPanel =
   | { kind: 'overview' }
   | { kind: 'section'; heading: string; bullets?: string[] }
-  | { kind: 'finale'; heading?: string; bullets?: string[]; link?: { label: string; href: string } };
+  | { kind: 'finale'; heading?: string; bullets?: string[]; link?: { label: string; href: string }; figure?: PanelFigure };
 
 export interface TourStop {
   id: string;
@@ -114,7 +118,7 @@ export function roomTour(slug: string, index: number): TourStop[] | null {
         { id: 'arrive', label: 'Out on the course', panel: { kind: 'overview' }, pos: [C.doorX, 1.75, C.z0 - 1.6], look: [C.green.x - 1, 0.9, C.green.z], place: [0.95, 0.05, 2.5] },
         { id: 'green', label: 'The green', panel: { kind: 'section', heading: 'The idea' }, pos: [C.cup.x + 2.6, 1.7, C.cup.z + 9.5], look: [C.cup.x, 1.0, C.cup.z], place: [-0.95, -0.05, 2.4] },
         { id: 'bunker', label: 'The bunker', panel: { kind: 'section', heading: 'Signature features' }, pos: [C.bunker.x + 5.2, 1.7, C.bunker.z + 5.6], look: [C.bunker.x - 0.5, 0.0, C.bunker.z - 0.6], place: [0.95, 0.05, 2.4] },
-        { id: 'finale', label: 'Before you go', panel: { kind: 'finale', heading: 'On the course: iPhone and Apple Watch' }, pos: [C.phone.x - 4.4, 1.75, C.phone.z + 6.2], look: [C.phone.x, 2.0, C.phone.z], place: [-0.95, -0.05, 2.5] },
+        { id: 'finale', label: 'Before you go', panel: { kind: 'finale', heading: 'On the course: iPhone and Apple Watch', figure: 'watch-score' }, pos: [C.phone.x - 4.4, 1.75, C.phone.z + 6.2], look: [C.phone.x, 2.0, C.phone.z], place: [-0.95, -0.05, 2.5] },
       ];
     }
     case 'rocket-pool-tour':
