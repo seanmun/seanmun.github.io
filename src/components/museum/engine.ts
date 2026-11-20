@@ -1346,18 +1346,54 @@ const DRESS: Record<string, (k: Kit) => void> = {
       m.rotation.y = Math.PI / 2;
       k.scene.add(m);
     });
-    const FELT = 0.74, BR = 0.028;
-    const colors = ['#f2c12e', '#2a5bd7', '#d2322d', '#5b2a86', '#e8742a', '#1f7a3a', '#7a1f1f', '#111111', '#f2c12e', '#2a5bd7'];
-    const ballGeo = k.track(new THREE.SphereGeometry(BR, 20, 14));
-    const addBall = (c: string, x: number, z: number) => {
-      const ball = new THREE.Mesh(ballGeo, k.color(c, { roughness: 0.15 }));
+    const FELT = 0.74, BR = 0.028, D = BR * 2;
+    // Pool balls: 1-8 solid, 9-15 striped, each with its number in a white
+    // spot on two sides (drawn on an equirectangular canvas for the sphere)
+    const BALL = ['#f6f3ea', '#f2b51f', '#1f4fc9', '#d2322d', '#5b2a86', '#ec6a1f', '#1f7a3a', '#7a1f1f', '#111111'];
+    const ballGeo = k.track(new THREE.SphereGeometry(BR, 24, 16));
+    const ballTex = (num: number) => {
+      const c = document.createElement('canvas');
+      c.width = 256; c.height = 128;
+      const g = c.getContext('2d')!;
+      const color = BALL[num > 8 ? num - 8 : num];
+      g.fillStyle = num > 8 ? '#f6f3ea' : color;
+      g.fillRect(0, 0, 256, 128);
+      if (num > 8) { g.fillStyle = color; g.fillRect(0, 34, 256, 60); }
+      if (num > 0) {
+        for (const u of [64, 192]) {
+          g.fillStyle = '#f6f3ea';
+          g.beginPath(); g.arc(u, 64, 17, 0, Math.PI * 2); g.fill();
+          g.fillStyle = '#111';
+          g.font = `bold ${num > 9 ? 17 : 21}px Arial, sans-serif`;
+          g.textAlign = 'center'; g.textBaseline = 'middle';
+          g.fillText(String(num), u, 65);
+        }
+      }
+      const t = new THREE.CanvasTexture(c);
+      t.colorSpace = THREE.SRGBColorSpace;
+      t.anisotropy = 4;
+      return k.track(t);
+    };
+    let spin = 7;
+    const addBall = (num: number, x: number, z: number) => {
+      const mat = k.track(new THREE.MeshStandardMaterial({ map: ballTex(num), roughness: 0.12 }));
+      const ball = new THREE.Mesh(ballGeo, mat);
       ball.position.set(x, FELT + BR, z);
+      // turned every which way, as racked balls are
+      spin = (spin * 16807) % 2147483647;
+      ball.rotation.set((spin % 628) / 100, (spin % 314) / 50, (spin % 271) / 100);
       ball.castShadow = true;
       k.scene.add(ball);
     };
-    let b = 0;
-    for (let row = 0; row < 4; row++) for (let i = 0; i <= row; i++) addBall(colors[b++], cx + (i - row / 2) * 0.058, cz + 0.6 + row * 0.05);
-    addBall('#f6f3ea', cx, cz - 0.65);
+    // The Rocket Run-Out rack: eleven balls. The 9 on the spot, then 2 and 10,
+    // 11, 8 and 3, then 5, 13, 4 and 12, with the 1 behind the middle of the
+    // back row. The apex faces the cue ball.
+    const RACK = [[9], [2, 10], [11, 8, 3], [5, 13, 4, 12], [1]];
+    const apex = cz + 0.62, rowStep = D * Math.sqrt(3) / 2;
+    RACK.forEach((row, ri) => row.forEach((num, i) => {
+      addBall(num, cx + (i - (row.length - 1) / 2) * D, apex + ri * rowStep);
+    }));
+    addBall(0, cx, cz - 0.65);
 
     // The lamp: the Rocket Pool Tour stained-glass shade (Meshy, 2.0 m long,
     // its chain tops 0.45 m either side of centre, 1.0 m above its base). Its
