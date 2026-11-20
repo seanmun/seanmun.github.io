@@ -20,7 +20,7 @@ import { createPost } from './post';
 import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js';
 import * as T from './textures';
 import {
-  CART, GALLERY, GALLERY_PIECES, LOBBY, ORDINAL, ROOM, ROOM_SLUGS, roomBounds,
+  GALLERY, GALLERY_PIECES, MNS_ART, LOBBY, ORDINAL, ROOM, ROOM_SLUGS, roomBounds,
   type MuseumProject, type Station, type V3,
 } from './layout';
 
@@ -648,38 +648,6 @@ export function createMuseum(host: HTMLElement, opts: Options): MuseumHandle {
     scene.add(s, s.target);
   }
 
-  // Blue Planet Cart, on its casters in the middle of the floor
-  blob(CART.x, CART.z, 2.2);
-  const cart = new THREE.Group();
-  cart.position.set(CART.x, 0, CART.z);
-  cart.rotation.y = CART.turn;
-  cart.scale.setScalar(CART.scale);
-  scene.add(cart);
-  gltf.load(CART.src, (g) => {
-    g.scene.position.z = -CART.depth / 2; // exported back-to-wall; center it on its footprint
-    cart.add(asArt(g.scene));
-  });
-  // Its label on a small lectern stand in front, angled up to read
-  const stand = new THREE.Group();
-  stand.position.set(CART.x + 1.0, 0, CART.z + 1.05);
-  stand.rotation.y = CART.turn;
-  scene.add(stand);
-  box([0.05, 0.92, 0.05], [0, 0.46, 0], color('#2a2a2a', { roughness: 0.5, metalness: 0.5 }), stand);
-  const lectern = new THREE.Group();
-  lectern.position.set(0, 0.96, 0.02);
-  lectern.rotation.x = -0.55;
-  stand.add(lectern);
-  box([0.42, 0.28, 0.02], [0, 0, 0], color('#2a2a2a', { roughness: 0.5, metalness: 0.5 }), lectern);
-  const lecternFace = new THREE.Mesh(track(new THREE.PlaneGeometry(0.384, 0.24)),
-    track(new THREE.MeshStandardMaterial({ map: track(T.artLabel(CART.title, CART.artist)), roughness: 0.8 })));
-  lecternFace.position.z = 0.011;
-  lectern.add(lecternFace);
-
-  const cartLight = shadowSpot(new THREE.SpotLight('#fff3e0', 45, 11, 0.36, 0.6, 1.4));
-  cartLight.position.set(CART.x + 1.2, GALLERY.h - 0.4, CART.z + 2);
-  cartLight.target.position.set(CART.x, 0.7, CART.z);
-  scene.add(cartLight, cartLight.target);
-
   // ---------- OrdinalFrame, on the gallery's end wall ----------
 
   const ordinalProject = projects.find((x) => x.slug === ORDINAL.slug);
@@ -1137,6 +1105,18 @@ function tubeMask(img: CanvasImageSource & { width: number; height: number }) {
   return t;
 }
 
+// A museum wall label (title, artist) on a small backing, at pos in parent
+function artLabel(k: Kit, parent: THREE.Object3D, pos: V3, title: string, artist: string, backing?: THREE.Material) {
+  const label = new THREE.Group();
+  label.position.set(...pos);
+  parent.add(label);
+  k.box([0.4, 0.26, 0.012], [0, 0, 0.006], backing ?? k.color('#d9d6cf', { roughness: 0.9 }), label);
+  const face = new THREE.Mesh(k.track(new THREE.PlaneGeometry(0.384, 0.24)),
+    k.track(new THREE.MeshStandardMaterial({ map: k.track(T.artLabel(title, artist)), roughness: 0.8 })));
+  face.position.z = 0.0125;
+  label.add(face);
+}
+
 // A phone the size of a person, on a plinth like a sculpture, its screen a
 // portrait video (448 x 960). Stands at [x, z] with its back to a wall;
 // rotY turns it (0 faces +z).
@@ -1314,6 +1294,60 @@ const DRESS: Record<string, (k: Kit) => void> = {
     const ball = new THREE.Mesh(k.track(new THREE.SphereGeometry(0.12, 24, 16)), k.color('#c8642c', { roughness: 0.8 }));
     ball.position.set(-1.6, 0.12, r.z1 + 4.3);
     k.scene.add(ball);
+
+    // The basketball sculptures, hung like a collection on the dark walls,
+    // each under its own warm spot so it reads against the neon
+    const lit = new Map<string, { at: THREE.Vector3; aim: THREE.Vector3; n: number }>();
+    for (const a of MNS_ART.wall) {
+      const g = new THREE.Group();
+      const back = a.wall === 'back', side = a.wall === 'left' ? -1 : 1;
+      const wallZ = r.z1 + WALL_T / 2;
+      if (back) g.position.set(a.at, 0, wallZ + 0.01);
+      else {
+        g.position.set(side < 0 ? r.x0 + 0.01 : r.x1 - 0.01, 0, r.zc + a.at);
+        g.rotation.y = side < 0 ? Math.PI / 2 : -Math.PI / 2;
+      }
+      k.scene.add(g);
+      k.model(a.src, (m) => { m.position.y = a.y; g.add(m); });
+      artLabel(k, g, [a.width / 2 + 0.42, a.labelY, 0], a.title, a.artist);
+      const key = a.wall + a.at;
+      const spot = lit.get(key);
+      if (spot) spot.n++;
+      else lit.set(key, back
+        ? { at: new THREE.Vector3(a.at, ROOM.h - 0.3, wallZ + 3.4), aim: new THREE.Vector3(a.at, 1.9, wallZ), n: 1 }
+        : { at: new THREE.Vector3(side * 3.6, ROOM.h - 0.3, r.zc + a.at), aim: new THREE.Vector3(side * 7, 1.7, r.zc + a.at), n: 1 });
+    }
+    for (const { at, aim, n } of lit.values()) {
+      const pair = n > 1;
+      const s = new THREE.SpotLight('#ffe6c4', pair ? 34 : 26, 7, pair ? 0.55 : 0.45, 0.7, 1.4);
+      s.position.copy(at);
+      s.target.position.copy(aim);
+      if (pair) s.target.position.y = 2.0;
+      k.scene.add(s, s.target);
+    }
+    // Relic Rack on the court, its label on a lectern in front
+    const c = MNS_ART.cart;
+    const cart = new THREE.Group();
+    cart.position.set(c.x, 0, r.zc + c.dz);
+    cart.rotation.y = c.turn;
+    cart.scale.setScalar(c.scale);
+    k.scene.add(cart);
+    k.model(c.src, (m) => { m.position.z = -c.depth / 2; cart.add(m); });
+    const stand = new THREE.Group();
+    stand.position.set(c.x - 0.75, 0, r.zc + c.dz + 1.15);
+    stand.rotation.y = c.turn;
+    k.scene.add(stand);
+    const steel = k.color('#2a2a2a', { roughness: 0.5, metalness: 0.5 });
+    k.box([0.05, 0.92, 0.05], [0, 0.46, 0], steel, stand);
+    const lectern = new THREE.Group();
+    lectern.position.set(0, 0.96, 0.02);
+    lectern.rotation.x = -0.55;
+    stand.add(lectern);
+    artLabel(k, lectern, [0, 0, 0], c.title, c.artist, steel);
+    const cartLight = new THREE.SpotLight('#ffe6c4', 30, 7, 0.4, 0.7, 1.4);
+    cartLight.position.set(c.x - 0.8, ROOM.h - 0.3, r.zc + c.dz + 1.4);
+    cartLight.target.position.set(c.x, 0.7, r.zc + c.dz);
+    k.scene.add(cartLight, cartLight.target);
   },
 
   // A 2007 cubicle: fabric panels, a desk, a beige CRT stuck on a dialog

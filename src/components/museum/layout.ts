@@ -166,43 +166,42 @@ export interface GalleryPiece {
   labelY?: number; // wall label height, when two pieces share one wall
 }
 
-// Hung in bays: each sculpture flanked by two photos, so one stop takes in
-// a whole bay. Bays alternate walls down the hall, and the walk views each
-// one at a slight angle, so turning from wall to wall sweeps through
-// "looking ahead" instead of spinning around.
-// Even rhythm down the hall: each wall hangs a piece every 4.2 m, and the
-// right wall is offset half a step, so walking down the middle the eye
-// moves left, right, left. The three sculptures sit 6.3 m apart, alternating
-// walls, with Relic Rack on the floor after them.
-const PITCH = 4.2;
+// Photos only: the sculptures are basketball pieces, so they live in the
+// Money Never Sleeps room (see MNS_ART). Each wall hangs a print every
+// 5.6 m, the right wall offset half a step, so walking down the middle the
+// eye moves left, right, left.
+const PITCH = 5.6;
 const L = (k: number) => -16.5 - PITCH * k;
-const R = (k: number) => -18.6 - PITCH * k;
+const R = (k: number) => -16.5 - PITCH / 2 - PITCH * k;
 
 export const GALLERY_PIECES: GalleryPiece[] = [
   // Left wall
   { id: 'aj1', kind: 'photo', src: '/media/museum/photos/aj1hanging.jpg', side: -1, z: L(0), y: 2.0, size: 1.5, title: 'Hung Up', note: 'Jordan 1s on a sconce' },
-  // Tyrell Winston, together: the deflated balls hang above the nets
-  { id: 'nets', kind: 'model', src: '/models/museum/tangled-nets.glb', side: -1, z: L(1), y: 0.72, title: 'Tangled Nets', artist: 'Tyrell Winston', width: 1.6, note: 'Frayed nets in red, white and blue, hung from a brass rod' },
-  { id: 'deflated', kind: 'model', src: '/models/museum/deflated-legends.glb', side: -1, z: L(1), y: 2.4, title: 'Deflated Legends', artist: 'Tyrell Winston', width: 1.6, labelY: 1.79, note: 'Twenty-four worn-out game balls, hung in a grid' },
-  { id: 'love', kind: 'photo', src: '/media/museum/photos/love.jpg', side: -1, z: L(2), y: 2.0, size: 1.6, title: 'Love', note: 'Mural on a city wall' },
-  { id: 'framehoop', kind: 'photo', src: '/media/museum/photos/framehoop.jpg', side: -1, z: L(3), y: 2.0, size: 1.5, title: 'Frame Hoop', note: 'A hoop through the print' },
-  { id: 'hoopgarden', kind: 'model', src: '/models/museum/hoop-garden.glb', side: -1, z: L(4), y: 1.2, title: 'Hoop Garden', artist: 'Teddy Santis', width: 1.8, note: 'A backboard over four shelves of potted plants' },
-  { id: 'chandelier', kind: 'photo', src: '/media/museum/photos/chandelier.jpg', side: -1, z: L(5), y: 2.0, size: 1.6, title: 'Chandelier', note: 'Shoes hung from crystal' },
-  { id: 'beached', kind: 'photo', src: '/media/museum/photos/beachedhoop.jpg', side: -1, z: L(6), y: 2.0, size: 1.5, title: 'Beached Hoop', note: 'Framed print' },
+  { id: 'love', kind: 'photo', src: '/media/museum/photos/love.jpg', side: -1, z: L(1), y: 2.0, size: 1.6, title: 'Love', note: 'Mural on a city wall' },
+  { id: 'framehoop', kind: 'photo', src: '/media/museum/photos/framehoop.jpg', side: -1, z: L(2), y: 2.0, size: 1.5, title: 'Frame Hoop', note: 'A hoop through the print' },
+  { id: 'chandelier', kind: 'photo', src: '/media/museum/photos/chandelier.jpg', side: -1, z: L(3), y: 2.0, size: 1.6, title: 'Chandelier', note: 'Shoes hung from crystal' },
+  { id: 'beached', kind: 'photo', src: '/media/museum/photos/beachedhoop.jpg', side: -1, z: L(4), y: 2.0, size: 1.5, title: 'Beached Hoop', note: 'Framed print' },
   // Right wall
   { id: 'moto', kind: 'photo', src: '/media/museum/photos/motoDeath.jpg', side: 1, z: R(0), y: 2.0, size: 1.6, title: 'Last Ride', note: 'Wall mural' },
   { id: 'hoody', kind: 'photo', src: '/media/museum/photos/hoody.jpg', side: 1, z: R(1), y: 2.0, size: 1.6, title: 'Hoody', note: 'Hoodie and flag, in paint' },
-  { id: 'scars', kind: 'model', src: '/models/museum/scars-of-the-game.glb', side: 1, z: R(2), y: 0.78, title: 'Shooting Hoops', artist: 'New York Sunshine', width: 1.6, note: 'A chain net hung from a field of weathered rods' },
-  { id: 'surfing', kind: 'photo', src: '/media/museum/photos/surfingEvolution.jpg', side: 1, z: R(3), y: 2.0, size: 1.7, title: 'Surfing Evolution', note: 'A painted wall by the beach' },
-  { id: 'vibe', kind: 'photo', src: '/media/museum/photos/vibe.jpg', side: 1, z: R(4), y: 2.0, size: 1.7, title: 'Vibe', note: 'Building mural' },
-  { id: 'hang11', kind: 'photo', src: '/media/museum/photos/hang11.jpg', side: 1, z: R(5), y: 2.0, size: 1.5, title: 'Hang 11', note: 'A sneaker on the line' },
+  { id: 'surfing', kind: 'photo', src: '/media/museum/photos/surfingEvolution.jpg', side: 1, z: R(2), y: 2.0, size: 1.7, title: 'Surfing Evolution', note: 'A painted wall by the beach' },
+  { id: 'vibe', kind: 'photo', src: '/media/museum/photos/vibe.jpg', side: 1, z: R(3), y: 2.0, size: 1.7, title: 'Vibe', note: 'Building mural' },
+  { id: 'hang11', kind: 'photo', src: '/media/museum/photos/hang11.jpg', side: 1, z: R(4), y: 2.0, size: 1.5, title: 'Hang 11', note: 'A sneaker on the line' },
 ];
 
-// Relic Rack stands on the floor in the middle of the hall, on its
-// casters, turned a little toward the visitor walking up
-export const CART = {
-  x: 0, z: -40, turn: -0.35, scale: 1.12, depth: 0.4, src: '/models/museum/blue-planet-cart.glb',
-  title: 'Relic Rack', artist: 'Daniel Arsham',
+// The basketball sculptures, in the Money Never Sleeps room, gathered in
+// the back half where every stop's view falls. Wall pieces hang on the
+// left, right or back wall; `at` is z from the room's center on a side
+// wall, or x on the back wall. y is the bottom edge. Relic Rack stands on
+// the court on its casters.
+export const MNS_ART = {
+  wall: [
+    { src: '/models/museum/tangled-nets.glb', wall: 'left', at: -4.6, y: 0.72, width: 1.6, title: 'Tangled Nets', artist: 'Tyrell Winston', labelY: 1.45 },
+    { src: '/models/museum/deflated-legends.glb', wall: 'left', at: -4.6, y: 2.4, width: 1.6, title: 'Deflated Legends', artist: 'Tyrell Winston', labelY: 1.79 },
+    { src: '/models/museum/scars-of-the-game.glb', wall: 'right', at: -4.8, y: 0.78, width: 1.6, title: 'Shooting Hoops', artist: 'New York Sunshine', labelY: 1.45 },
+    { src: '/models/museum/hoop-garden.glb', wall: 'back', at: 5.0, y: 1.2, width: 1.8, title: 'Hoop Garden', artist: 'Teddy Santis', labelY: 1.45 },
+  ] as { src: string; wall: 'left' | 'right' | 'back'; at: number; y: number; width: number; title: string; artist: string; labelY: number }[],
+  cart: { x: 3.5, dz: -2.3, turn: -0.9, scale: 1.12, depth: 0.4, src: '/models/museum/blue-planet-cart.glb', title: 'Relic Rack', artist: 'Daniel Arsham' },
 };
 
 // Scroll per stop, in screen heights: room to linger at each piece
@@ -220,32 +219,15 @@ function piece(id: string) {
   return GALLERY_PIECES.find((p) => p.id === id)!;
 }
 
-function bay(id: string, left: string, right: string): Station {
-  const p = piece(id);
-  return {
-    id, group: 'Gallery', label: p.title, artist: p.artist,
-    sub: `${p.note}. Flanked by ${piece(left).title} and ${piece(right).title}.`,
-    ...bayView(p.side, p.z, p.kind === 'model' ? 1.75 : 1.9),
-  };
-}
-
 export function buildStations(projects: MuseumProject[], tours: Record<string, PanelContent[]> = {}): Station[] {
   const stations: Station[] = [
     { id: 'entrance', group: 'Lobby', label: 'Sean Munley', sub: 'Selected works. Scroll to walk in.', pos: [0, EYE, 4.5], look: [0, 4.2, -14] },
     { id: 'mark', group: 'Lobby', label: 'The S', sub: 'Porcelain and gold leaf, on a marble plinth', pos: [0, 2.0, -4.2], look: [0, 1.9, -8.5] },
-    { id: 'gallery', group: 'Gallery', label: 'The Gallery', sub: 'Basketball art from the mood board, under a glass roof', pos: [0, EYE, -11.5], look: [0, 3.1, -32] },
+    { id: 'gallery', group: 'Gallery', label: 'The Gallery', sub: 'Prints from the mood board, under a glass roof', pos: [0, EYE, -11.5], look: [0, 3.1, -32] },
   ];
   stations.push(
-    {
-      id: 'winston', group: 'Gallery', label: 'Tangled Nets & Deflated Legends', artist: 'Tyrell Winston',
-      sub: 'Twenty-four worn-out game balls over frayed red, white and blue nets. Flanked by Hung Up and Love.',
-      ...bayView(-1, piece('nets').z, 2.0),
-    },
-    bay('scars', 'hoody', 'surfing'),
-    bay('hoopgarden', 'framehoop', 'chandelier'),
-    { id: 'cart', group: 'Gallery', label: CART.title, artist: CART.artist, sub: 'A rack of eroded blue balls, painted like globes', pos: [-1.2, 1.6, CART.z + 3.1], look: [CART.x, 0.75, CART.z] },
-    { id: 'prints-right', group: 'Gallery', label: 'Prints', sub: 'Vibe and Hang 11', ...bayView(1, (piece('vibe').z + piece('hang11').z) / 2, 1.95) },
-    { id: 'prints-left', group: 'Gallery', label: 'Beached Hoop', sub: 'Framed print', ...bayView(-1, piece('beached').z, 1.95) },
+    { id: 'prints-right', group: 'Gallery', label: 'Prints', sub: 'Hoody and Surfing Evolution', ...bayView(1, (piece('hoody').z + piece('surfing').z) / 2, 1.95) },
+    { id: 'prints-left', group: 'Gallery', label: 'Prints', sub: 'Chandelier and Beached Hoop', ...bayView(-1, (piece('chandelier').z + piece('beached').z) / 2, 1.95) },
     ...ordinalStop(projects),
   );
 
