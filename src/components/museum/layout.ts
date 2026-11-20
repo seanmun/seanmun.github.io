@@ -107,13 +107,16 @@ export function roomTour(slug: string, index: number): TourStop[] | null {
         ] }, pos: [-1.2, 1.75, r.z1 + 5.6], look: [-3.9, 2.3, r.z1], place: [1.05, -0.05, 2.5] },
         { ...finale('A real Outlook template, written byte by byte'), look: [3.0, 1.9, r.z1], place: [-0.75, -0.1, 2.5] },
       ];
-    case 'buddy-cup':
+    case 'buddy-cup': {
+      // Outdoors: out the back door onto the hole
+      const C = COURSE;
       return [
-        arrive([-6, 2.2, r.zc], [0.95, 0.05, 2.5]),
-        { id: 'mat', label: 'On the mat', panel: { kind: 'section', heading: 'The idea' }, pos: [1.6, 1.65, r.zc + 1.6], look: [-7, 2.0, r.zc + 0.4], place: [1.0, -0.1, 2.4] },
-        { id: 'bag', label: 'The bag', panel: { kind: 'section', heading: 'Signature features' }, pos: [2.2, 1.7, r.zc - 0.2], look: [4.5, 0.9, r.zc - 3], place: [-0.6, 0.2, 2.4] },
-        { id: 'finale', label: 'Before you go', panel: { kind: 'finale', heading: 'On the course: iPhone and Apple Watch' }, pos: [-2.4, 1.75, r.z1 + 5.8], look: [-4.2, 2.1, r.z1], place: [1.05, -0.05, 2.5] },
+        { id: 'arrive', label: 'Out on the course', panel: { kind: 'overview' }, pos: [C.doorX, 1.75, C.z0 - 1.6], look: [C.green.x - 1, 0.9, C.green.z], place: [0.95, 0.05, 2.5] },
+        { id: 'green', label: 'The green', panel: { kind: 'section', heading: 'The idea' }, pos: [C.cup.x + 2.6, 1.7, C.cup.z + 9.5], look: [C.cup.x, 1.0, C.cup.z], place: [-0.95, -0.05, 2.4] },
+        { id: 'bunker', label: 'The bunker', panel: { kind: 'section', heading: 'Signature features' }, pos: [C.bunker.x + 5.2, 1.7, C.bunker.z + 5.6], look: [C.bunker.x - 0.5, 0.0, C.bunker.z - 0.6], place: [0.95, 0.05, 2.4] },
+        { id: 'finale', label: 'Before you go', panel: { kind: 'finale', heading: 'On the course: iPhone and Apple Watch' }, pos: [C.phone.x - 4.4, 1.75, C.phone.z + 6.2], look: [C.phone.x, 2.0, C.phone.z], place: [-0.95, -0.05, 2.5] },
       ];
+    }
     case 'rocket-pool-tour':
       return [
         arrive([3.2, 0.9, r.zc - 1]),
@@ -151,15 +154,30 @@ export const LOBBY = { x0: -9, x1: 9, z0: 6, z1: -14, h: 12 };
 export const GALLERY = { x0: -6, x1: 6, z0: -14, z1: -48, h: 8 };
 export const ROOM = { width: 14, depth: 14, h: 6, doorX: 1.8, doorW: 3.2, doorH: 3.6 };
 
-// Room order follows the project grid on the home page
+// Room order follows the project grid on the home page, except Buddy Cup:
+// its room is outdoors, so it comes last, out the museum's back door
 export const ROOM_SLUGS = [
   'kinetic-email',
   'money-never-sleeps',
   'outlooksucks',
-  'buddy-cup',
   'rocket-pool-tour',
   'human-diet',
+  'buddy-cup',
 ] as const;
+export const OUTDOOR_SLUG = 'buddy-cup';
+
+// Buddy Cup's hole, out the back door (world coordinates). z0 is the
+// building's back wall; the course runs away from it toward -z.
+const COURSE_Z0 = GALLERY.z1 - ROOM.depth * ROOM_SLUGS.indexOf(OUTDOOR_SLUG);
+export const COURSE = {
+  z0: COURSE_Z0,
+  doorX: ROOM.doorX,
+  green: { x: -1.5, z: COURSE_Z0 - 19, rx: 9.5, rz: 7, rot: 0.15 },
+  cup: { x: 0.6, z: COURSE_Z0 - 20 },
+  bunker: { x: -10.6, z: COURSE_Z0 - 12.6, rx: 3.9, rz: 1.9, rot: 0.45 },
+  tree: { x: -15, z: COURSE_Z0 - 50 },
+  phone: { x: 9.2, z: COURSE_Z0 - 14.5, rotY: -0.5 },
+};
 
 // OrdinalFrame closes the gallery: on the end wall, left of the doorway
 // into the rooms, the last piece of art before the projects. z is the
@@ -293,7 +311,6 @@ function enterLook(slug: string, zc: number): V3 {
     case 'kinetic-email': return [6, 1.8, zc - 0.5]; // the screens of the app at work
     case 'money-never-sleeps': return [-3, 2.4, zc - 4]; // the hoop and ribbon board
     case 'outlooksucks': return [3.6, 1.1, zc - 2.2]; // into the cubicle
-    case 'buddy-cup': return [-6, 2.2, zc]; // the sim screen
     case 'rocket-pool-tour': return [3.2, 0.9, zc - 1]; // the table
     case 'human-diet': return [3.6, 1.0, zc - 1.2]; // the diorama
     default: return [-3, 2.0, zc - 2];
@@ -304,7 +321,7 @@ export const ROOM_NOTES: Record<string, string> = {
   'kinetic-email': 'Interactive email, built by AI, at work on the wall',
   'money-never-sleeps': 'Center court, with the market on the ribbon board',
   outlooksucks: 'A cubicle, circa 2007. Outlook is still rendering.',
-  'buddy-cup': 'The simulator bay. Match play, scored live.',
+  'buddy-cup': 'Out the back door, onto the course. Match play, scored live.',
   'rocket-pool-tour': 'The pool hall: a pro billiards league, start to finish',
   'human-diet': 'A natural history diorama, 300,000 years of eating',
 };

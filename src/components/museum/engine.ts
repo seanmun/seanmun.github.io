@@ -19,11 +19,12 @@ import { Font, type FontData } from 'three/examples/jsm/loaders/FontLoader.js';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import orbitronName from './orbitron-name.json'; // Orbitron Black, just the letters of the name (SIL OFL)
 import { buildTrees } from './trees';
+import { buildCourse, courseHeight } from './course';
 import { createPost } from './post';
 import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js';
 import * as T from './textures';
 import {
-  GALLERY, GALLERY_PIECES, MNS_ART, LOBBY, ORDINAL, ROOM, ROOM_SLUGS, roomBounds,
+  COURSE, GALLERY, GALLERY_PIECES, MNS_ART, LOBBY, ORDINAL, OUTDOOR_SLUG, ROOM, ROOM_SLUGS, roomBounds,
   type MuseumProject, type Station, type V3,
 } from './layout';
 
@@ -267,6 +268,38 @@ export function createMuseum(host: HTMLElement, opts: Options): MuseumHandle {
     sun.shadow.autoUpdate = false;
   }
   scene.add(sun, sun.target);
+  // Out on the course it's late afternoon: the sun sinks to about 28° and
+  // swings round ahead and to the left, so the grass is backlit and shadows
+  // reach toward you. The sky follows it. (Nothing indoors is visible from
+  // out there, so the rooms keep their midday light.) The shadow map then
+  // covers just the hole, so the tree's and the flag's shadows stay crisp.
+  const SUN_OUT = new THREE.Vector3(-0.45, 0.47, -0.76).normalize();
+  const sunDir = SUN_DIR.clone();
+  const COURSE_CENTER = new THREE.Vector3(COURSE.green.x - 3, 0, COURSE.z0 - 26);
+  const sunCenter = MUSEUM_CENTER.clone();
+  let outT = 0; // 0 indoors, 1 out on the course
+  const setOutdoors = (on: boolean, dt: number) => {
+    const goal = on ? 1 : 0;
+    if (outT === goal) return;
+    outT = reduceMotion ? goal : Math.abs(goal - outT) < 0.002 ? goal : outT + (goal - outT) * (1 - Math.exp(-dt * 2.2));
+    const e = outT * outT * (3 - 2 * outT);
+    sunDir.copy(SUN_DIR).lerp(SUN_OUT, e).normalize();
+    skyU.sunPosition.value.copy(sunDir);
+    // a tighter, fainter halo round the sun, and less glow, once it's in view
+    skyU.mieCoefficient.value = THREE.MathUtils.lerp(0.004, 0.0018, e);
+    skyU.mieDirectionalG.value = THREE.MathUtils.lerp(0.8, 0.9, e);
+    post?.setBloom(THREE.MathUtils.lerp(0.2, 0.05, e), THREE.MathUtils.lerp(4, 14, e));
+    sunCenter.lerpVectors(MUSEUM_CENTER, COURSE_CENTER, e);
+    sun.target.position.copy(sunCenter);
+    sun.position.copy(sunCenter).addScaledVector(sunDir, 90);
+    if (mobile) return;
+    const cam = sun.shadow.camera, half = outT > 0.5 ? 40 : 80;
+    if (cam.right !== half) {
+      cam.left = -half; cam.right = half; cam.top = half; cam.bottom = -half;
+      cam.updateProjectionMatrix();
+    }
+    sunDirty = Math.max(sunDirty, 2);
+  };
   // Less fill on desktop, so sunlit and shaded areas read as daylight does
   scene.add(new THREE.HemisphereLight('#eef2f6', '#4a4741', mobile ? 0.6 : 0.5));
 
@@ -490,15 +523,19 @@ export function createMuseum(host: HTMLElement, opts: Options): MuseumHandle {
   const animators: ((t: number, dt: number) => void)[] = [];
   const clickable: THREE.Object3D[] = [];
 
-  const roomStyle: Record<string, { wall: Mat; floor: Mat | null; ceil: Mat; fog: string }> = {
+  // fogRange: [near, far]; rooms keep the building's default
+  const roomStyle: Record<string, { wall: Mat; floor: Mat | null; ceil: Mat; fog: string; fogRange?: [number, number] }> = {
     'kinetic-email': { wall: M.plaster, floor: M.polished, ceil: M.ceiling, fog: '#d9d5ce' },
     'money-never-sleeps': { wall: std(track(T.grain('#0e0e15', 7, 0.05)), 4), floor: null, ceil: std(track(T.grain('#09090d', 8, 0.04)), 4), fog: '#0a0a0f' },
     outlooksucks: { wall: std(track(T.grain('#cbc3ae', 9)), 4), floor: std(track(T.grain('#56606b', 10, 0.18)), 2), ceil: std(track(T.grain('#ecebe6', 11)), 4), fog: '#c9c4b5' },
-    'buddy-cup': { wall: std(track(T.grain('#232625', 12)), 4), floor: std(track(T.turf()), 2), ceil: std(track(T.grain('#1a1c1b', 13)), 4), fog: '#1f2321' },
+    // Outdoors: "wall" is the building's back face, seen from the course;
+    // the fog is a blue daylight haze that hides where the world ends
+    'buddy-cup': { wall: M.concrete, floor: null, ceil: M.ceiling, fog: '#c3d0da', fogRange: [32, 185] },
     'rocket-pool-tour': { wall: std(track(T.grain('#1c2a23', 14)), 4), floor: std(track(T.grain('#3b2717', 15, 0.12)), 3, { roughness: 0.5 }), ceil: std(track(T.grain('#141c18', 16)), 4), fog: '#1a221e' },
     'human-diet': { wall: std(track(T.grain('#c6ab84', 17)), 4), floor: std(track(T.grain('#b39770', 18, 0.14)), 3), ceil: std(track(T.grain('#d8c7a8', 19)), 4), fog: '#c9b391' },
   };
   Object.values(roomStyle).forEach((s) => { track(s.wall); if (s.floor) track(s.floor); track(s.ceil); });
+  const FOG_RANGE: [number, number] = [22, 75];
 
   // Gallery to first room
   partition(GALLERY.z1, -ROOM.width / 2 - WALL_T, ROOM.width / 2 + WALL_T, GALLERY.h, M.plaster, roomStyle[ROOM_SLUGS[0]].wall,
@@ -522,8 +559,35 @@ export function createMuseum(host: HTMLElement, opts: Options): MuseumHandle {
     const r = roomBounds(i);
     const style = roomStyle[slug];
     const p = projects.find((x) => x.slug === slug);
-    space(r, style.wall, style.floor ?? M.polished, style.ceil);
     const next = ROOM_SLUGS[i + 1];
+    // The course is outdoors: no walls, no ceiling, no screen; the hole
+    // itself is built in its dressing (see course.ts)
+    // A video that starts loading when the visitor nears this room
+    const addVideo = (src: string, mat: THREE.MeshBasicMaterial) => {
+      const video = document.createElement('video');
+      video.muted = true;
+      video.loop = true;
+      video.playsInline = true;
+      video.preload = 'none';
+      videoScreens.push({ index: i, video, src, mat, loaded: false });
+    };
+    // still: the poster only, never the video (to spare a phone's decoders)
+    const videoMat = (src: string, poster: string, still = false) => {
+      const mat = track(new THREE.MeshBasicMaterial({ color: '#111', toneMapped: false }));
+      loader.load(poster, (t) => {
+        t.colorSpace = THREE.SRGBColorSpace;
+        track(t);
+        if (!mat.map) { mat.map = t; mat.color.set('#fff'); mat.needsUpdate = true; }
+      });
+      if (!still) addVideo(src, mat);
+      return mat;
+    };
+
+    if (slug === OUTDOOR_SLUG) {
+      DRESS[slug]?.({ r, scene, box, plane, color, basic, track, animators, reduceMotion, slab, clickable, videoMat, model: model(i), mobile });
+      return;
+    }
+    space(r, style.wall, style.floor ?? M.polished, style.ceil);
     partition(r.z1, r.x0 - WALL_T, r.x1 + WALL_T, ROOM.h, style.wall, next ? roomStyle[next].wall : style.wall,
       next ? { x: ROOM.doorX, w: ROOM.doorW, h: ROOM.doorH } : undefined);
 
@@ -538,13 +602,13 @@ export function createMuseum(host: HTMLElement, opts: Options): MuseumHandle {
     }
 
     // Room light
-    const lamp = new THREE.PointLight('#fff1dc', slug === 'buddy-cup' || slug === 'rocket-pool-tour' ? 14 : slug === 'money-never-sleeps' ? 9 : 26, 0, 1.6);
+    const lamp = new THREE.PointLight('#fff1dc', slug === 'rocket-pool-tour' ? 14 : slug === 'money-never-sleeps' ? 9 : 26, 0, 1.6);
     lamp.position.set(0, ROOM.h - 0.6, r.zc);
     scene.add(lamp);
 
     // The screen on the left wall, and the placard to its right
     const screenZ = r.zc + 0.4;
-    const screenH = slug === 'buddy-cup' ? 3.2 : 2.5;
+    const screenH = 2.5;
     const screenGroup = new THREE.Group();
     screenGroup.position.set(r.x0 + 0.06, 2.45, screenZ);
     screenGroup.rotation.y = Math.PI / 2;
@@ -557,7 +621,7 @@ export function createMuseum(host: HTMLElement, opts: Options): MuseumHandle {
     screen.userData.slug = slug;
     clickable.push(screen);
     const fit = (aspect: number) => {
-      const w = Math.min(slug === 'buddy-cup' ? 6.2 : 4.6, screenH * aspect);
+      const w = Math.min(4.6, screenH * aspect);
       const h = w / aspect;
       screen.scale.set(w, h, 1);
       bezel.scale.set(w + 0.14, h + 0.14, 1);
@@ -574,34 +638,7 @@ export function createMuseum(host: HTMLElement, opts: Options): MuseumHandle {
         fit(img.width / img.height);
       });
     }
-    if (media.canvas) {
-      const t = track(media.canvas());
-      screenMat.map = t;
-      screenMat.color.set('#fff');
-      fit(16 / 9);
-    }
-    // A video that starts loading when the visitor nears this room
-    const addVideo = (src: string, mat: THREE.MeshBasicMaterial) => {
-      const video = document.createElement('video');
-      video.muted = true;
-      video.loop = true;
-      video.playsInline = true;
-      video.preload = 'none';
-      videoScreens.push({ index: i, video, src, mat, loaded: false });
-    };
     if (media.video) addVideo(media.video, screenMat);
-    // still: the poster only, never the video (to spare a phone's decoders)
-    const videoMat = (src: string, poster: string, still = false) => {
-      const mat = track(new THREE.MeshBasicMaterial({ color: '#111', toneMapped: false }));
-      loader.load(poster, (t) => {
-        t.colorSpace = THREE.SRGBColorSpace;
-        track(t);
-        if (!mat.map) { mat.map = t; mat.color.set('#fff'); mat.needsUpdate = true; }
-      });
-      if (!still) addVideo(src, mat);
-      return mat;
-    };
-
     const toured = stations.some((st) => st.slug === slug && st.panel !== undefined);
     if (p && !toured) {
       const pt = track(T.placard(p.title, `${p.status} · ${p.techStack.slice(0, 4).join(', ')}`, 'Click to read the placard →'));
@@ -972,6 +1009,10 @@ export function createMuseum(host: HTMLElement, opts: Options): MuseumHandle {
   };
   buildRoute(false);
   const fogColors = stations.map((s) => new THREE.Color(s.slug ? roomStyle[s.slug]?.fog ?? '#d9d5ce' : '#d9d5ce'));
+  const fogRanges = stations.map((s) => (s.slug && roomStyle[s.slug]?.fogRange) || FOG_RANGE);
+  const fogNearFar = new THREE.Vector2(...FOG_RANGE), fogNearFarTarget = fogNearFar.clone();
+  // Stops out on the course (the sun's shadow follows the visitor outdoors)
+  const firstOutdoor = stations.findIndex((s) => s.slug === OUTDOOR_SLUG);
   const camPos = P[0].clone();
   let camYaw = heading[0].yaw;
   let camPitch = heading[0].pitch;
@@ -1001,6 +1042,10 @@ export function createMuseum(host: HTMLElement, opts: Options): MuseumHandle {
     targetYaw = a.yaw + wrap(b.yaw - a.yaw) * e;
     targetPitch = a.pitch + (b.pitch - a.pitch) * e;
     fogTarget.lerpColors(fogColors[i], fogColors[i + 1], e);
+    fogNearFarTarget.set(
+      THREE.MathUtils.lerp(fogRanges[i][0], fogRanges[i + 1][0], e),
+      THREE.MathUtils.lerp(fogRanges[i][1], fogRanges[i + 1][1], e),
+    );
     // While resting, drift gently toward what you're looking at, so scrolling
     // through a stop still feels like moving, not a dead zone
     const near = Math.round(clamped);
@@ -1223,6 +1268,10 @@ export function createMuseum(host: HTMLElement, opts: Options): MuseumHandle {
     camYaw += wrap(targetYaw - camYaw) * k;
     camPitch += (targetPitch - camPitch) * k;
     (scene.fog as THREE.Fog).color.lerp(fogTarget, k);
+    fogNearFar.lerp(fogNearFarTarget, k);
+    (scene.fog as THREE.Fog).near = fogNearFar.x;
+    (scene.fog as THREE.Fog).far = fogNearFar.y;
+    setOutdoors(firstOutdoor >= 0 && scroll > firstOutdoor - 0.6, dt);
     (scene.background as THREE.Color).copy((scene.fog as THREE.Fog).color);
     camera.position.copy(camPos);
     let yaw = camYaw, pitch = camPitch;
@@ -1283,11 +1332,10 @@ export function createMuseum(host: HTMLElement, opts: Options): MuseumHandle {
 
 // ---------- room media ----------
 
-const ROOM_MEDIA: Record<string, { video?: string; poster?: string; canvas?: () => THREE.Texture }> = {
+const ROOM_MEDIA: Record<string, { video?: string; poster?: string }> = {
   'kinetic-email': { video: '/media/kinetic/sizzle.mp4', poster: '/media/kinetic/sizzle-poster.jpg' },
   'money-never-sleeps': { video: '/media/mns/bump-voice.mp4', poster: '/media/mns/bump-voice.jpg' },
   outlooksucks: { video: '/media/outlooksucks/hero.mp4', poster: '/media/outlooksucks/hero.jpg' },
-  'buddy-cup': { canvas: T.fairway },
   'rocket-pool-tour': { video: '/media/rocket/deck.mp4', poster: '/media/rocket/deck.jpg' },
   'human-diet': { video: '/media/humandiet/walk.mp4', poster: '/media/humandiet/walk.jpg' },
 };
@@ -1376,6 +1424,7 @@ function giantPhone(k: Kit, at: [number, number], rotY: number, video: string, p
   const spill = new THREE.PointLight('#7fb4ff', 1.6, 2.6, 2);
   spill.position.set(0, 1.5, 1.0);
   phone.add(spill);
+  return { phone, spot };
 }
 
 const DRESS: Record<string, (k: Kit) => void> = {
@@ -1549,38 +1598,21 @@ const DRESS: Record<string, (k: Kit) => void> = {
     }
   },
 
-  // The simulator bay: hitting mat, a ball on a tee, a bag in the corner
+  // Out on the course: the hole (course.ts), and the app on a giant phone
+  // standing on the grass beside the green
   'buddy-cup'(k) {
-    const { r } = k;
-    // On the back wall, the iPhone app: entering a hole's scores, then the
-    // cup page (sample players)
-    giantPhone(k, [-4.2, r.z1 + WALL_T / 2 + 0.42], 0, '/media/buddycup/phone.mp4', '/media/buddycup/phone.jpg',
+    const C = COURSE;
+    buildCourse({ scene: k.scene, track: k.track, animators: k.animators, mobile: k.mobile, reduceMotion: k.reduceMotion });
+    // The iPhone app: entering a hole's scores, then the cup page (sample players)
+    const { phone, spot } = giantPhone(k, [C.phone.x, C.phone.z], C.phone.rotY, '/media/buddycup/phone.mp4', '/media/buddycup/phone.jpg',
       ['The app', 'Buddy Cup', 'Score a hole, watch the cup move', 'Sample trip, invented players']);
-    const mat = k.color('#1f4a26', { roughness: 0.95 });
-    k.box([1.6, 0.03, 1.6], [-0.6, 0.015, r.zc + 0.4], mat);
-    k.box([0.012, 0.04, 0.012], [-0.9, 0.05, r.zc + 0.4], k.color('#f2f2f2'));
-    const ball = new THREE.Mesh(k.track(new THREE.SphereGeometry(0.021, 16, 12)), k.color('#ffffff', { roughness: 0.4 }));
-    ball.position.set(-0.9, 0.092, r.zc + 0.4);
-    k.scene.add(ball);
-    const bag = new THREE.Group();
-    bag.position.set(4.5, 0, r.zc - 3);
-    bag.rotation.z = 0.12;
-    k.scene.add(bag);
-    const bagBody = new THREE.Mesh(k.track(new THREE.CylinderGeometry(0.16, 0.14, 0.9, 20)), k.color('#b52a2a', { roughness: 0.7 }));
-    bagBody.position.y = 0.45;
-    bag.add(bagBody);
-    const steel = k.color('#cfd3d6', { roughness: 0.25, metalness: 0.9 });
-    for (let i = 0; i < 6; i++) {
-      const shaft = new THREE.Mesh(k.track(new THREE.CylinderGeometry(0.008, 0.008, 0.5, 6)), steel);
-      shaft.position.set(Math.cos(i) * 0.08, 1.1, Math.sin(i) * 0.08);
-      bag.add(shaft);
-      const head = new THREE.Mesh(k.track(new THREE.BoxGeometry(0.06, 0.05, 0.1)), k.color('#1a1a1a'));
-      head.position.set(Math.cos(i) * 0.08, 1.36, Math.sin(i) * 0.08);
-      bag.add(head);
-    }
-    // Netting around the screen
-    const netMat = k.track(new THREE.MeshBasicMaterial({ color: '#0c0d0c', transparent: true, opacity: 0.55 }));
-    for (const z of [-3.3, 4.1]) k.plane(3.5, 4.2, netMat, [r.x0 + 1.75, 2.1, r.zc + z]);
+    // Sit the plinth on the slope: its lowest corner just into the grass
+    const lowest = Math.min(...[[-1, -0.45], [1, -0.45], [-1, 0.5], [1, 0.5]].map(([dx, dz]) => {
+      const c = Math.cos(C.phone.rotY), s = Math.sin(C.phone.rotY);
+      return courseHeight(C.phone.x + dx * c + dz * s, C.phone.z - dx * s + dz * c);
+    }));
+    phone.position.y += lowest - 0.04;
+    spot.intensity = 0; // the sun lights it out here
   },
 
   // The pool hall: a table under a low lamp, a rack ready to break

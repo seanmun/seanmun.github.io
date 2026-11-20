@@ -87,6 +87,11 @@ export function createPost(renderer: THREE.WebGLRenderer, scene: THREE.Scene, ca
     // Ambient occlusion on or off (the engine turns it off on slow machines)
     get ao() { return gtao.enabled; },
     set ao(on: boolean) { gtao.enabled = on; },
+    // Outdoors, with the sun in view, the glow would wash out the whole sky
+    setBloom(strength: number, threshold: number) {
+      bloom.strength = strength;
+      bloom.threshold = threshold;
+    },
     setSize(w: number, h: number, pixelRatio: number) {
       composer.setPixelRatio(pixelRatio);
       composer.setSize(w, h);

@@ -296,21 +296,6 @@ export function neonCourt(basketX = 0) {
   return { map, glow };
 }
 
-// Synthetic turf. Tile: 2m.
-export function turf() {
-  const S = 512;
-  const [c, ctx] = canvas(S, S);
-  const r = rng(31);
-  ctx.fillStyle = '#2f6b2c';
-  ctx.fillRect(0, 0, S, S);
-  for (let i = 0; i < 26000; i++) {
-    const g = 80 + r() * 90;
-    ctx.fillStyle = `rgba(${g * 0.45},${g},${g * 0.35},0.6)`;
-    ctx.fillRect(r() * S, r() * S, 1, 2 + r() * 3);
-  }
-  return finish(c);
-}
-
 // Billiard felt. Tile: 1m.
 export function felt(base = '#1d6b4f') {
   return grain(base, 41, 0.05);
@@ -415,90 +400,6 @@ function wrap(ctx: CanvasRenderingContext2D, text: string, x: number, y: number,
     }
   }
   if (line) ctx.fillText(line, x, y);
-}
-
-// The golf simulator's impact screen: a hole drawn in perspective with a
-// match-play scoreboard, like a sim between shots.
-export function fairway() {
-  const W = 1600, H = 900;
-  const [c, ctx] = canvas(W, H);
-  const r = rng(77);
-  const sky = ctx.createLinearGradient(0, 0, 0, H * 0.45);
-  sky.addColorStop(0, '#6aa8e8');
-  sky.addColorStop(1, '#cfe6f5');
-  ctx.fillStyle = sky;
-  ctx.fillRect(0, 0, W, H);
-  for (let i = 0; i < 7; i++) {
-    ctx.fillStyle = 'rgba(255,255,255,0.7)';
-    const x = r() * W, y = 40 + r() * 160;
-    for (let k = 0; k < 5; k++) {
-      ctx.beginPath();
-      ctx.ellipse(x + k * 34, y + (k % 2) * 8, 46, 22, 0, 0, Math.PI * 2);
-      ctx.fill();
-    }
-  }
-  ctx.fillStyle = '#4c7d48'; // tree line
-  for (let x = 0; x < W; x += 18) {
-    const h = 50 + r() * 60;
-    ctx.beginPath();
-    ctx.ellipse(x, H * 0.45, 26, h, 0, 0, Math.PI * 2);
-    ctx.fill();
-  }
-  ctx.fillStyle = '#3f8a3a';
-  ctx.fillRect(0, H * 0.45, W, H);
-  ctx.fillStyle = '#62b04f'; // fairway, narrowing toward the green
-  ctx.beginPath();
-  ctx.moveTo(W * 0.18, H);
-  ctx.bezierCurveTo(W * 0.35, H * 0.7, W * 0.42, H * 0.55, W * 0.5, H * 0.47);
-  ctx.bezierCurveTo(W * 0.58, H * 0.55, W * 0.66, H * 0.7, W * 0.84, H);
-  ctx.fill();
-  ctx.fillStyle = '#e8d9a6'; // bunker
-  ctx.beginPath();
-  ctx.ellipse(W * 0.6, H * 0.52, 60, 14, 0.1, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.fillStyle = '#7cc463';
-  ctx.beginPath();
-  ctx.ellipse(W * 0.5, H * 0.475, 70, 14, 0, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.strokeStyle = '#f5f5f5';
-  ctx.lineWidth = 3;
-  ctx.beginPath();
-  ctx.moveTo(W * 0.505, H * 0.475);
-  ctx.lineTo(W * 0.505, H * 0.405);
-  ctx.stroke();
-  ctx.fillStyle = '#e63b2e';
-  ctx.beginPath();
-  ctx.moveTo(W * 0.505, H * 0.405);
-  ctx.lineTo(W * 0.53, H * 0.418);
-  ctx.lineTo(W * 0.505, H * 0.43);
-  ctx.fill();
-  // shot tracer arcing toward the green
-  ctx.strokeStyle = 'rgba(255,214,64,0.95)';
-  ctx.lineWidth = 5;
-  ctx.beginPath();
-  ctx.moveTo(W * 0.5, H * 0.98);
-  ctx.quadraticCurveTo(W * 0.46, H * 0.15, W * 0.505, H * 0.47);
-  ctx.stroke();
-  // scoreboard
-  ctx.fillStyle = 'rgba(10,22,40,0.85)';
-  ctx.fillRect(40, 40, 470, 170);
-  ctx.fillStyle = '#ffffff';
-  ctx.font = '700 34px "Helvetica Neue", Helvetica, Arial, sans-serif';
-  ctx.fillText('BUDDY CUP · HOLE 16', 64, 90);
-  ctx.font = '600 30px "Helvetica Neue", Helvetica, Arial, sans-serif';
-  ctx.fillStyle = '#ff6b6b';
-  ctx.fillText('RED  7½', 64, 140);
-  ctx.fillStyle = '#6bb6ff';
-  ctx.fillText('BLUE  6½', 64, 185);
-  ctx.fillStyle = '#ffd640';
-  ctx.fillText('DORMIE', 330, 140);
-  ctx.fillStyle = 'rgba(10,22,40,0.85)';
-  ctx.fillRect(W - 330, 40, 290, 110);
-  ctx.fillStyle = '#ffffff';
-  ctx.font = '700 30px "Helvetica Neue", Helvetica, Arial, sans-serif';
-  ctx.fillText('CARRY  162 YDS', W - 306, 88);
-  ctx.fillText('TO PIN  4 FT', W - 306, 130);
-  return finish(c, false);
 }
 
 // The beige CRT's screen in the OutlookSucks cubicle.
