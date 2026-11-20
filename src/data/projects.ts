@@ -877,8 +877,8 @@ export const projects: Project[] = [
     showGitStats: false,
     // Media lives in public/media/humandiet: a scroll recording of the live
     // site (sped up 1.6x) and stills from the same session, plus crops of
-    // the Objects and Method & Sources tabs. The 3D models are still the
-    // low-poly placeholders; refresh the media once the Blender models land.
+    // the Objects and Method & Sources tabs. Re-recorded Nov 2026 with the
+    // finished Blender models.
     modalContent: {
       heroMedia: {
         type: "video",
@@ -937,17 +937,15 @@ export const projects: Project[] = [
           ]
         },
         {
-          heading: "Next: a photorealistic world built in Blender",
-          body: "Today's world is a set of low-poly placeholders, and it was built to be replaced. The site's Objects tab is a full production brief: 53 models in the scene now and 11 more planned, each with its real-world size, the era it appears in, and the variants it needs. The next step is to model them in Blender and swap them in one by one.",
+          heading: "A world modelled in Blender",
+          body: "The world started as low-poly placeholders, built to be replaced. The site's Objects tab was the production brief, listing each object's real-world size, the era it appears in and the variants it needs. Each one has since been modelled in Blender and swapped in, more than 80 in all, from the rigged walkers to the woolly mammoth.",
           media: [
-            { type: "image", src: "/media/humandiet/objects.jpg", width: 1500, height: 1260, alt: "The Objects tab: how to deliver a model (one .glb per object, real-world metres, PBR materials, no baked lighting, no real logos) and the first entries, the man, woman and child walkers", caption: "The model brief is already on the site." }
+            { type: "image", src: "/media/humandiet/objects.jpg", width: 1500, height: 1260, alt: "The Objects tab: how to deliver a model (one .glb per object, real-world metres, PBR materials, no baked lighting, no real logos) and the first entries, the man, woman and child walkers", caption: "The model brief lives on the site." }
           ],
           bullets: [
-            "Rigged walkers with a real walk cycle, and lean and heavy body shapes blended by the weight data, in all six era outfits",
+            "Rigged walkers with a real walk cycle in all six era outfits, their height and build following each era's body data",
             "Physically based materials and real-world scale for every object, exported as one compressed .glb per model so it drops straight into the scene",
-            "Image-based lighting, soft shadows, ambient occlusion and atmospheric haze in the browser, so the sun, snow and smog still change with the era",
-            "Level-of-detail versions and instancing for the plants and props scattered by the hundred, to keep it smooth on a phone",
-            "A Blender-rendered cinematic of the full walk, for sharing where a live 3D page can't go"
+            "Instanced crop rows and props scattered by the hundred, with Draco-compressed meshes loaded as the walk reaches them, to keep it smooth on a phone"
           ]
         }
       ],
