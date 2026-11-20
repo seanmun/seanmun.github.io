@@ -393,7 +393,7 @@ export function createMuseum(host: HTMLElement, opts: Options): MuseumHandle {
 
   const roomStyle: Record<string, { wall: Mat; floor: Mat | null; ceil: Mat; fog: string }> = {
     'kinetic-email': { wall: M.plaster, floor: M.polished, ceil: M.ceiling, fog: '#d9d5ce' },
-    'money-never-sleeps': { wall: std(track(T.grain('#18233f', 7)), 4), floor: null, ceil: std(track(T.grain('#10172b', 8)), 4), fog: '#1b2338' },
+    'money-never-sleeps': { wall: std(track(T.grain('#0e0e15', 7, 0.05)), 4), floor: null, ceil: std(track(T.grain('#09090d', 8, 0.04)), 4), fog: '#0a0a0f' },
     outlooksucks: { wall: std(track(T.grain('#cbc3ae', 9)), 4), floor: std(track(T.grain('#56606b', 10, 0.18)), 2), ceil: std(track(T.grain('#ecebe6', 11)), 4), fog: '#c9c4b5' },
     'buddy-cup': { wall: std(track(T.grain('#232625', 12)), 4), floor: std(track(T.turf()), 2), ceil: std(track(T.grain('#1a1c1b', 13)), 4), fog: '#1f2321' },
     'rocket-pool-tour': { wall: std(track(T.grain('#1c2a23', 14)), 4), floor: std(track(T.grain('#3b2717', 15, 0.12)), 3, { roughness: 0.5 }), ceil: std(track(T.grain('#141c18', 16)), 4), fog: '#1a221e' },
@@ -432,7 +432,7 @@ export function createMuseum(host: HTMLElement, opts: Options): MuseumHandle {
     }
 
     // Room light
-    const lamp = new THREE.PointLight('#fff1dc', slug === 'buddy-cup' || slug === 'rocket-pool-tour' ? 14 : 26, 0, 1.6);
+    const lamp = new THREE.PointLight('#fff1dc', slug === 'buddy-cup' || slug === 'rocket-pool-tour' ? 14 : slug === 'money-never-sleeps' ? 9 : 26, 0, 1.6);
     lamp.position.set(0, ROOM.h - 0.6, r.zc);
     scene.add(lamp);
 
@@ -1111,29 +1111,30 @@ interface Kit {
   mobile: boolean;
 }
 
-function hoop(k: Kit, pos: V3, rotY: number) {
-  const g = new THREE.Group();
-  g.position.set(...pos);
-  g.rotation.y = rotY;
-  k.scene.add(g);
-  const white = k.color('#f4f4f2', { roughness: 0.3 });
-  const red = k.color('#c8312c', { roughness: 0.4 });
-  const orange = k.color('#e0552a', { roughness: 0.35, metalness: 0.4 });
-  k.box([1.83, 1.07, 0.05], [0, 0.4, 0.5], white, g);
-  for (const [w, h, x, y] of [[0.59, 0.04, 0, 0.32], [0.59, 0.04, 0, -0.12], [0.04, 0.45, -0.275, 0.1], [0.04, 0.45, 0.275, 0.1]] as const) {
-    k.box([w, h, 0.01], [x, y, 0.53], red, g);
+// The lit tubes of a neon sign, from its colour texture: pale, greenish
+// pixels become MNS green light, everything else (the board, the white
+// net) stays dark. Returns an emissive map.
+function tubeMask(img: CanvasImageSource & { width: number; height: number }) {
+  const k = Math.min(1, 1024 / Math.max(img.width, img.height));
+  const c = document.createElement('canvas');
+  c.width = Math.round(img.width * k);
+  c.height = Math.round(img.height * k);
+  const g = c.getContext('2d', { willReadFrequently: true })!;
+  g.drawImage(img, 0, 0, c.width, c.height);
+  const px = g.getImageData(0, 0, c.width, c.height);
+  const d = px.data;
+  for (let i = 0; i < d.length; i += 4) {
+    const r = d[i], gr = d[i + 1], b = d[i + 2];
+    const lum = 0.3 * r + 0.59 * gr + 0.11 * b;
+    const green = gr - Math.max(r, b * 0.9);
+    const a = Math.min(1, Math.max(0, (lum - 95) / 60)) * Math.min(1, Math.max(0, green / 18));
+    d[i] = 40 * a; d[i + 1] = 255 * a; d[i + 2] = 150 * a; d[i + 3] = 255;
   }
-  k.box([0.08, 0.08, 0.5], [0, 0.4, 0.25], k.color('#333'), g);
-  const rim = new THREE.Mesh(k.track(new THREE.TorusGeometry(0.23, 0.012, 8, 40)), orange);
-  rim.rotation.x = Math.PI / 2;
-  rim.position.set(0, -0.12, 0.76);
-  g.add(rim);
-  const net = new THREE.LineSegments(
-    k.track(new THREE.WireframeGeometry(k.track(new THREE.CylinderGeometry(0.23, 0.14, 0.42, 12, 4, true)))),
-    k.track(new THREE.LineBasicMaterial({ color: '#f2f2f2' })),
-  );
-  net.position.set(0, -0.33, 0.76);
-  g.add(net);
+  g.putImageData(px, 0, 0);
+  const t = new THREE.CanvasTexture(c);
+  t.colorSpace = THREE.SRGBColorSpace;
+  t.flipY = false; // glTF textures aren't flipped
+  return t;
 }
 
 // A phone the size of a person, on a plinth like a sculpture, its screen a
@@ -1230,10 +1231,53 @@ const DRESS: Record<string, (k: Kit) => void> = {
   // Center court: painted hardwood, a hoop, and the market on the ribbon board
   'money-never-sleeps'(k) {
     const { r } = k;
-    const courtTex = k.track(T.court(-3.5));
-    const floor = k.plane(14, 14, k.track(new THREE.MeshStandardMaterial({ map: courtTex, roughness: 0.32 })), [0, 0.003, r.zc]);
+    // Black hardwood, its lines laid in neon: green, cyan and purple
+    const court = T.neonCourt(-3.5);
+    const floor = k.plane(14, 14, k.track(new THREE.MeshStandardMaterial({
+      map: k.track(court.map), emissive: '#ffffff', emissiveMap: k.track(court.glow), emissiveIntensity: 1.6, roughness: 0.28, metalness: 0.1,
+    })), [0, 0.003, r.zc]);
     floor.rotation.x = -Math.PI / 2;
-    hoop(k, [-3.5, 3.05 + 0.12, r.z1 + WALL_T / 2], 0);
+
+    // The hoop (Meshy): a Money Never Sleeps backboard drawn like a $100 bill
+    // in tube lettering. Its pale green tubes are found in the texture and lit
+    // as neon: a glow map of just the tubes, a green spill on the wall, and
+    // the hum and stutter of a gas-discharge sign.
+    const HX = -3.5, wallZ = r.z1 + WALL_T / 2, RIM = 0.467;
+    const neon = { mats: [] as THREE.MeshStandardMaterial[], base: 2.4 };
+    k.model('/models/museum/neon-hoop.glb', (m) => {
+      m.position.set(HX, 3.05 - RIM, wallZ + 0.315 + 0.32);
+      k.scene.add(m);
+      m.traverse((o) => {
+        const mesh = o as THREE.Mesh;
+        if (!mesh.isMesh) return;
+        const mat = mesh.material as THREE.MeshStandardMaterial;
+        if (!mat.map?.image) return;
+        mat.emissive = new THREE.Color('#ffffff');
+        mat.emissiveMap = k.track(tubeMask(mat.map.image as CanvasImageSource & { width: number; height: number }));
+        mat.emissiveIntensity = neon.base;
+        mat.needsUpdate = true;
+        neon.mats.push(mat);
+      });
+    });
+    // the arm from the wall to the board
+    k.box([0.14, 0.14, 0.34], [HX, 3.05 + 0.2, wallZ + 0.17], k.color('#15151b', { roughness: 0.4, metalness: 0.6 }));
+    const spill = new THREE.PointLight('#00ff87', 4, 5, 1.6);
+    spill.position.set(HX, 3.45, wallZ + 0.9);
+    k.scene.add(spill);
+    // Neon hums: a faint 50 Hz shimmer, and every so often a tube stutters
+    let next = 4, stutter = 0;
+    k.animators.push((t, dt) => {
+      if (k.reduceMotion || !neon.mats.length) return;
+      next -= dt;
+      if (next <= 0) { stutter = 0.35 + Math.random() * 0.3; next = 6 + Math.random() * 8; }
+      let v = 1 + 0.025 * Math.sin(t * 50 * Math.PI * 2 / 60 * 7.3);
+      if (stutter > 0) {
+        stutter -= dt;
+        v *= Math.sin(t * 61) > 0.1 ? 1 : 0.25 + Math.random() * 0.2;
+      }
+      for (const mat of neon.mats) mat.emissiveIntensity = neon.base * v;
+      spill.intensity = 4 * v;
+    });
 
     const tick = T.ticker([
       { label: 'MNS', value: '4.2%', up: true }, { label: 'CAP', value: '$154.6M', up: true },

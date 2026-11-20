@@ -217,6 +217,85 @@ export function court(basketX = 0) {
   return t;
 }
 
+// A court in black hardwood with neon lines, in the MNS colours. Returns
+// the floor and a glow map holding only the lines, as light: bright tube
+// cores with a soft halo, for an emissive map.
+export function neonCourt(basketX = 0) {
+  const S = 2048;
+  const [c, ctx] = canvas(S, S);
+  const [gc, gctx] = canvas(S, S);
+  const r = rng(29);
+  const plank = S / 64;
+  for (let x = 0; x < S; x += plank) {
+    let y = -r() * 400;
+    while (y < S) {
+      const len = 300 + r() * 500;
+      const tone = 14 + r() * 12;
+      ctx.fillStyle = `rgb(${tone},${tone},${tone * 1.15})`;
+      ctx.fillRect(x, y, plank, len);
+      for (let g = 0; g < 6; g++) {
+        ctx.fillStyle = `rgba(255,255,255,${0.012 + r() * 0.02})`;
+        ctx.fillRect(x + r() * plank, y, 1, len);
+      }
+      ctx.fillStyle = 'rgba(0,0,0,0.6)';
+      ctx.fillRect(x, y, plank, 2);
+      y += len;
+    }
+    ctx.fillStyle = 'rgba(0,0,0,0.55)';
+    ctx.fillRect(x, 0, 1.5, S);
+  }
+  blotches(ctx, S, S, r, 50, 0.04);
+  gctx.fillStyle = '#000';
+  gctx.fillRect(0, 0, S, S);
+
+  const m = S / 14;
+  const cx = S / 2 + basketX * m;
+  const GREEN = '#00ff87', CYAN = '#00e5ff', PURPLE = '#bf5af2';
+  // the key, faintly tinted purple
+  ctx.fillStyle = 'rgba(191,90,242,0.07)';
+  ctx.fillRect(cx - 2.45 * m, 0, 4.9 * m, 5.8 * m);
+  const paths: [string, (g: CanvasRenderingContext2D) => void][] = [
+    [PURPLE, (g) => { g.strokeRect(cx - 2.45 * m, 0, 4.9 * m, 5.8 * m); }],
+    [PURPLE, (g) => { g.beginPath(); g.arc(cx, 5.8 * m, 1.8 * m, 0, Math.PI); g.stroke(); }],
+    [GREEN, (g) => {
+      g.beginPath();
+      g.moveTo(cx - 6.6 * m, 0);
+      g.lineTo(cx - 6.6 * m, 1.4 * m);
+      g.arc(cx, 1.575 * m, 6.75 * m, Math.PI - 0.08, 0.08, true);
+      g.lineTo(cx + 6.6 * m, 0);
+      g.stroke();
+    }],
+    [CYAN, (g) => { g.beginPath(); g.arc(S / 2, S, 1.8 * m, Math.PI, 0); g.stroke(); }],
+    [CYAN, (g) => { g.beginPath(); g.moveTo(0, S - 1); g.lineTo(S, S - 1); g.stroke(); }],
+  ];
+  // A neon tube: a wide soft halo, the coloured glass, then a hot pale core
+  const W = 0.06 * m;
+  for (const [color, draw] of paths) {
+    for (const [g, glow] of [[ctx, false], [gctx, true]] as const) {
+      g.lineCap = 'round';
+      g.lineJoin = 'round';
+      if (glow) {
+        g.save();
+        g.filter = `blur(${W * 1.6}px)`;
+        g.globalAlpha = 0.55;
+        g.strokeStyle = color;
+        g.lineWidth = W * 3.2;
+        draw(g);
+        g.restore();
+      }
+      g.strokeStyle = color;
+      g.lineWidth = W;
+      draw(g);
+      g.strokeStyle = 'rgba(235,255,245,0.85)';
+      g.lineWidth = W * 0.35;
+      draw(g);
+    }
+  }
+  const map = finish(c, false);
+  const glow = finish(gc, false);
+  return { map, glow };
+}
+
 // Synthetic turf. Tile: 2m.
 export function turf() {
   const S = 512;

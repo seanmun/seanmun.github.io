@@ -115,7 +115,7 @@ export function roomTour(slug: string, index: number): TourStop[] | null {
         { id: 'arrive', label: 'Center court', panel: { kind: 'overview' }, pos: [ROOM.doorX, 1.75, r.z0 - 1.5], look: [-3, 2.3, r.zc - 4], place: [0.8, 0.0, 2.5] },
         { id: 'ribbon', label: 'The ribbon board', panel: { kind: 'section', heading: 'A real league, with real money problems' }, pos: [1.4, 1.75, r.zc + 1.0], look: [7, 2.7, r.zc - 1.9], place: [1.05, -0.15, 2.5] },
         { id: 'bump', label: 'Bump', panel: { kind: 'section', heading: 'Bump, your AI general manager' }, pos: [-2.2, 1.8, r.zc + 0.8], look: [-7, 2.35, r.zc + 0.4], place: [1.0, -0.05, 2.4] },
-        { id: 'hoop', label: 'Every game', panel: { kind: 'finale', heading: 'One login. Every game.' }, pos: [-1.6, 1.7, r.z1 + 5.2], look: [-3.5, 2.9, r.z1 + 0.2], place: [0.75, -0.1, 2.5] },
+        { id: 'hoop', label: 'Every game', panel: { kind: 'finale', heading: 'One login. Every game.' }, pos: [-2.2, 1.7, r.z1 + 5.8], look: [-2.85, 2.75, r.z1 + 0.2], place: [1.05, -0.1, 2.5] },
       ];
     default:
       return null;
