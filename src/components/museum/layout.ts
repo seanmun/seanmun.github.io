@@ -188,16 +188,14 @@ export const GALLERY_PIECES: GalleryPiece[] = [
   { id: 'framehoop', kind: 'photo', src: '/media/museum/photos/framehoop.jpg', side: -1, z: L(3), y: 2.0, size: 1.5, title: 'Frame Hoop', note: 'A hoop through the print' },
   { id: 'hoopgarden', kind: 'model', src: '/models/museum/hoop-garden.glb', side: -1, z: L(4), y: 1.2, title: 'Hoop Garden', artist: 'Teddy Santis', width: 1.8, note: 'A backboard over four shelves of potted plants' },
   { id: 'chandelier', kind: 'photo', src: '/media/museum/photos/chandelier.jpg', side: -1, z: L(5), y: 2.0, size: 1.6, title: 'Chandelier', note: 'Shoes hung from crystal' },
-  { id: 'helmet', kind: 'photo', src: '/media/museum/photos/daHelmet.jpg', side: -1, z: L(6), y: 2.0, size: 1.5, title: 'Helmet', note: 'One helmet, one wall' },
-  { id: 'beached', kind: 'photo', src: '/media/museum/photos/beachedhoop.jpg', side: -1, z: L(7), y: 2.0, size: 1.5, title: 'Beached Hoop', note: 'Framed print' },
+  { id: 'beached', kind: 'photo', src: '/media/museum/photos/beachedhoop.jpg', side: -1, z: L(6), y: 2.0, size: 1.5, title: 'Beached Hoop', note: 'Framed print' },
   // Right wall
   { id: 'moto', kind: 'photo', src: '/media/museum/photos/motoDeath.jpg', side: 1, z: R(0), y: 2.0, size: 1.6, title: 'Last Ride', note: 'Wall mural' },
   { id: 'hoody', kind: 'photo', src: '/media/museum/photos/hoody.jpg', side: 1, z: R(1), y: 2.0, size: 1.6, title: 'Hoody', note: 'Hoodie and flag, in paint' },
   { id: 'scars', kind: 'model', src: '/models/museum/scars-of-the-game.glb', side: 1, z: R(2), y: 0.78, title: 'Shooting Hoops', artist: 'New York Sunshine', width: 1.6, note: 'A chain net hung from a field of weathered rods' },
   { id: 'surfing', kind: 'photo', src: '/media/museum/photos/surfingEvolution.jpg', side: 1, z: R(3), y: 2.0, size: 1.7, title: 'Surfing Evolution', note: 'A painted wall by the beach' },
   { id: 'vibe', kind: 'photo', src: '/media/museum/photos/vibe.jpg', side: 1, z: R(4), y: 2.0, size: 1.7, title: 'Vibe', note: 'Building mural' },
-  { id: 'balance', kind: 'photo', src: '/media/museum/photos/balance.jpg', side: 1, z: R(5), y: 2.0, size: 1.6, title: 'Balance', note: 'Stacked stones in fog' },
-  { id: 'hang11', kind: 'photo', src: '/media/museum/photos/hang11.jpg', side: 1, z: R(6), y: 2.0, size: 1.5, title: 'Hang 11', note: 'A sneaker on the line' },
+  { id: 'hang11', kind: 'photo', src: '/media/museum/photos/hang11.jpg', side: 1, z: R(5), y: 2.0, size: 1.5, title: 'Hang 11', note: 'A sneaker on the line' },
 ];
 
 // Relic Rack stands on the floor in the middle of the hall, on its
@@ -246,8 +244,8 @@ export function buildStations(projects: MuseumProject[], tours: Record<string, P
     bay('scars', 'hoody', 'surfing'),
     bay('hoopgarden', 'framehoop', 'chandelier'),
     { id: 'cart', group: 'Gallery', label: CART.title, artist: CART.artist, sub: 'A rack of eroded blue balls, painted like globes', pos: [-1.2, 1.6, CART.z + 3.1], look: [CART.x, 0.75, CART.z] },
-    { id: 'prints-right', group: 'Gallery', label: 'Prints', sub: 'Vibe, Balance, and Hang 11', ...bayView(1, piece('balance').z, 1.95) },
-    { id: 'prints-left', group: 'Gallery', label: 'Prints', sub: 'Helmet, and Beached Hoop', ...bayView(-1, (piece('helmet').z + piece('beached').z) / 2, 1.95) },
+    { id: 'prints-right', group: 'Gallery', label: 'Prints', sub: 'Vibe and Hang 11', ...bayView(1, (piece('vibe').z + piece('hang11').z) / 2, 1.95) },
+    { id: 'prints-left', group: 'Gallery', label: 'Beached Hoop', sub: 'Framed print', ...bayView(-1, piece('beached').z, 1.95) },
     ...ordinalStop(projects),
   );
 
