@@ -830,8 +830,15 @@ export function createMuseum(host: HTMLElement, opts: Options): MuseumHandle {
     screenTex.colorSpace = THREE.SRGBColorSpace;
     const screenMat = track(new THREE.MeshBasicMaterial({ map: screenTex, toneMapped: false }));
     screenMat.color.setScalar(1.15); // LCD backlight: a touch brighter than the room
+    // The gilded frame (Meshy, 1.71 x 1.46 m, its back on the wall; the white
+    // mat about 3 cm out, around a 1.14 x 0.90 m opening). The screen sits
+    // behind the mat, its sides tucked under it, on a black panel that
+    // fills the opening above and below
     const screenMesh = new THREE.Mesh(track(new THREE.PlaneGeometry(1.2, 0.72)), screenMat);
-    screenMesh.position.z = 0.025;
+    screenMesh.position.z = 0.02;
+    const backing = plane(1.22, 0.96, color('#0b0b0c', { roughness: 0.6 }), [0, 0, 0.012]);
+    scene.remove(backing);
+    g.add(backing);
     screenMesh.userData.slug = ORDINAL.slug;
     g.add(screenMesh);
     clickable.push(screenMesh);
@@ -1435,12 +1442,12 @@ const DRESS: Record<string, (k: Kit) => void> = {
       }
       k.scene.add(g);
       k.model(a.src, (m) => { m.position.y = a.y; g.add(m); });
-      artLabel(k, g, [a.width / 2 + 0.42, a.labelY, 0], a.title, a.artist);
+      artLabel(k, g, [(a.width / 2 + 0.42) * (a.labelLeft ? -1 : 1), a.labelY, 0], a.title, a.artist);
       const key = a.wall + a.at;
       const spot = lit.get(key);
       if (spot) spot.n++;
       else lit.set(key, back
-        ? { at: new THREE.Vector3(a.at, ROOM.h - 0.3, wallZ + 3.4), aim: new THREE.Vector3(a.at, 1.9, wallZ), n: 1 }
+        ? { at: new THREE.Vector3(a.at, ROOM.h - 0.3, wallZ + 3.4), aim: new THREE.Vector3(a.at, a.y + 0.7, wallZ), n: 1 }
         : { at: new THREE.Vector3(side * 3.6, ROOM.h - 0.3, r.zc + a.at), aim: new THREE.Vector3(side * 7, 1.7, r.zc + a.at), n: 1 });
     }
     for (const { at, aim, n } of lit.values()) {

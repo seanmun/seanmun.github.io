@@ -157,7 +157,7 @@ export const ROOM_SLUGS = [
 // OrdinalFrame closes the gallery: on the end wall, left of the doorway
 // into the rooms, the last piece of art before the projects. z is the
 // wall's face (the partition is 0.4 thick); it faces back down the hall.
-export const ORDINAL = { slug: 'ordinalframe', x: -3, z: GALLERY.z1 + 0.2, y: 1.95, src: '/models/museum/ordinalframe.glb' };
+export const ORDINAL = { slug: 'ordinalframe', x: -3, z: GALLERY.z1 + 0.2, y: 1.95, src: '/models/museum/gold-frame.glb' };
 
 // Every project the museum shows a placard for
 export const PLACARD_SLUGS: readonly string[] = [...ROOM_SLUGS, ORDINAL.slug];
@@ -214,11 +214,12 @@ export const GALLERY_PIECES: GalleryPiece[] = [
 // the court on its casters.
 export const MNS_ART = {
   wall: [
-    { src: '/models/museum/tangled-nets.glb', wall: 'left', at: -4.6, y: 0.72, width: 1.6, title: 'Tangled Nets', artist: 'Tyrell Winston', labelY: 1.45 },
-    { src: '/models/museum/deflated-legends.glb', wall: 'left', at: -4.6, y: 2.4, width: 1.6, title: 'Deflated Legends', artist: 'Tyrell Winston', labelY: 1.79 },
-    { src: '/models/museum/scars-of-the-game.glb', wall: 'back', at: -3.5, y: 1.2, width: 1.6, title: 'Shooting Hoops', artist: 'New York Sunshine', labelY: 1.45 },
+    // Over the court's key: Shooting Hoops, with the two Tyrell Winstons side by side beneath it
+    { src: '/models/museum/scars-of-the-game.glb', wall: 'back', at: -3.5, y: 2.35, width: 1.6, title: 'Shooting Hoops', artist: 'New York Sunshine', labelY: 3.05 },
+    { src: '/models/museum/tangled-nets.glb', wall: 'back', at: -4.45, y: 0.8, width: 1.5, title: 'Tangled Nets', artist: 'Tyrell Winston', labelY: 1.45, labelLeft: true },
+    { src: '/models/museum/deflated-legends.glb', wall: 'back', at: -2.55, y: 1.05, width: 1.6, title: 'Deflated Legends', artist: 'Tyrell Winston', labelY: 1.45 },
     { src: '/models/museum/hoop-garden.glb', wall: 'back', at: 5.0, y: 1.2, width: 1.8, title: 'Hoop Garden', artist: 'Teddy Santis', labelY: 1.45 },
-  ] as { src: string; wall: 'left' | 'right' | 'back'; at: number; y: number; width: number; title: string; artist: string; labelY: number }[],
+  ] as { src: string; wall: 'left' | 'right' | 'back'; at: number; y: number; width: number; title: string; artist: string; labelY: number; labelLeft?: boolean }[],
   cart: { x: 3.5, dz: -2.3, turn: -0.9, scale: 1.12, depth: 0.4, src: '/models/museum/blue-planet-cart.glb', title: 'Relic Rack', artist: 'Daniel Arsham' },
 };
 
