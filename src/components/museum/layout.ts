@@ -45,10 +45,13 @@ export interface PanelContent {
   links: { label: string; href: string; external?: boolean }[];
 }
 
+// A panel's copy comes from the case study section with this heading.
+// `bullets` replaces the section's bullets when they're too long to read
+// standing up, or when the stop shows something the section doesn't cover.
 export type TourPanel =
   | { kind: 'overview' }
-  | { kind: 'section'; heading: string }
-  | { kind: 'finale'; heading?: string; link?: { label: string; href: string } };
+  | { kind: 'section'; heading: string; bullets?: string[] }
+  | { kind: 'finale'; heading?: string; bullets?: string[]; link?: { label: string; href: string } };
 
 export interface TourStop {
   id: string;
@@ -65,7 +68,7 @@ export function roomTour(slug: string, index: number): TourStop[] | null {
   // panel can float to its right, and the way out by the far doorway
   const screen = (heading: string, label = 'The screen'): TourStop => ({
     id: 'screen', label, panel: { kind: 'section', heading },
-    pos: [-1.0, 1.8, r.zc + 3.2], look: [-7, 2.4, r.zc + 0.4], place: [0.95, -0.05, 2.4],
+    pos: [-0.6, 1.8, r.zc + 3.6], look: [-7, 2.4, r.zc - 1.6], place: [1.0, -0.05, 2.4],
   });
   const finale = (heading: string): TourStop => ({
     id: 'finale', label: 'Before you go', panel: { kind: 'finale', heading },
@@ -78,7 +81,11 @@ export function roomTour(slug: string, index: number): TourStop[] | null {
     case 'kinetic-email':
       return [
         arrive([6, 1.7, r.zc - 0.5]),
-        { id: 'mailroom', label: 'The mailroom', panel: { kind: 'section', heading: 'The Problem' }, pos: [3.0, 1.7, r.zc + 3.0], look: [7, 1.8, r.zc - 0.5], place: [-0.6, -0.05, 2.4] },
+        { id: 'mailroom', label: 'The mailroom', panel: { kind: 'section', heading: 'The Problem', bullets: [
+          "It's hard: CSS :checked hacks and AMP4Email, across a client compatibility matrix, with zero JavaScript",
+          'No tooling: ESPs don\'t generate it, and testing means sending to a dozen real inboxes',
+          'Nobody teaches it: the know-how lives in scattered blog posts and a few hundred heads',
+        ] }, pos: [3.0, 1.7, r.zc + 3.0], look: [7, 1.8, r.zc - 0.5], place: [-0.6, -0.05, 2.4] },
         screen('Describe an email → get two production builds'),
         { id: 'finale', label: 'Bolt', panel: { kind: 'finale', heading: 'Bolt: the game that markets it', link: { label: 'Play Bolt', href: 'https://bolt.kinetic.email/' } }, pos: [-2.4, 1.75, r.z1 + 5.8], look: [-4.2, 2.1, r.z1], place: [1.05, -0.05, 2.5] },
       ];
@@ -87,21 +94,28 @@ export function roomTour(slug: string, index: number): TourStop[] | null {
         arrive([3.6, 1.1, r.zc - 2.2]),
         { id: 'crt', label: 'The cubicle', panel: { kind: 'section', heading: 'The problem, in one ticker' }, pos: [3.2, 1.5, r.zc + 0.6], look: [4.0, 1.0, r.zc - 2.1], place: [-0.55, 0.25, 2.2] },
         screen('Edit on the email itself'),
-        finale('A real Outlook template, written byte by byte'),
+        { id: 'ai', label: 'The AI', panel: { kind: 'section', heading: 'AI that edits, not generates', bullets: [
+          'The model returns a short list of block operations, each checked against its schema: all apply, or none',
+          'It writes [[PLACEHOLDER]] instead of inventing facts or links, flagged before export',
+          'Every AI change is a single undo step',
+        ] }, pos: [-1.2, 1.75, r.z1 + 5.6], look: [-3.9, 2.3, r.z1], place: [1.05, -0.05, 2.5] },
+        { ...finale('A real Outlook template, written byte by byte'), look: [3.0, 1.9, r.z1], place: [-0.75, -0.1, 2.5] },
       ];
     case 'buddy-cup':
       return [
         arrive([-6, 2.2, r.zc], [0.95, 0.05, 2.5]),
         { id: 'mat', label: 'On the mat', panel: { kind: 'section', heading: 'The idea' }, pos: [1.6, 1.65, r.zc + 1.6], look: [-7, 2.0, r.zc + 0.4], place: [1.0, -0.1, 2.4] },
         { id: 'bag', label: 'The bag', panel: { kind: 'section', heading: 'Signature features' }, pos: [2.2, 1.7, r.zc - 0.2], look: [4.5, 0.9, r.zc - 3], place: [-0.6, 0.2, 2.4] },
-        finale('On the course: iPhone and Apple Watch'),
+        { id: 'finale', label: 'Before you go', panel: { kind: 'finale', heading: 'On the course: iPhone and Apple Watch' }, pos: [-2.4, 1.75, r.z1 + 5.8], look: [-4.2, 2.1, r.z1], place: [1.05, -0.05, 2.5] },
       ];
     case 'rocket-pool-tour':
       return [
         arrive([3.2, 0.9, r.zc - 1]),
         { id: 'rro', label: 'The RRO app', panel: { kind: 'section', heading: 'The RRO app: every rack, rated' }, pos: [-2.4, 1.75, r.z1 + 5.8], look: [-4.2, 2.1, r.z1], place: [1.05, -0.05, 2.5] },
-        screen('A pitch deck for every partner'),
-        finale('A CRM built for the deal flow'),
+        { ...screen('A pitch deck for every partner'), id: 'finale', label: 'Before you go', panel: { kind: 'finale', heading: 'A pitch deck for every partner', bullets: [
+          'More than two dozen bespoke decks across ten industries, all from one slide system',
+          'Each deck feeds the team CRM: deal status, contacts, and every call, email and meeting logged',
+        ] } },
       ];
     case 'human-diet':
       return [
@@ -113,7 +127,11 @@ export function roomTour(slug: string, index: number): TourStop[] | null {
     case 'money-never-sleeps':
       return [
         { id: 'arrive', label: 'Center court', panel: { kind: 'overview' }, pos: [ROOM.doorX, 1.75, r.z0 - 1.5], look: [-3, 2.3, r.zc - 4], place: [0.8, 0.0, 2.5] },
-        { id: 'ribbon', label: 'The ribbon board', panel: { kind: 'section', heading: 'A real league, with real money problems' }, pos: [1.4, 1.75, r.zc + 1.0], look: [7, 2.7, r.zc - 1.9], place: [1.05, -0.15, 2.5] },
+        { id: 'ribbon', label: 'The ribbon board', panel: { kind: 'section', heading: 'A real league, with real money problems', bullets: [
+          'Nine-category head-to-head matchups, with up to eight keepers priced by draft round',
+          'The prize pool is tracked like a portfolio: point MNS at the league\'s crypto wallet and the pot is priced live',
+          'Every payout is a share of the pot, so the champion\'s prize rises and falls with the market',
+        ] }, pos: [1.4, 1.75, r.zc + 1.0], look: [7, 2.7, r.zc - 1.9], place: [1.05, -0.15, 2.5] },
         { id: 'bump', label: 'Bump', panel: { kind: 'section', heading: 'Bump, your AI general manager' }, pos: [-2.2, 1.8, r.zc + 0.8], look: [-7, 2.35, r.zc + 0.4], place: [1.0, -0.05, 2.4] },
         { id: 'hoop', label: 'Every game', panel: { kind: 'finale', heading: 'One login. Every game.' }, pos: [-2.2, 1.7, r.z1 + 5.8], look: [-2.85, 2.75, r.z1 + 0.2], place: [1.05, -0.1, 2.5] },
       ];

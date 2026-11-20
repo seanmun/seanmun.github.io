@@ -410,8 +410,9 @@ export function createMuseum(host: HTMLElement, opts: Options): MuseumHandle {
   const loader = new THREE.TextureLoader();
 
   // Rooms can place GLB models; they load once the loader below is set up
-  const pendingModels: [string, (root: THREE.Object3D) => void][] = [];
-  const model = (src: string, onLoad: (root: THREE.Object3D) => void) => { pendingModels.push([src, onLoad]); };
+  type OnModel = (root: THREE.Object3D, clips: THREE.AnimationClip[]) => void;
+  const pendingModels: [string, OnModel][] = [];
+  const model = (src: string, onLoad: OnModel) => { pendingModels.push([src, onLoad]); };
 
   ROOM_SLUGS.forEach((slug, i) => {
     const r = roomBounds(i);
@@ -565,7 +566,7 @@ export function createMuseum(host: HTMLElement, opts: Options): MuseumHandle {
     });
     return root;
   };
-  for (const [src, onLoad] of pendingModels) gltf.load(src, (g) => onLoad(asArt(g.scene)));
+  for (const [src, onLoad] of pendingModels) gltf.load(src, (g) => onLoad(asArt(g.scene), g.animations));
   const shadowSpot = (light: THREE.SpotLight, far = 12) => {
     light.castShadow = !mobile;
     light.shadow.mapSize.set(1024, 1024);
@@ -1053,7 +1054,7 @@ export function createMuseum(host: HTMLElement, opts: Options): MuseumHandle {
 
 const ROOM_MEDIA: Record<string, { video?: string; poster?: string; canvas?: () => THREE.Texture }> = {
   'kinetic-email': { video: '/media/kinetic/sizzle.mp4', poster: '/media/kinetic/sizzle-poster.jpg' },
-  'money-never-sleeps': { video: '/media/mns/bump.mp4', poster: '/media/mns/bump.jpg' },
+  'money-never-sleeps': { video: '/media/mns/bump-voice.mp4', poster: '/media/mns/bump-voice.jpg' },
   outlooksucks: { video: '/media/outlooksucks/hero.mp4', poster: '/media/outlooksucks/hero.jpg' },
   'buddy-cup': { canvas: T.fairway },
   'rocket-pool-tour': { video: '/media/rocket/deck.mp4', poster: '/media/rocket/deck.jpg' },
@@ -1075,7 +1076,7 @@ interface Kit {
   clickable: THREE.Object3D[];
   reduceMotion: boolean;
   videoMat(src: string, poster: string): THREE.MeshBasicMaterial;
-  model(src: string, onLoad: (root: THREE.Object3D) => void): void;
+  model(src: string, onLoad: (root: THREE.Object3D, clips: THREE.AnimationClip[]) => void): void;
   mobile: boolean;
 }
 
@@ -1353,6 +1354,15 @@ const DRESS: Record<string, (k: Kit) => void> = {
   // A 2007 cubicle: fabric panels, a desk, a beige CRT stuck on a dialog
   outlooksucks(k) {
     const { r } = k;
+    // On the back wall, the outlooksucks.email home page video: describe an
+    // email, attach a comp, and the AI builds the draft from real blocks
+    {
+      const W = 3.4, H = W * 800 / 1280, x = -3.9, y = 2.35, z = r.z1 + WALL_T / 2;
+      k.box([W + 0.14, H + 0.14, 0.08], [x, y, z + 0.04], k.color('#111214', { roughness: 0.35, metalness: 0.4 }));
+      const s = k.plane(W, H, k.videoMat('/media/outlooksucks/ai-build.mp4', '/media/outlooksucks/ai-build.jpg'), [x, y, z + 0.085]);
+      s.userData.slug = 'outlooksucks';
+      k.clickable.push(s);
+    }
     const fabric = k.color('#7d8a99', { roughness: 1 });
     const trim = k.color('#b9b5ab', { roughness: 0.6 });
     const desk = k.color('#c9b48f', { roughness: 0.7 });
@@ -1387,6 +1397,10 @@ const DRESS: Record<string, (k: Kit) => void> = {
   // The simulator bay: hitting mat, a ball on a tee, a bag in the corner
   'buddy-cup'(k) {
     const { r } = k;
+    // On the back wall, the iPhone app: entering a hole's scores, then the
+    // cup page (sample players)
+    giantPhone(k, [-4.2, r.z1 + WALL_T / 2 + 0.42], 0, '/media/buddycup/phone.mp4', '/media/buddycup/phone.jpg',
+      ['The app', 'Buddy Cup', 'Score a hole, watch the cup move', 'Sample trip, invented players']);
     const mat = k.color('#1f4a26', { roughness: 0.95 });
     k.box([1.6, 0.03, 1.6], [-0.6, 0.015, r.zc + 0.4], mat);
     k.box([0.012, 0.04, 0.012], [-0.9, 0.05, r.zc + 0.4], k.color('#f2f2f2'));
@@ -1577,27 +1591,48 @@ const DRESS: Record<string, (k: Kit) => void> = {
     }
   },
 
-  // A natural history diorama: rocks, sand, and a pair of tusks
+  // A natural history diorama: a woolly mammoth on rocks and sand, with
+  // the three walkers from the Human Diet site (man, woman and child in the
+  // first era's hides) caught mid-stride, crossing in front of it
   'human-diet'(k) {
     const { r } = k;
     const rock = k.color('#8a7b66', { roughness: 0.95, flatShading: true });
-    const ivory = k.color('#efe6cf', { roughness: 0.5 });
-    k.box([5, 0.3, 4.5], [3.6, 0.15, r.zc - 1], k.color('#b9a07a', { roughness: 1 }));
-    const rocks: [number, number, number, number][] = [[2.2, 0.55, r.zc - 2.4, 0.5], [4.8, 0.45, r.zc - 2.6, 0.38], [5.2, 0.4, r.zc + 0.4, 0.3], [2.7, 0.4, r.zc + 0.6, 0.25]];
+    const BASE = 0.3;
+    k.box([5, BASE, 4.5], [3.6, BASE / 2, r.zc - 1], k.color('#b9a07a', { roughness: 1 }));
+    const rocks: [number, number, number, number][] = [[1.7, 0.5, r.zc - 2.7, 0.45], [5.6, 0.45, r.zc - 2.9, 0.38], [2.6, 0.4, r.zc + 0.6, 0.3], [1.5, 0.38, r.zc + 0.4, 0.22]];
     for (const [x, y, z, s] of rocks) {
       const m = new THREE.Mesh(k.track(new THREE.IcosahedronGeometry(s, 0)), rock);
       m.position.set(x, y, z);
       m.rotation.set(x, z, y);
       k.scene.add(m);
     }
-    for (const side of [-1, 1]) {
-      const tusk = new THREE.Mesh(k.track(new THREE.TorusGeometry(1.1, 0.07, 10, 32, Math.PI * 0.62)), ivory);
-      tusk.position.set(3.7 + side * 0.35, 0.3, r.zc - 1);
-      tusk.rotation.set(0, side > 0 ? Math.PI : 0, 0.15);
-      tusk.scale.set(1, 1.15, 1);
-      k.scene.add(tusk);
+    k.model('/models/museum/mammoth.glb', (m) => {
+      m.scale.setScalar(0.88);
+      m.position.set(3.3, BASE, r.zc - 2.0);
+      m.rotation.y = -0.3;
+      k.scene.add(m);
+    });
+    // Each walker, frozen at a different point in the walk cycle
+    const walkers: [string, number, number, number][] = [['man', 4.7, 0.2, 0.32], ['woman', 5.55, 0.5, 0.66], ['child', 5.15, 0.95, 0.1]];
+    for (const [who, x, dz, phase] of walkers) {
+      k.model(`/models/museum/walker-${who}-1.glb`, (m, clips) => {
+        m.position.set(x, BASE, r.zc + dz - 0.6);
+        m.rotation.y = -Math.PI / 2 + 0.55; // walking toward the visitor
+        m.traverse((o) => { o.frustumCulled = false; }); // skinned: bounds don't follow the pose
+        if (clips[0]) {
+          const mixer = new THREE.AnimationMixer(m);
+          mixer.clipAction(clips[0]).play();
+          mixer.setTime(clips[0].duration * phase);
+        }
+        k.scene.add(m);
+      });
     }
     const glass = k.track(new THREE.MeshStandardMaterial({ color: '#dff2f5', transparent: true, opacity: 0.12, roughness: 0.05, depthWrite: false }));
-    k.box([5.1, 2.6, 4.6], [3.6, 1.6, r.zc - 1], glass);
+    k.box([5.1, 3.5, 4.6], [3.6, BASE + 1.75, r.zc - 1], glass);
+    // a warm museum spot over the case
+    const spot = new THREE.SpotLight('#fff0dc', 30, 9, 0.7, 0.6, 1.4);
+    spot.position.set(2.2, ROOM.h - 0.3, r.zc + 1.5);
+    spot.target.position.set(3.6, 1.0, r.zc - 1.2);
+    k.scene.add(spot, spot.target);
   },
 };

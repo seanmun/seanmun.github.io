@@ -80,7 +80,7 @@ function panelFor(p: Project, stop: TourStop, k: number, count: number, stats?: 
       };
     case 'section': {
       const s = section(stop.panel.heading);
-      return { ...base, title: s?.heading ?? stop.label, body: sentences(s?.body ?? '', 240), bullets: pickBullets(s?.bullets, 3) };
+      return { ...base, title: s?.heading ?? stop.label, body: sentences(s?.body ?? '', 240), bullets: stop.panel.bullets ?? pickBullets(s?.bullets, 3) };
     }
     case 'finale': {
       const s = section(stop.panel.heading);
@@ -95,7 +95,7 @@ function panelFor(p: Project, stop: TourStop, k: number, count: number, stats?: 
         ...base,
         title: s?.heading ?? 'Under the hood',
         body: sentences(s?.body ?? '', 220),
-        bullets: pickBullets(s?.bullets, 2),
+        bullets: stop.panel.bullets ?? pickBullets(s?.bullets, 2),
         stats: statRows,
         links: [
           ...(stop.panel.link ? [{ ...stop.panel.link, external: true }] : []),
