@@ -1455,9 +1455,9 @@ const DRESS: Record<string, (k: Kit) => void> = {
       k.plane(w, hgt, mat, pos, rot);
       bands.push({ mat, len: w });
     };
-    add(14, [0, y, r.z0 - WALL_T / 2 - 0.01], Math.PI);
+    // Two walls only: the back wall you walk toward, and the right wall over
+    // the roster phone (the ribbon board stop). Four was a lot going on
     add(14, [0, y, r.z1 + WALL_T / 2 + 0.01], 0);
-    add(14, [r.x0 + 0.01, y, r.zc], Math.PI / 2);
     add(14, [r.x1 - 0.01, y, r.zc], -Math.PI / 2);
     k.animators.push((_t, dt) => {
       if (k.reduceMotion) return;
@@ -1503,29 +1503,6 @@ const DRESS: Record<string, (k: Kit) => void> = {
       if (pair) s.target.position.y = 2.0;
       k.scene.add(s, s.target);
     }
-    // Relic Rack on the court, its label on a lectern in front
-    const c = MNS_ART.cart;
-    const cart = new THREE.Group();
-    cart.position.set(c.x, 0, r.zc + c.dz);
-    cart.rotation.y = c.turn;
-    cart.scale.setScalar(c.scale);
-    k.scene.add(cart);
-    k.model(c.src, (m) => { m.position.z = -c.depth / 2; cart.add(m); });
-    const stand = new THREE.Group();
-    stand.position.set(c.x - 0.75, 0, r.zc + c.dz + 1.15);
-    stand.rotation.y = c.turn;
-    k.scene.add(stand);
-    const steel = k.color('#2a2a2a', { roughness: 0.5, metalness: 0.5 });
-    k.box([0.05, 0.92, 0.05], [0, 0.46, 0], steel, stand);
-    const lectern = new THREE.Group();
-    lectern.position.set(0, 0.96, 0.02);
-    lectern.rotation.x = -0.55;
-    stand.add(lectern);
-    artLabel(k, lectern, [0, 0, 0], c.title, c.artist, steel);
-    const cartLight = new THREE.SpotLight('#ffe6c4', 30, 7, 0.4, 0.7, 1.4);
-    cartLight.position.set(c.x - 0.8, ROOM.h - 0.3, r.zc + c.dz + 1.4);
-    cartLight.target.position.set(c.x, 0.7, r.zc + c.dz);
-    k.scene.add(cartLight, cartLight.target);
   },
 
   // A 2007 cubicle: fabric panels, a desk, a beige CRT stuck on a dialog
