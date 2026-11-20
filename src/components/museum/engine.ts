@@ -15,6 +15,9 @@ import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js';
 import { CSS3DObject, CSS3DRenderer } from 'three/examples/jsm/renderers/CSS3DRenderer.js';
 import { Sky } from 'three/examples/jsm/objects/Sky.js';
 import { RoundedBoxGeometry } from 'three/examples/jsm/geometries/RoundedBoxGeometry.js';
+import { Font, type FontData } from 'three/examples/jsm/loaders/FontLoader.js';
+import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
+import orbitronName from './orbitron-name.json'; // Orbitron Black, just the letters of the name (SIL OFL)
 import { buildTrees } from './trees';
 import { createPost } from './post';
 import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js';
@@ -278,10 +281,106 @@ export function createMuseum(host: HTMLElement, opts: Options): MuseumHandle {
   skyU.sunPosition.value.copy(SUN_DIR);
   scene.add(sky);
 
-  // Name on the wall over the gallery door
-  const name = T.lettering('SEAN MUNLEY', { size: 150, weight: 200, sub: 'Selected works', color: '#3b3935' });
-  track(name.texture);
-  plane(7.5, 7.5 / name.aspect, basic(name.texture, true), [0, 7.4, LOBBY.z1 + WALL_T / 2 + 0.02]);
+  // Name on the wall over the gallery door, set like the home page's
+  // SeanMunley in Orbitron Black: "SeanMun" stands proud of the concrete in
+  // block letters with flat chiselled bevels that catch the light, and
+  // "ley" is cut into the wall, a V-groove the way stone is lettered
+  {
+    const font = new Font(orbitronName as unknown as FontData);
+    const SIZE = 1.12, TRACK = 0.05 * SIZE, BASE = 6.9;
+    const wallZ = LOBBY.z1 + WALL_T / 2;
+    const adv = (ch: string) => (font.data.glyphs[ch].ha / font.data.resolution) * SIZE + TRACK;
+    const word = 'SeanMunley', cut = 7; // 'ley' starts here
+    const width = [...word].reduce((a, ch) => a + adv(ch), 0) - TRACK;
+    const xs: number[] = [];
+    [...word].reduce((x, ch) => { xs.push(x); return x + adv(ch); }, -width / 2);
+
+    // Raised: each letter stands 16 cm proud, with a single-step bevel (a flat chamfer)
+    const raised = mergeGeometries([...word.slice(0, cut)].map((ch, i) => {
+      const g = new THREE.ExtrudeGeometry(font.generateShapes(ch, SIZE), {
+        depth: 0.06, bevelEnabled: true, bevelThickness: 0.05, bevelSize: 0.03, bevelSegments: 1, curveSegments: 8,
+      });
+      g.translate(xs[i], BASE, 0);
+      return g;
+    }));
+    raised.computeVertexNormals();
+    const letters = new THREE.Mesh(track(raised), color('#b9b4ab', { roughness: 0.82 }));
+    letters.position.z = wallZ + 0.05; // the back bevel meets the wall
+    letters.castShadow = letters.receiveShadow = true;
+    scene.add(letters);
+
+    // Carved: a decal on the wall with a normal map of a V-groove, deepest
+    // along each stroke's centre line, and shading that darkens with depth
+    const PX = 420; // texels per metre
+    const x0 = xs[cut] - 0.05, x1 = xs[word.length - 1] + adv(word[word.length - 1]) + 0.05;
+    const yTop = BASE + 0.95 * SIZE, yBot = BASE - 0.3 * SIZE;
+    const W = Math.ceil((x1 - x0) * PX), H = Math.ceil((yTop - yBot) * PX);
+    const cv = document.createElement('canvas');
+    cv.width = W; cv.height = H;
+    const g2 = cv.getContext('2d', { willReadFrequently: true })!;
+    g2.fillStyle = '#fff';
+    for (let i = cut; i < word.length; i++) {
+      for (const shape of font.generateShapes(word[i], SIZE)) {
+        const path = new Path2D();
+        for (const contour of [shape.getPoints(12), ...shape.holes.map((h) => h.getPoints(12))]) {
+          contour.forEach((p, j) => {
+            const px = (xs[i] + p.x - x0) * PX, py = (yTop - (BASE + p.y)) * PX;
+            if (j) path.lineTo(px, py); else path.moveTo(px, py);
+          });
+          path.closePath();
+        }
+        g2.fill(path, 'evenodd');
+      }
+    }
+    const img = g2.getImageData(0, 0, W, H), a = img.data;
+    // distance to the letter's edge, in texels (two-pass chamfer)
+    const d = new Float32Array(W * H);
+    for (let i = 0; i < W * H; i++) d[i] = a[i * 4] > 127 ? 1e6 : 0;
+    const at = (x: number, y: number) => (x < 0 || y < 0 || x >= W || y >= H ? 0 : d[y * W + x]);
+    for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+      const i = y * W + x;
+      if (d[i]) d[i] = Math.min(d[i], at(x - 1, y) + 1, at(x, y - 1) + 1, at(x - 1, y - 1) + 1.414, at(x + 1, y - 1) + 1.414);
+    }
+    for (let y = H - 1; y >= 0; y--) for (let x = W - 1; x >= 0; x--) {
+      const i = y * W + x;
+      if (d[i]) d[i] = Math.min(d[i], at(x + 1, y) + 1, at(x, y + 1) + 1, at(x + 1, y + 1) + 1.414, at(x - 1, y + 1) + 1.414);
+    }
+    let deepest = 0;
+    for (let i = 0; i < W * H; i++) deepest = Math.max(deepest, d[i]);
+    const nrm = g2.createImageData(W, H), n = nrm.data;
+    const col = g2.createImageData(W, H), c = col.data;
+    const SLOPE = 1.4; // groove walls at roughly 55 degrees
+    for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+      const i = y * W + x, o = i * 4;
+      const depth = Math.min(d[i], deepest) / deepest; // 0 at the edge, 1 on the centre line
+      // h = -distance: the floor of the groove falls toward the centre
+      const hx = -(at(x + 1, y) - at(x - 1, y)) / 2, hy = -(at(x, y + 1) - at(x, y - 1)) / 2;
+      const nx = -hx * SLOPE, ny = hy * SLOPE, len = Math.hypot(nx, ny, 1);
+      n[o] = 128 + 127 * (nx / len); n[o + 1] = 128 + 127 * (ny / len); n[o + 2] = 255 * (1 / len); n[o + 3] = 255;
+      const shade = 150 - 62 * depth; // darker toward the bottom of the cut
+      c[o] = shade; c[o + 1] = shade * 0.97; c[o + 2] = shade * 0.93;
+      c[o + 3] = Math.min(255, a[o] * 1.0);
+    }
+    const toTex = (data: ImageData, srgb: boolean) => {
+      const k = document.createElement('canvas');
+      k.width = W; k.height = H;
+      k.getContext('2d')!.putImageData(data, 0, 0);
+      const t = track(new THREE.CanvasTexture(k));
+      if (srgb) t.colorSpace = THREE.SRGBColorSpace;
+      t.anisotropy = 8;
+      return t;
+    };
+    const carved = track(new THREE.MeshStandardMaterial({
+      map: toTex(col, true), normalMap: toTex(nrm, false), normalScale: new THREE.Vector2(1.6, 1.6),
+      transparent: true, roughness: 0.92, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -2,
+    }));
+    const decal = plane(x1 - x0, yTop - yBot, carved, [(x0 + x1) / 2, (yTop + yBot) / 2, wallZ + 0.003]);
+    decal.receiveShadow = true;
+
+    const sub = T.lettering('SELECTED WORKS', { size: 60, weight: 400, spacing: 0.6, color: '#46433e' });
+    track(sub.texture);
+    plane(3.2, 3.2 / sub.aspect, basic(sub.texture, true), [0, BASE - 0.5, wallZ + 0.02]);
+  }
 
   // Plinth for the S
   const plinthMat = std(track(T.marble(8, '#f3f1ec', '150,146,140')), 1.5, { roughness: 0.3 });
