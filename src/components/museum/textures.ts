@@ -16,6 +16,18 @@ function rng(seed: number) {
   };
 }
 
+// Phones draw the big surfaces at half size from the start: a canvas half
+// the size, its drawing scaled by half, so the drawing code is unchanged
+// but no full-size canvas ever exists (25 of them at once, briefly, while
+// the museum built, was part of what killed iPhones in the lobby)
+let K = 1;
+export function setPhoneTextures(on: boolean) { K = on ? 0.5 : 1; }
+function big(S: number) {
+  const [c, ctx] = canvas(Math.round(S * K), Math.round(S * K));
+  ctx.scale(K, K);
+  return [c, ctx] as const;
+}
+
 function canvas(w: number, h: number) {
   const c = document.createElement('canvas');
   c.width = w;
@@ -55,7 +67,7 @@ function blotches(ctx: CanvasRenderingContext2D, w: number, h: number, r: () => 
 // two 2.4m form panels square, so world UVs should divide by 4.8.
 export function concrete(base = '#a19e98', seed = 1) {
   const S = 1024;
-  const [c, ctx] = canvas(S, S);
+  const [c, ctx] = big(S);
   const r = rng(seed);
   ctx.fillStyle = base;
   ctx.fillRect(0, 0, S, S);
@@ -91,7 +103,7 @@ export function concrete(base = '#a19e98', seed = 1) {
 // Honed white marble with soft gray veining. Tile: 3m.
 export function marble(seed = 4, base = '#ebe7e0', vein = '120,118,115') {
   const S = 1024;
-  const [c, ctx] = canvas(S, S);
+  const [c, ctx] = big(S);
   const r = rng(seed);
   ctx.fillStyle = base;
   ctx.fillRect(0, 0, S, S);
@@ -137,7 +149,7 @@ export function plaster(base = '#efece6', seed = 9) {
 // Polished concrete floor. Tile: 6m.
 export function polished(base = '#6d6a65', seed = 2) {
   const S = 1024;
-  const [c, ctx] = canvas(S, S);
+  const [c, ctx] = big(S);
   const r = rng(seed);
   ctx.fillStyle = base;
   ctx.fillRect(0, 0, S, S);
@@ -222,8 +234,8 @@ export function court(basketX = 0) {
 // cores with a soft halo, for an emissive map.
 export function neonCourt(basketX = 0) {
   const S = 2048;
-  const [c, ctx] = canvas(S, S);
-  const [gc, gctx] = canvas(S, S);
+  const [c, ctx] = big(S);
+  const [gc, gctx] = big(S);
   const r = rng(29);
   const plank = S / 64;
   for (let x = 0; x < S; x += plank) {
@@ -276,7 +288,7 @@ export function neonCourt(basketX = 0) {
       g.lineJoin = 'round';
       if (glow) {
         g.save();
-        g.filter = `blur(${W * 1.6}px)`;
+        g.filter = `blur(${W * 1.6 * K}px)`; // filters ignore the scale, so match it
         g.globalAlpha = 0.55;
         g.strokeStyle = color;
         g.lineWidth = W * 3.2;

@@ -80,6 +80,7 @@ function worldUV(geo: THREE.BufferGeometry, tile: number) {
 export function createMuseum(host: HTMLElement, opts: Options): MuseumHandle {
   const { stations, projects, reduceMotion } = opts;
   const mobile = window.matchMedia('(max-width: 768px)').matches;
+  T.setPhoneTextures(mobile);
 
   const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
   // Desktop starts at up to 1.5x and steps down if the frame rate can't keep
@@ -699,7 +700,14 @@ export function createMuseum(host: HTMLElement, opts: Options): MuseumHandle {
 
   // ---------- art ----------
 
+  // Phones load their own copies of the models (public/models/m/): the
+  // same meshes with every texture at 512 and meshopt geometry, made with
+  // gltf-transform (resize, then meshopt). The originals carry 2048
+  // textures that decoded to ~16 MB each before they could be shrunk, a
+  // spike that killed iPhones while the lobby was still loading.
+  const phoneModels = (url: string) => (mobile && /\/models\/(?!m\/).*\.glb$/.test(url) ? url.replace('/models/', '/models/m/') : url);
   const manager = new THREE.LoadingManager();
+  manager.setURLModifier(phoneModels);
   let loaded = 0;
   let total = 0;
   manager.onStart = (_u, l, t) => { loaded = l; total = t; opts.onProgress(loaded, total); };
@@ -781,7 +789,7 @@ export function createMuseum(host: HTMLElement, opts: Options): MuseumHandle {
   // room's models load as the visitor approaches it and are freed again a
   // few stops after they leave. A separate loader keeps these late loads
   // out of the loading screen's progress.
-  const lazyGltf = new GLTFLoader();
+  const lazyGltf = new GLTFLoader(new THREE.LoadingManager().setURLModifier(phoneModels));
   lazyGltf.setMeshoptDecoder(MeshoptDecoder);
   lazyGltf.setDRACOLoader(draco);
   const freeModel = (root: THREE.Object3D) => {
@@ -1388,10 +1396,9 @@ export function createMuseum(host: HTMLElement, opts: Options): MuseumHandle {
     else renderer.render(scene, camera);
     cssRenderer.render(cssScene, camera);
   };
-  // Phones: the drawn, tiling surfaces (plaster, concrete, marble, wood,
-  // the rooms' grains) are 1024 canvases, ~5.6 MB each with mipmaps; at
-  // phone size 512 looks the same at a quarter of the memory. Done before
-  // the first frame, so the big ones never reach the GPU.
+  // Phones: every drawn texture (surfaces, wall labels, placards, mats)
+  // goes to 512 at most before the first frame, so the big ones never
+  // reach the GPU; the redrawn ones (userData.live) keep their size.
   if (mobile) {
     const seen = new Set<THREE.Texture>();
     scene.traverse((o) => {
@@ -1401,7 +1408,8 @@ export function createMuseum(host: HTMLElement, opts: Options): MuseumHandle {
         for (const t of [m.map, m.normalMap, m.roughnessMap, m.bumpMap, m.emissiveMap, m.alphaMap]) {
           if (!t || seen.has(t)) continue;
           seen.add(t);
-          if ((t as THREE.CanvasTexture).isCanvasTexture && t.wrapS === THREE.RepeatWrapping) shrink(t, 512);
+          // tiling surfaces, labels, placards and mats: 512 is plenty at phone size
+          if ((t as THREE.CanvasTexture).isCanvasTexture && !t.userData.live) shrink(t, 512);
           lighten(t);
         }
       }
@@ -1648,16 +1656,7 @@ const DRESS: Record<string, (k: Kit) => void | DoorControls> = {
     const { r } = k;
     // Black hardwood, its lines laid in neon: green, cyan and purple
     const court = T.neonCourt(-3.5);
-    // Phones: the court's two 2048 canvases are ~45 MB of GPU memory; at
-    // 1024 they're a quarter of that and look the same on a small screen
-    if (k.mobile) for (const t of [court.map, court.glow]) {
-      const src = t.image as HTMLCanvasElement;
-      const c = document.createElement('canvas');
-      c.width = c.height = 1024;
-      c.getContext('2d')!.drawImage(src, 0, 0, 1024, 1024);
-      t.image = c;
-      t.needsUpdate = true;
-    }
+    // (phones draw it at 1024: see setPhoneTextures)
     const floor = k.plane(14, 14, k.track(new THREE.MeshStandardMaterial({
       map: k.track(court.map), emissive: '#ffffff', emissiveMap: k.track(court.glow), emissiveIntensity: 1.6, roughness: 0.28, metalness: 0.1,
     })), [0, 0.003, r.zc]);
