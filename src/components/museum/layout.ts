@@ -276,8 +276,9 @@ const EYE = 1.7;
 
 // A bay seen from the middle of the hall, a little before it, so the view
 // angles down the hall rather than square onto the wall.
-function bayView(side: -1 | 1, z: number, y = 1.8): Pick<Station, 'pos' | 'look'> {
-  return { pos: [side * 2.0, EYE, z + 1.9], look: [side * 6, y, z] };
+// Phones see a narrow slice: an angled view down the wall fits both prints.
+function bayView(side: -1 | 1, z: number, y = 1.8): Pick<Station, 'pos' | 'look' | 'narrow'> {
+  return { pos: [side * 2.0, EYE, z + 1.9], look: [side * 6, y, z], narrow: { pos: [-side * 2.5, EYE, z + 8.5], look: [side * 6, y + 0.1, z + 0.45] } };
 }
 
 function piece(id: string) {

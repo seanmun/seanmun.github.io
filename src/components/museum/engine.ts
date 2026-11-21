@@ -572,6 +572,39 @@ export function createMuseum(host: HTMLElement, opts: Options): MuseumHandle {
     roomModels.push({ room, src, onLoad, root: null, want: false, busy: false });
   };
 
+  // Posters: the still on each screen until its video plays. Desktop loads
+  // them all up front. Phones load a room's posters as the visitor nears
+  // it, free them a few stops after, and drop each one once its video is
+  // playing (it's only a placeholder by then): together they were ~70 MB.
+  type Poster = { room: number; url: string; mat: THREE.MeshBasicMaterial; tex: THREE.Texture | null; loading: boolean; want: boolean; onSize?: (aspect: number) => void };
+  const posters: Poster[] = [];
+  const loadPoster = (p: Poster) => {
+    p.loading = true;
+    loader.load(p.url, (t) => {
+      p.loading = false;
+      t.colorSpace = THREE.SRGBColorSpace;
+      if (!mobile) track(t);
+      const img = t.image as { width: number; height: number };
+      p.onSize?.(img.width / img.height);
+      // gone past the room, or its video took over, while this loaded
+      if (mobile && (!p.want || p.mat.map)) { t.dispose(); return; }
+      if (mobile) shrink(t, 1024);
+      p.tex = t;
+      if (!p.mat.map) { p.mat.map = t; p.mat.color.set('#fff'); p.mat.needsUpdate = true; }
+    }, undefined, () => { p.loading = false; });
+  };
+  const addPoster = (room: number, url: string, mat: THREE.MeshBasicMaterial, onSize?: (aspect: number) => void) => {
+    const p: Poster = { room, url, mat, tex: null, loading: false, want: !mobile, onSize };
+    posters.push(p);
+    if (!mobile) loadPoster(p);
+  };
+  const freePoster = (p: Poster) => {
+    if (!p.tex) return;
+    if (p.mat.map === p.tex) { p.mat.map = null; p.mat.color.set('#111'); p.mat.needsUpdate = true; }
+    p.tex.dispose();
+    p.tex = null;
+  };
+
   let vault: DoorControls | null = null;
   ROOM_SLUGS.forEach((slug, i) => {
     const r = roomBounds(i);
@@ -592,11 +625,7 @@ export function createMuseum(host: HTMLElement, opts: Options): MuseumHandle {
     // still: the poster only, never the video (to spare a phone's decoders)
     const videoMat = (src: string, poster: string, still = false) => {
       const mat = track(new THREE.MeshBasicMaterial({ color: '#111', toneMapped: false }));
-      loader.load(poster, (t) => {
-        t.colorSpace = THREE.SRGBColorSpace;
-        track(t);
-        if (!mat.map) { mat.map = t; mat.color.set('#fff'); mat.needsUpdate = true; }
-      });
+      addPoster(i, poster, mat);
       if (!still) addVideo(src, mat);
       return mat;
     };
@@ -647,15 +676,7 @@ export function createMuseum(host: HTMLElement, opts: Options): MuseumHandle {
     fit(16 / 9);
 
     const media = ROOM_MEDIA[slug];
-    if (media.poster) {
-      loader.load(media.poster, (t) => {
-        t.colorSpace = THREE.SRGBColorSpace;
-        track(t);
-        if (!screenMat.map) { screenMat.map = t; screenMat.color.set('#fff'); screenMat.needsUpdate = true; }
-        const img = t.image as HTMLImageElement;
-        fit(img.width / img.height);
-      });
-    }
+    if (media.poster) addPoster(i, media.poster, screenMat, fit);
     if (media.video) addVideo(media.video, screenMat);
     const toured = stations.some((st) => st.slug === slug && st.panel !== undefined);
     if (p && !toured) {
@@ -691,16 +712,16 @@ export function createMuseum(host: HTMLElement, opts: Options): MuseumHandle {
   disposables.push(draco);
 
   // Art casts and catches shadows, and its textures stay sharp at an angle
-  // Phones: sculpture textures come in at 2048, ~22 MB of GPU memory each
-  // with mipmaps, and a dozen of them crash iOS Safari's tab. Halve them to
-  // 1024 (a quarter of the memory) before they upload; at phone size the
-  // difference doesn't show.
+  // Phones: sculpture textures come in at 1024-2048, up to ~22 MB of GPU
+  // memory each with mipmaps, and a dozen of them crash iOS Safari's tab.
+  // Bring them down to 512 before they upload (posters and prints to their
+  // own sizes); at phone size the difference doesn't show.
   const shrunk = new WeakSet<THREE.Texture>();
-  const shrink = (t: THREE.Texture) => {
+  const shrink = (t: THREE.Texture, max = 512) => {
     const img = t.image as { width: number; height: number; close?: () => void } | undefined;
-    if (shrunk.has(t) || !img || Math.max(img.width, img.height) <= 1024) return;
+    if (shrunk.has(t) || !img || Math.max(img.width, img.height) <= max) return;
     shrunk.add(t);
-    const k = 1024 / Math.max(img.width, img.height);
+    const k = max / Math.max(img.width, img.height);
     const c = document.createElement('canvas');
     c.width = Math.round(img.width * k);
     c.height = Math.round(img.height * k);
@@ -780,6 +801,19 @@ export function createMuseum(host: HTMLElement, opts: Options): MuseumHandle {
     }
   };
   if (!mobile) for (const m of roomModels) { m.want = true; loadModel(m, gltf); }
+  // Phones' posters: load from 3 stops ahead, free 4.5 stops past, and
+  // free once the screen's video is showing
+  const updatePosters = (s: number) => {
+    for (const p of posters) {
+      const span = roomSpan[p.room];
+      if (!span) continue;
+      if (s > span.first - 3 && s < span.last + 3) p.want = true;
+      else if (s < span.first - 4.5 || s > span.last + 4.5) p.want = false;
+      const videoShowing = !!p.mat.map && p.mat.map !== p.tex;
+      if (p.tex && (!p.want || videoShowing)) freePoster(p);
+      else if (p.want && !p.tex && !p.loading && !p.mat.map) loadPoster(p);
+    }
+  };
   const shadowSpot = (light: THREE.SpotLight, far = 12) => {
     light.castShadow = !mobile;
     light.shadow.mapSize.set(1024, 1024);
@@ -834,10 +868,11 @@ export function createMuseum(host: HTMLElement, opts: Options): MuseumHandle {
     } else {
       photoLoader.load(p.src, (t) => {
         t.colorSpace = THREE.SRGBColorSpace;
-        t.anisotropy = 8;
+        t.anisotropy = mobile ? 4 : 8;
         track(t);
         const img = t.image as HTMLImageElement;
         const aspect = img.width / img.height;
+        if (mobile) shrink(t, 640);
         const L = p.size ?? 1.5;
         const w = aspect >= 1 ? L : L * aspect;
         const h = aspect >= 1 ? L / aspect : L;
@@ -1154,7 +1189,7 @@ export function createMuseum(host: HTMLElement, opts: Options): MuseumHandle {
           const vt = track(new THREE.VideoTexture(v.video));
           vt.colorSpace = THREE.SRGBColorSpace;
           l.tex = vt;
-          l.poster = v.mat.map;
+          l.poster = mobile ? null : v.mat.map;
           l.posterColor = v.mat.color.clone();
           v.mat.map = vt;
           v.mat.color.set('#fff');
@@ -1173,8 +1208,9 @@ export function createMuseum(host: HTMLElement, opts: Options): MuseumHandle {
         v.video.removeAttribute('src');
         v.video.load();
         if (l.tex) {
+          // phones dropped the poster: dark until it reloads on the way back
           v.mat.map = l.poster;
-          v.mat.color.copy(l.posterColor);
+          if (l.poster) v.mat.color.copy(l.posterColor); else v.mat.color.set('#111');
           v.mat.needsUpdate = true;
           l.tex.dispose();
         }
@@ -1307,12 +1343,30 @@ export function createMuseum(host: HTMLElement, opts: Options): MuseumHandle {
     if (sunDirty > 0) { sun.shadow.needsUpdate = true; sunDirty--; }
     if (!reduceMotion) sPivot.rotation.y = t * 0.25;
     for (const a of animators) a(t, dt);
-    if (mobile) updateModels(scroll);
+    if (mobile) { updateModels(scroll); updatePosters(scroll); }
     updatePanels(scroll);
     if (post) post.render(dt, t);
     else renderer.render(scene, camera);
     cssRenderer.render(cssScene, camera);
   };
+  // Phones: the drawn, tiling surfaces (plaster, concrete, marble, wood,
+  // the rooms' grains) are 1024 canvases, ~5.6 MB each with mipmaps; at
+  // phone size 512 looks the same at a quarter of the memory. Done before
+  // the first frame, so the big ones never reach the GPU.
+  if (mobile) {
+    const seen = new Set<THREE.Texture>();
+    scene.traverse((o) => {
+      const mats = (o as THREE.Mesh).material;
+      if (!mats) return;
+      for (const m of (Array.isArray(mats) ? mats : [mats]) as THREE.MeshStandardMaterial[]) {
+        for (const t of [m.map, m.normalMap, m.roughnessMap, m.bumpMap, m.emissiveMap]) {
+          if (!t || seen.has(t) || !(t as THREE.CanvasTexture).isCanvasTexture || t.wrapS !== THREE.RepeatWrapping) continue;
+          seen.add(t);
+          shrink(t, 512);
+        }
+      }
+    });
+  }
   tick();
 
   return {
@@ -1333,6 +1387,7 @@ export function createMuseum(host: HTMLElement, opts: Options): MuseumHandle {
       ro.disconnect();
       window.removeEventListener('pointermove', onMove);
       for (const v of videoScreens) { v.video.pause(); v.video.removeAttribute('src'); v.video.load(); }
+      for (const p of posters) p.tex?.dispose();
       for (const m of roomModels) { m.want = false; if (m.root) freeModel(m.root); m.root = null; }
       scene.traverse((o) => {
         const mesh = o as THREE.Mesh;
