@@ -1306,7 +1306,7 @@ export function createMuseum(host: HTMLElement, opts: Options): MuseumHandle {
     const wasNarrow = narrow;
     narrow = w / h < 0.8;
     if (narrow !== wasNarrow) buildRoute(narrow);
-    camera.fov = narrow ? 62 : 55;
+    camera.fov = narrow ? 56 : 55; // phones: a little closer in
     applyView();
     placePanels(narrow);
   };

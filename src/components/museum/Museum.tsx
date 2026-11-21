@@ -329,7 +329,7 @@ export default function Museum({ projects, ordinals, tours }: { projects: Museum
       >
         <div
           key={station.id}
-          className="pointer-events-auto max-w-xl w-full rounded-2xl bg-black/55 backdrop-blur px-5 py-4 text-white shadow-2xl animate-[museumIn_.5s_ease-out]"
+          className="pointer-events-auto max-w-xl w-full max-h-[42vh] max-h-[calc(45svh-12px)] overflow-y-auto overscroll-contain rounded-2xl bg-black/55 backdrop-blur px-5 py-4 text-white shadow-2xl animate-[museumIn_.5s_ease-out]"
         >
           <div className="flex items-baseline justify-between gap-4">
             <h1 className="text-lg sm:text-xl font-semibold">{station.label}</h1>
@@ -492,7 +492,9 @@ function WatchScore() {
 const HOLO_CSS = `
 .holo-wrap { width: 560px; }
 .holo-sheet .holo {
-  opacity: 1; animation: holoIn .7s ease-out; max-height: 44vh; overflow-y: auto; padding: 16px 18px 18px;
+  /* never over 45% of the screen you can see: svh counts Safari's toolbars
+     (vh doesn't, which let cards run taller on iPhones); longer ones scroll */
+  opacity: 1; animation: holoIn .7s ease-out; max-height: 42vh; max-height: calc(45svh - 12px); overflow-y: auto; overscroll-behavior: contain; padding: 16px 18px 18px;
   background: linear-gradient(180deg, rgba(14,70,110,0.92) 0%, rgba(6,36,66,0.94) 100%);
 }
 .holo-sheet .holo-kicker { font-size: 10px; margin-bottom: 6px; }

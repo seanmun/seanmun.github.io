@@ -98,7 +98,7 @@ export function roomTour(slug: string, index: number): TourStop[] | null {
           // Desktop: square to the wall, the screens to the right of the panel.
           // Phones (no panel): back far enough to see all three, centered
           pos: [0.5, 1.75, r.zc - 2.75], look: [7, 1.9, r.zc - 2.75], place: [-0.85, -0.05, 2.4],
-          narrow: { pos: [-3.2, 1.75, r.zc - 0.45], look: [7, 1.85, r.zc - 0.45] } },
+          narrow: { pos: [-4.6, 1.75, r.zc - 0.45], look: [7, 1.85, r.zc - 0.45] } },
         screen('Describe an email → get two production builds'),
         { id: 'finale', label: 'Bolt', panel: { kind: 'finale', heading: 'Bolt: the game that markets it', link: { label: 'Play Bolt', href: 'https://bolt.kinetic.email/' } }, pos: [-2.4, 1.75, r.z1 + 5.8], look: [-4.2, 2.1, r.z1], place: [1.05, -0.05, 2.5] },
       ];
@@ -150,7 +150,7 @@ export function roomTour(slug: string, index: number): TourStop[] | null {
         ] }, pos: [1.4, 1.75, r.zc + 1.0], look: [7, 2.7, r.zc - 1.9], place: [1.05, -0.15, 2.5] },
         { id: 'bump', label: 'Bump', panel: { kind: 'section', heading: 'Bump, your AI general manager' }, pos: [-2.2, 1.8, r.zc + 0.8], look: [-7, 2.35, r.zc + 0.4], place: [1.0, -0.05, 2.4] },
         { id: 'hoop', label: 'Every game', panel: { kind: 'finale', heading: 'One login. Every game.' }, pos: [-1.7, 1.7, r.z1 + 6.0], look: [-1.75, 2.45, r.z1 + 0.2], place: [1.1, -0.1, 2.5],
-          narrow: { pos: [-3.5, 1.8, r.z1 + 7.4], look: [-3.5, 2.1, r.z1 + 0.2] } },
+          narrow: { pos: [-3.5, 1.8, r.z1 + 8.8], look: [-3.5, 2.25, r.z1 + 0.2] } },
       ];
     default:
       return null;
@@ -278,7 +278,7 @@ const EYE = 1.7;
 // angles down the hall rather than square onto the wall.
 // Phones see a narrow slice: an angled view down the wall fits both prints.
 function bayView(side: -1 | 1, z: number, y = 1.8): Pick<Station, 'pos' | 'look' | 'narrow'> {
-  return { pos: [side * 2.0, EYE, z + 1.9], look: [side * 6, y, z], narrow: { pos: [-side * 2.5, EYE, z + 8.5], look: [side * 6, y + 0.1, z + 0.45] } };
+  return { pos: [side * 2.0, EYE, z + 1.9], look: [side * 6, y, z], narrow: { pos: [-side * 2.5, EYE, z + 9.3], look: [side * 6, y + 0.1, z + 0.45] } };
 }
 
 function piece(id: string) {
