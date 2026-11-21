@@ -774,11 +774,15 @@ export function createMuseum(host: HTMLElement, opts: Options): MuseumHandle {
   const loadModel = (m: RoomModel, loader: GLTFLoader) => {
     m.busy = true;
     loader.load(m.src, (g) => {
-      m.busy = false;
       const root = asArt(g.scene);
-      m.onLoad(root, g.animations);
-      m.root = root;
-      if (!m.want) { freeModel(root); m.root = null; } // left the room while it loaded
+      // Compile its shaders off the main thread first (where the browser
+      // can), so a model arriving mid-walk doesn't stall a frame
+      renderer.compileAsync(root, camera, scene).catch(() => {}).finally(() => {
+        m.busy = false;
+        m.onLoad(root, g.animations);
+        m.root = root;
+        if (!m.want) { freeModel(root); m.root = null; } // left the room while it loaded
+      });
     }, undefined, () => { m.busy = false; });
   };
   // the stretch of stops, in scroll units, where each room's models are kept
@@ -1287,17 +1291,20 @@ export function createMuseum(host: HTMLElement, opts: Options): MuseumHandle {
   let raf = 0;
   // Adaptive quality: once everything has loaded, watch the frame rate in
   // 1.5 s windows; under ~50 fps, render fewer pixels (down to 1x), and
-  // if 1x is still slow, drop ambient occlusion, the costliest pass
+  // if 1x is still slow, drop ambient occlusion, the costliest pass.
+  // Phones keep watching the whole walk (their heavy rooms come later,
+  // as models load), and one-off hitches from a load don't count: each
+  // frame counts for at most 50 ms.
   let perfFrames = 0, perfTime = 0, perfSettled = false;
   const adapt = (dt: number) => {
     if (perfSettled || !allLoaded || sunDirty > 0 || document.hidden) return;
     perfFrames++;
-    perfTime += dt;
+    perfTime += mobile ? Math.min(dt, 0.05) : dt;
     if (perfTime < 1.5) return;
     const fps = perfFrames / perfTime;
     perfFrames = 0;
     perfTime = 0;
-    if (fps >= 50) { perfSettled = true; return; }
+    if (fps >= (mobile ? 45 : 50)) { if (!mobile) perfSettled = true; return; }
     if (pixelRatio > 1) {
       pixelRatio = Math.max(1, pixelRatio - 0.25);
       renderer.setPixelRatio(pixelRatio);
