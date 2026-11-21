@@ -589,6 +589,7 @@ export function createMuseum(host: HTMLElement, opts: Options): MuseumHandle {
       // gone past the room, or its video took over, while this loaded
       if (mobile && (!p.want || p.mat.map)) { t.dispose(); return; }
       if (mobile) shrink(t, 1024);
+      lighten(t);
       p.tex = t;
       if (!p.mat.map) { p.mat.map = t; p.mat.color.set('#fff'); p.mat.needsUpdate = true; }
     }, undefined, () => { p.loading = false; });
@@ -730,6 +731,29 @@ export function createMuseum(host: HTMLElement, opts: Options): MuseumHandle {
     t.image = c;
     t.needsUpdate = true;
   };
+  // Phones: an iPhone's CPU and GPU share one pool of memory, and three.js
+  // keeps every texture's source image (a canvas, a decoded JPEG) and every
+  // model's vertex arrays in JS after uploading them, so each counted
+  // about twice. Once uploaded, drop the CPU side. Textures that are drawn
+  // again (userData.live) keep theirs; a texture is only ever uploaded
+  // again after it's freed and rebuilt, which starts from fresh sources.
+  const lighten = (t: THREE.Texture | null | undefined) => {
+    if (!mobile || !t || t.userData.live || (t as THREE.VideoTexture).isVideoTexture || t.onUpdate) return;
+    t.onUpdate = () => {
+      const img = t.image as { width?: number; height?: number } | null;
+      if (img && typeof img.width === 'number') t.image = { width: img.width, height: img.height };
+      t.onUpdate = null;
+    };
+  };
+  const lightenGeometry = (g: THREE.BufferGeometry) => {
+    if (!mobile || g.userData.light) return;
+    g.userData.light = true;
+    g.computeBoundingSphere(); // culling needs these; worked out while the arrays are here
+    g.computeBoundingBox();
+    const drop = function (this: { array: unknown }) { this.array = null; };
+    for (const a of Object.values(g.attributes)) if ((a as THREE.BufferAttribute).isBufferAttribute) (a as THREE.BufferAttribute).onUpload(drop);
+    g.index?.onUpload(drop);
+  };
   const asArt = (root: THREE.Object3D) => {
     root.traverse((o) => {
       const m = o as THREE.Mesh;
@@ -743,8 +767,11 @@ export function createMuseum(host: HTMLElement, opts: Options): MuseumHandle {
           if (!t) continue;
           t.anisotropy = mobile ? 4 : 8;
           if (mobile) shrink(t);
+          lighten(t);
         }
       }
+      // sculptures aren't picked by the pointer, so their arrays can go too
+      if (!(m as THREE.SkinnedMesh).isSkinnedMesh) lightenGeometry(m.geometry);
     });
     return root;
   };
@@ -791,13 +818,15 @@ export function createMuseum(host: HTMLElement, opts: Options): MuseumHandle {
     const last = stations.findLastIndex((st) => st.slug === slug);
     return first < 0 ? null : { first, last };
   });
-  // Load from 2.5 stops ahead; free once 4 stops past either end. The gap
+  // Load from 2.5 stops ahead; free once 4 stops past either end (3.2 on
+  // phones). The gap
   // between the two keeps a visitor hovering at a doorway from reloading.
   const updateModels = (s: number) => {
     for (const m of roomModels) {
       const span = roomSpan[m.room];
       const near = !span || (s > span.first - 2.5 && s < span.last + 2.5);
-      const far = span && (s < span.first - 4 || s > span.last + 4);
+      const gone = mobile ? 3.2 : 4;
+      const far = span && (s < span.first - gone || s > span.last + gone);
       if (near) m.want = true;
       else if (far) m.want = false;
       if (m.want && !m.root && !m.busy) loadModel(m, lazyGltf);
@@ -877,6 +906,7 @@ export function createMuseum(host: HTMLElement, opts: Options): MuseumHandle {
         const img = t.image as HTMLImageElement;
         const aspect = img.width / img.height;
         if (mobile) shrink(t, 640);
+        lighten(t);
         const L = p.size ?? 1.5;
         const w = aspect >= 1 ? L : L * aspect;
         const h = aspect >= 1 ? L / aspect : L;
@@ -924,6 +954,7 @@ export function createMuseum(host: HTMLElement, opts: Options): MuseumHandle {
     screenCanvas.height = H;
     const sctx = screenCanvas.getContext('2d')!;
     const screenTex = track(new THREE.CanvasTexture(screenCanvas));
+    screenTex.userData.live = true; // redrawn every slide
     screenTex.colorSpace = THREE.SRGBColorSpace;
     screenTex.anisotropy = 4;
     const screenMat = track(new THREE.MeshBasicMaterial({ map: screenTex, toneMapped: false }));
@@ -1175,7 +1206,7 @@ export function createMuseum(host: HTMLElement, opts: Options): MuseumHandle {
 
   // ---------- video lifecycle ----------
 
-  // Phones also unload a room's videos once the visitor is 4 stops past it:
+  // Phones also unload a room's videos once the visitor is 2.4 stops past it:
   // Safari keeps every loaded video's decoder and frames alive otherwise.
   // The screen falls back to its poster until they come back.
   type Live = { tex: THREE.VideoTexture | null; poster: THREE.Texture | null; posterColor: THREE.Color; onPlaying: () => void };
@@ -1186,7 +1217,7 @@ export function createMuseum(host: HTMLElement, opts: Options): MuseumHandle {
       const first = stations.findIndex((st) => st.slug === slug);
       const last = stations.findLastIndex((st) => st.slug === slug);
       const near = s > first - 1.6 && s < last + 1.4;
-      const far = s < first - 4 || s > last + 4;
+      const far = s < first - 2.4 || s > last + 2.4; // only phones unload
       if (near && !v.loaded) {
         v.loaded = true;
         const l: Live = { tex: null, poster: null, posterColor: v.mat.color.clone(), onPlaying: () => {
@@ -1367,10 +1398,11 @@ export function createMuseum(host: HTMLElement, opts: Options): MuseumHandle {
       const mats = (o as THREE.Mesh).material;
       if (!mats) return;
       for (const m of (Array.isArray(mats) ? mats : [mats]) as THREE.MeshStandardMaterial[]) {
-        for (const t of [m.map, m.normalMap, m.roughnessMap, m.bumpMap, m.emissiveMap]) {
-          if (!t || seen.has(t) || !(t as THREE.CanvasTexture).isCanvasTexture || t.wrapS !== THREE.RepeatWrapping) continue;
+        for (const t of [m.map, m.normalMap, m.roughnessMap, m.bumpMap, m.emissiveMap, m.alphaMap]) {
+          if (!t || seen.has(t)) continue;
           seen.add(t);
-          shrink(t, 512);
+          if ((t as THREE.CanvasTexture).isCanvasTexture && t.wrapS === THREE.RepeatWrapping) shrink(t, 512);
+          lighten(t);
         }
       }
     });

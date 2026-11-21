@@ -10,6 +10,14 @@ import { createPortal } from 'react-dom';
 import Link from 'next/link';
 import { STEP, buildStations, type MuseumProject, type PanelContent } from './layout';
 import { BunkerDoor } from './BunkerDoor';
+import { getDeviceType, getVisitorId, sendEvents } from '@/lib/track-utils';
+
+// Crash breadcrumb: iOS reloads a tab it killed for using too much memory.
+// While the museum is open, sessionStorage holds the stop the visitor is
+// at; leaving cleanly (pagehide) clears it. Finding it on load means the
+// last visit died there, so report the stop (and nothing about the person)
+const AT_KEY = 'museum:at';
+let crashChecked = false;
 import type { MuseumHandle } from './engine';
 
 export default function Museum({ projects, ordinals, tours }: { projects: MuseumProject[]; ordinals: string[]; tours: Record<string, PanelContent[]> }) {
@@ -33,6 +41,28 @@ export default function Museum({ projects, ordinals, tours }: { projects: Museum
   const registerKnock = useCallback((fn: () => void) => { knockRef.current = fn; }, []);
   const doorControls = useCallback(() => engineRef.current?.door() ?? null, []);
   const [active, setActive] = useState(0);
+  const activeIdRef = useRef(stations[0]?.id ?? '');
+  useEffect(() => {
+    if (!crashChecked) {
+      crashChecked = true; // once per page load (dev mounts effects twice)
+      try {
+        const died = sessionStorage.getItem(AT_KEY);
+        if (died) sendEvents([{ cookieId: getVisitorId(), eventType: 'museum_crash', label: died.slice(0, 60), deviceType: getDeviceType(), path: '/museum' }]);
+      } catch {
+        // storage off: no breadcrumb
+      }
+    }
+    const mark = () => { try { sessionStorage.setItem(AT_KEY, activeIdRef.current); } catch { /* ignore */ } };
+    const clear = () => { try { sessionStorage.removeItem(AT_KEY); } catch { /* ignore */ } };
+    mark();
+    window.addEventListener('pagehide', clear);
+    window.addEventListener('pageshow', mark); // back from the back-forward cache
+    return () => { window.removeEventListener('pagehide', clear); window.removeEventListener('pageshow', mark); };
+  }, []);
+  useEffect(() => {
+    activeIdRef.current = stations[active]?.id ?? '';
+    try { sessionStorage.setItem(AT_KEY, activeIdRef.current); } catch { /* ignore */ }
+  }, [active, stations]);
   const [progress, setProgress] = useState({ loaded: 0, total: 1 });
   const [failed, setFailed] = useState(false);
   const [placard, setPlacard] = useState<string | null>(null);

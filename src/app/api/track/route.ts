@@ -11,7 +11,7 @@ import { takeRateLimit, type RateLimit } from '@/lib/rate-limit';
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
-const EVENT_TYPES = ['pageview', 'project_click', 'modal_open', 'link_click', 'click'] as const;
+const EVENT_TYPES = ['pageview', 'project_click', 'modal_open', 'link_click', 'click', 'museum_crash'] as const;
 const MAX_BATCH = 30;
 // A real visitor posts at most every few seconds (clicks flush every 5s)
 const TRACK_LIMIT: RateLimit = { collection: 'track_limits', max: 120, windowMs: 10 * 60 * 1000 };

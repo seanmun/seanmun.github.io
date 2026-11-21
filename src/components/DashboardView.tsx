@@ -24,7 +24,7 @@ interface PageView {
   id: string;
   cookieId: string;
   timestamp: Date;
-  eventType: 'pageview' | 'project_click' | 'modal_open' | 'link_click' | 'click';
+  eventType: 'pageview' | 'project_click' | 'modal_open' | 'link_click' | 'click' | 'museum_crash';
   path?: string | null;
   label?: string | null;
   elementKind?: string | null;

@@ -6,7 +6,7 @@
 
 export type TrackEvent = {
   cookieId: string;
-  eventType: 'pageview' | 'project_click' | 'modal_open' | 'link_click' | 'click';
+  eventType: 'pageview' | 'project_click' | 'modal_open' | 'link_click' | 'click' | 'museum_crash';
   timestamp?: Date; // set server-side; kept for call-site compatibility
   path?: string;
   projectName?: string;
