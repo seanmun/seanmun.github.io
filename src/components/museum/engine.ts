@@ -1330,6 +1330,7 @@ export function createMuseum(host: HTMLElement, opts: Options): MuseumHandle {
     (scene.background as THREE.Color).copy((scene.fog as THREE.Fog).color);
     camera.position.copy(camPos);
     setBelow(camPos.y);
+    lightPool?.();
     let yaw = camYaw, pitch = camPitch;
     // Tall, narrow screens see more above and below: aim a little lower so
     // the art sits in the open middle of the screen, above the caption
@@ -1367,6 +1368,63 @@ export function createMuseum(host: HTMLElement, opts: Options): MuseumHandle {
       }
     });
   }
+  // Phones: a fixed pool of lights follows the visitor. three.js lights
+  // every pixel with every light in the scene (26 point and spot lights,
+  // most of them rooms away), which is what made phones run hot and
+  // stutter. Instead, the originals stay as invisible markers and a few
+  // pool lights take on the nearest ones' settings each frame. The pool's
+  // size never changes, so no shader is ever recompiled for it.
+  const lightPool = mobile ? (() => {
+    const points: THREE.PointLight[] = [], spots: THREE.SpotLight[] = [];
+    scene.traverse((o) => {
+      if ((o as THREE.SpotLight).isSpotLight) spots.push(o as THREE.SpotLight);
+      else if ((o as THREE.PointLight).isPointLight) points.push(o as THREE.PointLight);
+    });
+    for (const l of [...points, ...spots]) l.visible = false;
+    const poolP = Array.from({ length: 6 }, () => new THREE.PointLight('#fff', 0));
+    const poolS = Array.from({ length: 4 }, () => new THREE.SpotLight('#fff', 0));
+    for (const l of poolP) scene.add(l);
+    for (const l of poolS) scene.add(l, l.target);
+    const at = new THREE.Vector3();
+    const where = new Map<THREE.Light, THREE.Vector3>();
+    const near = <L extends THREE.PointLight | THREE.SpotLight>(list: L[], n: number) => list
+      .filter((l) => l.intensity > 0)
+      .map((l) => {
+        const w = where.get(l) ?? where.set(l, new THREE.Vector3()).get(l)!;
+        l.getWorldPosition(w);
+        return { l, d: w.distanceToSquared(camera.position) };
+      })
+      .sort((a, b) => a.d - b.d)
+      .slice(0, n)
+      .map((x) => x.l);
+    let chosenP: THREE.PointLight[] = [], chosenS: THREE.SpotLight[] = [], frame = 0;
+    return () => {
+      // re-pick a few times a second; copy every frame (some lights animate)
+      if (frame++ % 6 === 0) { chosenP = near(points, poolP.length); chosenS = near(spots, poolS.length); }
+      poolP.forEach((p, i) => {
+        const o = chosenP[i];
+        if (!o) { p.intensity = 0; return; }
+        p.color.copy(o.color);
+        p.intensity = o.intensity;
+        p.distance = o.distance;
+        p.decay = o.decay;
+        p.position.copy(where.get(o)!);
+      });
+      poolS.forEach((p, i) => {
+        const o = chosenS[i];
+        if (!o) { p.intensity = 0; return; }
+        p.color.copy(o.color);
+        p.intensity = o.intensity;
+        p.distance = o.distance;
+        p.decay = o.decay;
+        p.angle = o.angle;
+        p.penumbra = o.penumbra;
+        p.position.copy(where.get(o)!);
+        p.target.position.copy(o.target.getWorldPosition(at));
+        p.target.updateMatrixWorld();
+      });
+    };
+  })() : null;
   tick();
 
   return {
