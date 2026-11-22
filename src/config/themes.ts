@@ -1,7 +1,7 @@
 // Theme configuration system
 // This file centralizes all theme definitions for easy management and scaling
 
-export type ThemeName = 'light' | 'dark' | 'amber' | 'default' | 'myspace' | 'windows98' | 'ecosystem';
+export type ThemeName = 'light' | 'dark' | 'amber' | 'default' | 'myspace' | 'windows98' | 'ecosystem' | 'museum';
 
 export interface ThemeConfig {
   id: ThemeName;
@@ -229,6 +229,33 @@ export const themes: Record<ThemeName, ThemeConfig> = {
       accentActive: '#93c5fd',
       border: '#1e293b',
       borderHover: '#334155',
+      iconColor: '#60a5fa',
+      link: '#60a5fa',
+      linkHover: '#93c5fd',
+    }
+  },
+
+  // A place, not a look: choosing it walks you to /museum and isn't saved
+  // as your theme (see AccessibilityMenu)
+  museum: {
+    id: 'museum',
+    name: 'Museum',
+    description: 'Walk through the work in a 3D museum',
+    category: 'theme',
+    icon: 'Landmark',
+    colors: {
+      bgPrimary: '#0b0b0d',
+      bgSecondary: '#16161a',
+      bgTertiary: '#232329',
+      bgHover: '#2f2f37',
+      textPrimary: '#f4f4f5',
+      textSecondary: '#a1a1aa',
+      textTertiary: '#71717a',
+      accent: '#3b82f6',
+      accentHover: '#60a5fa',
+      accentActive: '#93c5fd',
+      border: '#232329',
+      borderHover: '#2f2f37',
       iconColor: '#60a5fa',
       link: '#60a5fa',
       linkHover: '#93c5fd',

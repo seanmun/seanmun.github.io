@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Settings2Icon, SunIcon, MoonIcon, FlameIcon, UsersIcon, LayoutIcon, TypeIcon, AlignVerticalJustifyCenter, InfoIcon, XIcon, Box, NetworkIcon } from "lucide-react";
+import { Settings2Icon, SunIcon, MoonIcon, FlameIcon, UsersIcon, LayoutIcon, TypeIcon, AlignVerticalJustifyCenter, InfoIcon, XIcon, Box, NetworkIcon, LandmarkIcon } from "lucide-react";
 import { useAccessibilitySettings } from '../hooks/useAccessibilitySettings';
 import { getAllThemes, ThemeName } from '@/config/themes';
 import Image from 'next/image';
@@ -13,6 +13,7 @@ const themeIcons = {
   Users: UsersIcon,
   Box: Box,
   Network: NetworkIcon,
+  Landmark: LandmarkIcon,
 };
 
 export function AccessibilityMenu() {
@@ -58,6 +59,12 @@ export function AccessibilityMenu() {
   }, []);
 
   function updateSettings(key: keyof typeof settings, value: string) {
+    // The museum is somewhere to go, not a theme to keep: walk there and
+    // leave the saved theme alone, so the site looks the same on the way back
+    if (key === 'theme' && value === 'museum') {
+      window.location.href = '/museum';
+      return;
+    }
     setSettings(prev => ({ ...prev, [key]: value }));
 
     // If selecting MySpace theme, navigate to /myspace page
@@ -389,12 +396,14 @@ export function AccessibilityMenu() {
           activeClasses = 'bg-indigo-600 text-white';
         }
       }
+      // Museum is the fifth theme: it spans the last row, so the grid has no gap
+      const span = theme.id === 'museum' ? ' col-span-2 justify-center' : '';
 
       return (
         <button
           key={theme.id}
           onClick={() => updateSettings('theme', theme.id as ThemeName)}
-          className={`flex items-center gap-1 px-3 py-1 rounded transition-colors ${
+          className={`flex items-center gap-1 px-3 py-1 rounded transition-colors${span} ${
             isActive
               ? activeClasses
               : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
