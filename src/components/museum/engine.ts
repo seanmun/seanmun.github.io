@@ -21,11 +21,12 @@ import orbitronName from './orbitron-name.json'; // Orbitron Black, just the let
 import { buildTrees } from './trees';
 import { buildCourse, courseHeight } from './course';
 import type { DoorControls } from './vault';
+import { buildSalon } from './haussmann';
 import { createPost } from './post';
 import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js';
 import * as T from './textures';
 import {
-  COURSE, GALLERY, GALLERY_PIECES, LOBBY, ORDINAL, OUTDOOR_SLUG, ROOM, ROOM_SLUGS, roomBounds,
+  COURSE, GALLERY, GALLERY_PIECES, LOBBY, ORDINAL, OUTDOOR_SLUG, ROOM, SALON, ROOM_SLUGS, roomBounds,
   type MuseumProject, type Station, type V3,
 } from './layout';
 
@@ -142,7 +143,7 @@ export function createMuseum(host: HTMLElement, opts: Options): MuseumHandle {
   // A side wall (thickness along x) with an optional band of windows
   function sideWall(xa: number, xb: number, z1: number, z0: number, h: number, mat: Mat, side: number, win?: Win) {
     if (!win) { slab([xa, 0, z1], [xb, h, z0], mat); return; }
-    slab([xa, 0, z1], [xb, win.y0, z0], mat);
+    if (win.y0 > 0) slab([xa, 0, z1], [xb, win.y0, z0], mat); // (a French window runs to the floor)
     slab([xa, win.y1, z1], [xb, h, z0], mat);
     const spans = win.zs.map((z) => [z - win.w / 2, z + win.w / 2]).sort((a, b) => a[0] - b[0]);
     let at = z1;
@@ -172,11 +173,12 @@ export function createMuseum(host: HTMLElement, opts: Options): MuseumHandle {
   // A space: floor, ceiling and side walls. Front and back walls are
   // partitions, shared with the neighboring space.
   function space(b: { x0: number; x1: number; z0: number; z1: number; h: number }, wall: Mat, floor: Mat, ceil: Mat,
-    opts: { windows?: Win; skylights?: Hole[] } = {}) {
+    opts: { windows?: Win; winSide?: number; skylights?: Hole[] } = {}) {
     slab([b.x0 - WALL_T, -0.2, b.z1], [b.x1 + WALL_T, 0, b.z0], floor);
     ceiling(b.x0 - WALL_T, b.x1 + WALL_T, b.z1, b.z0, b.h, ceil, opts.skylights);
-    sideWall(b.x0 - WALL_T, b.x0, b.z1, b.z0, b.h, wall, -1, opts.windows);
-    sideWall(b.x1, b.x1 + WALL_T, b.z1, b.z0, b.h, wall, 1, opts.windows);
+    // windows in both side walls, or just the one winSide names
+    sideWall(b.x0 - WALL_T, b.x0, b.z1, b.z0, b.h, wall, -1, opts.winSide === 1 ? undefined : opts.windows);
+    sideWall(b.x1, b.x1 + WALL_T, b.z1, b.z0, b.h, wall, 1, opts.winSide === -1 ? undefined : opts.windows);
     // shadow gap where wall meets floor: the detail that makes walls read as built
     box([0.012, 0.05, b.z0 - b.z1 - WALL_T], [b.x0 + 0.006, 0.025, (b.z0 + b.z1) / 2], reveal);
     box([0.012, 0.05, b.z0 - b.z1 - WALL_T], [b.x1 - 0.006, 0.025, (b.z0 + b.z1) / 2], reveal);
@@ -283,6 +285,7 @@ export function createMuseum(host: HTMLElement, opts: Options): MuseumHandle {
   const COURSE_CENTER = new THREE.Vector3(COURSE.green.x - 3, 0, COURSE.z0 - 26);
   const sunCenter = MUSEUM_CENTER.clone();
   let outT = 0; // 0 indoors, 1 out on the course
+  let parisView: THREE.Object3D | null = null; // the street outside the salon's window
   const setOutdoors = (on: boolean, dt: number) => {
     const goal = on ? 1 : 0;
     if (outT === goal) return;
@@ -297,6 +300,7 @@ export function createMuseum(host: HTMLElement, opts: Options): MuseumHandle {
     sunCenter.lerpVectors(MUSEUM_CENTER, COURSE_CENTER, e);
     sun.target.position.copy(sunCenter);
     sun.position.copy(sunCenter).addScaledVector(sunDir, 90);
+    if (parisView) parisView.visible = outT < 0.5; // out on the course it would show past the museum
     if (mobile) return;
     const cam = sun.shadow.camera, half = outT > 0.5 ? 40 : 80;
     if (cam.right !== half) {
@@ -506,15 +510,9 @@ export function createMuseum(host: HTMLElement, opts: Options): MuseumHandle {
     map: shaftTex, color: '#ffe9c4', transparent: true, opacity: mobile ? 0 : 0.06, depthWrite: false,
     blending: THREE.AdditiveBlending, side: THREE.DoubleSide, toneMapped: false,
   }));
-  for (const o of openings) {
-    const zc = (o.z0 + o.z1) / 2, yc = (o.y0 + o.y1) / 2, w = o.z1 - o.z0, h = o.y1 - o.y0;
-    const pane = plane(w, h, glass, [o.x - o.side * 0.12, yc, zc], o.side < 0 ? Math.PI / 2 : -Math.PI / 2);
-    pane.castShadow = false;
-    const mx = o.x - o.side * 0.14;
-    for (const dz of [-w / 2, -w / 6, w / 6, w / 2]) box([0.06, h, 0.06], [mx, yc, zc + dz], mullion).castShadow = true;
-    for (const y of [o.y0, yc, o.y1]) box([0.06, 0.06, w], [mx, y, zc], mullion).castShadow = true;
-    // A dusty shaft of sun from each window facing it, down to the floor
-    if (Math.sign(SUN_DIR.x) !== o.side) continue;
+  // A dusty shaft of sun from a window facing it, down to the floor
+  function sunShaft(o: { side: number; x: number; y0: number; y1: number; z0: number; z1: number }) {
+    if (Math.sign(SUN_DIR.x) !== o.side) return;
     const top = [[o.y1, o.z0], [o.y1, o.z1], [o.y0, o.z1], [o.y0, o.z0]];
     const pos: number[] = [], uv: number[] = [];
     const corner = (y: number, z: number, t: number) => {
@@ -535,6 +533,16 @@ export function createMuseum(host: HTMLElement, opts: Options): MuseumHandle {
     scene.add(shaft);
   }
 
+  for (const o of openings) {
+    const zc = (o.z0 + o.z1) / 2, yc = (o.y0 + o.y1) / 2, w = o.z1 - o.z0, h = o.y1 - o.y0;
+    const pane = plane(w, h, glass, [o.x - o.side * 0.12, yc, zc], o.side < 0 ? Math.PI / 2 : -Math.PI / 2);
+    pane.castShadow = false;
+    const mx = o.x - o.side * 0.14;
+    for (const dz of [-w / 2, -w / 6, w / 6, w / 2]) box([0.06, h, 0.06], [mx, yc, zc + dz], mullion).castShadow = true;
+    for (const y of [o.y0, yc, o.y1]) box([0.06, 0.06, w], [mx, y, zc], mullion).castShadow = true;
+    sunShaft(o);
+  }
+
   // ---------- project rooms ----------
 
   const videoScreens: { index: number; video: HTMLVideoElement; src: string; mat: THREE.MeshBasicMaterial; loaded: boolean }[] = [];
@@ -543,7 +551,8 @@ export function createMuseum(host: HTMLElement, opts: Options): MuseumHandle {
 
   // fogRange: [near, far]; rooms keep the building's default
   const roomStyle: Record<string, { wall: Mat; floor: Mat | null; ceil: Mat; fog: string; fogRange?: [number, number] }> = {
-    'kinetic-email': { wall: M.plaster, floor: M.polished, ceil: M.ceiling, fog: '#d9d5ce' },
+    // A Haussmann salon: warm white plaster, oak chevrons (see haussmann.ts)
+    'kinetic-email': { wall: std(track(T.plaster('#eee8dc', 21)), 4, { roughness: 0.92 }), floor: std(track(T.parquet()), 2.1, { roughness: 0.3 }), ceil: M.ceiling, fog: '#dcd6cc' },
     'money-never-sleeps': { wall: std(track(T.grain('#0e0e15', 7, 0.05)), 4), floor: null, ceil: std(track(T.grain('#09090d', 8, 0.04)), 4), fog: '#0a0a0f' },
     outlooksucks: { wall: std(track(T.grain('#cbc3ae', 9)), 4), floor: std(track(T.grain('#56606b', 10, 0.18)), 2), ceil: std(track(T.grain('#ecebe6', 11)), 4), fog: '#c9c4b5' },
     // Outdoors: "wall" is the building's back face, seen from the course;
@@ -636,8 +645,13 @@ export function createMuseum(host: HTMLElement, opts: Options): MuseumHandle {
       vault = DRESS[slug]?.({ r, scene, box, plane, color, basic, track, animators, reduceMotion, slab, clickable, videoMat, model: model(i), mobile }) || null;
       return;
     }
-    space(r, style.wall, style.floor ?? M.polished, style.ceil);
-    partition(r.z1, r.x0 - WALL_T, r.x1 + WALL_T, ROOM.h, style.wall, next ? roomStyle[next].wall : style.wall,
+    const salon = slug === 'kinetic-email';
+    space(r, style.wall, style.floor ?? M.polished, style.ceil,
+      salon ? { windows: { y0: 0, y1: SALON.win.h, w: SALON.win.w, zs: [r.zc] }, winSide: 1 } : {});
+    if (salon) sunShaft({ side: 1, x: r.x1, y0: 0, y1: SALON.win.h, z0: r.zc - SALON.win.w / 2, z1: r.zc + SALON.win.w / 2 });
+    // (the salon is taller than the room after it; the wall above that
+    // room's ceiling is out of sight)
+    partition(r.z1, r.x0 - WALL_T, r.x1 + WALL_T, next ? Math.max(r.h, roomBounds(i + 1).h) : r.h, style.wall, next ? roomStyle[next].wall : style.wall,
       next ? { x: ROOM.doorX, w: ROOM.doorW, h: ROOM.doorH } : undefined);
 
     // The first room's name over its doorway, out in the gallery. Later rooms
@@ -652,14 +666,14 @@ export function createMuseum(host: HTMLElement, opts: Options): MuseumHandle {
 
     // Room light
     const lamp = new THREE.PointLight('#fff1dc', slug === 'rocket-pool-tour' ? 14 : slug === 'money-never-sleeps' ? 9 : 26, 0, 1.6);
-    lamp.position.set(0, ROOM.h - 0.6, r.zc);
+    lamp.position.set(0, salon ? SALON.chandelier.y + 0.2 : r.h - 0.6, r.zc);
     scene.add(lamp);
 
     // The screen on the left wall, and the placard to its right
     const screenZ = r.zc + 0.4;
     const screenH = 2.5;
     const screenGroup = new THREE.Group();
-    screenGroup.position.set(r.x0 + 0.06, 2.45, screenZ);
+    screenGroup.position.set(r.x0 + 0.06, salon ? SALON.tvY : 2.45, screenZ);
     screenGroup.rotation.y = Math.PI / 2;
     scene.add(screenGroup);
     const bezel = box([1, 1, 0.08], [0, 0, -0.02], screenFrame, screenGroup);
@@ -697,6 +711,7 @@ export function createMuseum(host: HTMLElement, opts: Options): MuseumHandle {
 
     DRESS[slug]?.({ r, scene, box, plane, color, basic, track, animators, reduceMotion, slab, clickable, videoMat, model: model(i), mobile });
   });
+  parisView = scene.getObjectByName('salon-outside') ?? null;
 
   // ---------- art ----------
 
@@ -1409,7 +1424,7 @@ export function createMuseum(host: HTMLElement, opts: Options): MuseumHandle {
           if (!t || seen.has(t)) continue;
           seen.add(t);
           // tiling surfaces, labels, placards and mats: 512 is plenty at phone size
-          if ((t as THREE.CanvasTexture).isCanvasTexture && !t.userData.live) shrink(t, 512);
+          if ((t as THREE.CanvasTexture).isCanvasTexture && !t.userData.live) shrink(t, t.userData.phoneMax ?? 512);
           lighten(t);
         }
       }
@@ -1638,22 +1653,22 @@ function giantPhone(k: Kit, at: [number, number], rotY: number, video: string, p
 
 // A room's dressing; the course returns the classified door's knock
 const DRESS: Record<string, (k: Kit) => void | DoorControls> = {
-  // The app at work: on the right wall, three screens loop the real product,
-  // left to right: describe an email and get a build, the AMP version live in
-  // Gmail, and Kineticize turning an old email interactive
+  // A Haussmann salon (haussmann.ts), the right wall a French window onto
+  // Paris. The app at work: on the back wall, three screens loop the real
+  // product, left to right: describe an email and get a build, the AMP
+  // version live in Gmail, and Kineticize turning an old email interactive
   'kinetic-email'(k) {
     const { r } = k;
-    const H = 0.9, Y = 2.0, x = r.x1 - WALL_T / 2;
+    const H = 0.9, Y = SALON.screenY, z = r.z1 + WALL_T / 2;
     const bezel = k.color('#111214', { roughness: 0.35, metalness: 0.4 });
     const clips = [
-      { name: 'generate', aspect: 1100 / 826, dz: -1.75, title: 'Describe it', artist: '01 · AI Playground → interactive build' },
-      { name: 'amp', aspect: 1100 / 890, dz: 0, title: 'Live in the inbox', artist: '02 · The AMP build, running in Gmail' },
-      { name: 'kineticize', aspect: 1100 / 720, dz: 1.75, title: 'Kineticize', artist: '03 · An old email, made interactive' },
+      { name: 'generate', aspect: 1100 / 826, title: 'Describe it', artist: '01 · AI Playground → interactive build' },
+      { name: 'amp', aspect: 1100 / 890, title: 'Live in the inbox', artist: '02 · The AMP build, running in Gmail' },
+      { name: 'kineticize', aspect: 1100 / 720, title: 'Kineticize', artist: '03 · An old email, made interactive' },
     ];
-    clips.forEach((c, i) => {
+    const screens = clips.map((c, i) => {
       const g = new THREE.Group();
-      g.position.set(x, Y, r.zc - 0.5 + c.dz);
-      g.rotation.y = -Math.PI / 2;
+      g.position.set(SALON.screens[i], Y, z);
       k.scene.add(g);
       const W = H * c.aspect;
       k.box([W + 0.1, H + 0.1, 0.06], [0, 0, 0.03], bezel, g).castShadow = true;
@@ -1669,12 +1684,20 @@ const DRESS: Record<string, (k: Kit) => void | DoorControls> = {
       const glow = new THREE.PointLight('#8f7dff', 1.4, 2.4, 2);
       glow.position.set(0, -0.2, 0.8);
       g.add(glow);
+      return { x: SALON.screens[i], w: W + 0.1 };
     });
 
-    // On the back wall, a phone the size of a person, on a plinth like a
+    // Right of the door, a phone the size of a person, on a plinth like a
     // sculpture: Bolt, the Kinetic game, playing on its screen
-    giantPhone(k, [-4.2, r.z1 + WALL_T / 2 + 0.42], 0, '/media/kinetic/bolt.mp4', '/media/kinetic/bolt.jpg',
+    giantPhone(k, [SALON.phoneX, z + 0.42], 0, '/media/kinetic/bolt.mp4', '/media/kinetic/bolt.jpg',
       ['Bolt', 'Kinetic.Email', 'One email, Deploy to click', 'Play at bolt.kinetic.email']);
+
+    // (the room's own screen is 16:9, 2.5 m tall, capped at 4.6 m wide; see the room loop)
+    buildSalon({
+      r, scene: k.scene, wallT: WALL_T, track: k.track, animators: k.animators, reduceMotion: k.reduceMotion,
+      door: { x: ROOM.doorX, w: ROOM.doorW, h: ROOM.doorH }, paris: k.track(T.parisStreet()),
+      screens, tv: { z: r.zc + 0.4, w: Math.min(4.6, 2.5 * 16 / 9) + 0.14 },
+    });
   },
 
   // Center court: painted hardwood, a neon hoop, and the market on the ribbon board

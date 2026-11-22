@@ -12,7 +12,11 @@
 
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import { COURSE } from './layout';
+import { COURSE, SALON_STREET } from './layout';
+
+// Under the street outside the Kinetic salon's window (see SALON_STREET)
+const inStreet = (x: number, z: number) =>
+  x > SALON_STREET.x0 && x < SALON_STREET.x1 && z > SALON_STREET.z0 && z < SALON_STREET.z1;
 import { buildVault, hatchDist, inHatch } from './vault';
 
 function rng(seed: number) {
@@ -465,7 +469,7 @@ export function buildCourse(o: {
   // where the fine one covers)
   const step = mobile ? 0.4 : 0.22;
   const fine = new THREE.Mesh(track(terrain(MASK.w, MASK.d, MASK.x0 + MASK.w / 2, MASK.z1 + MASK.d / 2, step, 0, (x, z) => inHatch(x, z))), mat);
-  const far = new THREE.Mesh(track(terrain(440, 330, 0, COURSE.z0 - 95, 2.5, 0.04, (x, z) => inHatch(x, z, 3))), mat);
+  const far = new THREE.Mesh(track(terrain(440, 330, 0, COURSE.z0 - 95, 2.5, 0.04, (x, z) => inHatch(x, z, 3) || inStreet(x, z))), mat);
   fine.receiveShadow = far.receiveShadow = true;
   scene.add(fine, far);
 

@@ -89,18 +89,22 @@ export function roomTour(slug: string, index: number): TourStop[] | null {
   switch (slug) {
     case 'kinetic-email':
       return [
-        arrive([6, 1.7, r.zc - 0.5]),
+        // in through the door, the French window and its curtains ahead and to the right
+        arrive([7, 2.7, r.zc - 0.4]),
         { id: 'atwork', label: 'The app at work', panel: { kind: 'section', heading: 'Interactive email, without the hacks', bullets: [
           'Describe it: the AI Playground turns a plain-English prompt into an interactive build',
           'Live in the inbox: the AMP version runs right in Gmail, carousels and forms included',
           'Kineticize: drop in an old email and pick the part that should come alive',
         ] },
-          // Desktop: square to the wall, the screens to the right of the panel.
-          // Phones (no panel): back far enough to see all three, centered
-          pos: [0.5, 1.75, r.zc - 2.75], look: [7, 1.9, r.zc - 2.75], place: [-0.85, -0.05, 2.4],
-          narrow: { pos: [-4.6, 1.75, r.zc - 0.45], look: [7, 1.85, r.zc - 0.45] } },
-        screen('Describe an email → get two production builds'),
-        { id: 'finale', label: 'Bolt', panel: { kind: 'finale', heading: 'Bolt: the game that markets it', link: { label: 'Play Bolt', href: 'https://bolt.kinetic.email/' } }, pos: [-2.4, 1.75, r.z1 + 5.8], look: [-4.2, 2.1, r.z1], place: [1.05, -0.05, 2.5] },
+          // Desktop: the three screens on the back wall, left of the panel's
+          // spot on the right. Phones: back far enough to see all three
+          pos: [-0.96, 1.75, r.z1 + 7.3], look: [-0.96, 2.05, r.z1], place: [0.95, -0.05, 2.4],
+          narrow: { pos: [-3.53, 1.75, r.z1 + 13.4], look: [-3.53, 1.15, r.z1] } },
+        // the screen hangs high, over the fireplace: phones step back across the room
+        { ...screen('Describe an email → get two production builds'), narrow: { pos: [2.6, 1.75, r.zc + 0.4], look: [-7, 2.3, r.zc + 0.4] } },
+        { id: 'finale', label: 'Bolt', panel: { kind: 'finale', heading: 'Bolt: the game that markets it', link: { label: 'Play Bolt', href: 'https://bolt.kinetic.email/' } },
+          pos: [3.2, 1.75, r.z1 + 5.8], look: [SALON.phoneX, 2.1, r.z1], place: [-1.05, -0.05, 2.5],
+          narrow: { pos: [SALON.phoneX, 1.75, r.z1 + 9.6], look: [SALON.phoneX, 2.1, r.z1] } },
       ];
     case 'outlooksucks':
       return [
@@ -161,6 +165,26 @@ export const LOBBY = { x0: -9, x1: 9, z0: 6, z1: -14, h: 12 };
 export const GALLERY = { x0: -6, x1: 6, z0: -14, z1: -48, h: 8 };
 export const ROOM = { width: 14, depth: 14, h: 6, doorX: 1.8, doorW: 3.2, doorH: 3.6 };
 
+// The Kinetic room is a Haussmann salon (haussmann.ts): a taller ceiling,
+// and the right wall opened into a French window, centered on the room.
+// win.open is how far its leaves swing in (180 would lie flat on the wall).
+// The street is 9 m down: the salon is on the third floor.
+export const SALON = {
+  h: 7.5,
+  win: { w: 3.4, h: 5.0, leaf: 4.0, open: 172 },
+  chandelier: { y: 5.1 },
+  street: -9,
+  // the app screens along the back wall, left of the door (centers, x)
+  screens: [-5.76, -3.62, -1.39],
+  screenY: 2.25,
+  phoneX: 5.43, // Bolt, in the bay right of the door
+  tvY: 2.95, // the room's own screen, over the fireplace
+};
+// The street outside the salon, 9 m down. The golf course's far grass
+// reaches this far, so it's cut away here (you never see this spot from
+// the course: it's behind the museum, and the course looks away from it).
+export const SALON_STREET = { x0: ROOM.width / 2, x1: ROOM.width / 2 + 19, z0: GALLERY.z1 - ROOM.depth / 2 - 37, z1: GALLERY.z1 + 1 };
+
 // Room order follows the project grid on the home page, except Buddy Cup:
 // its room is outdoors, so it comes last, out the museum's back door
 export const ROOM_SLUGS = [
@@ -214,7 +238,7 @@ export const PLACARD_SLUGS: readonly string[] = [...ROOM_SLUGS, ORDINAL.slug];
 export function roomBounds(index: number) {
   const z0 = GALLERY.z1 - ROOM.depth * index;
   const z1 = z0 - ROOM.depth;
-  return { x0: -ROOM.width / 2, x1: ROOM.width / 2, z0, z1, zc: (z0 + z1) / 2, h: ROOM.h };
+  return { x0: -ROOM.width / 2, x1: ROOM.width / 2, z0, z1, zc: (z0 + z1) / 2, h: ROOM_SLUGS[index] === 'kinetic-email' ? SALON.h : ROOM.h };
 }
 
 // Wall pieces in the gallery. side -1 hangs on the left wall, 1 on the right.
@@ -330,7 +354,7 @@ function ordinalStop(projects: MuseumProject[]): Station[] {
 // Where each room's entrance view points: at the thing that makes the room
 function enterLook(slug: string, zc: number): V3 {
   switch (slug) {
-    case 'kinetic-email': return [6, 1.8, zc - 0.5]; // the screens of the app at work
+    case 'kinetic-email': return [7, 2.7, zc - 0.4]; // the French window
     case 'money-never-sleeps': return [-3, 2.4, zc - 4]; // the hoop and ribbon board
     case 'outlooksucks': return [3.6, 1.1, zc - 2.2]; // into the cubicle
     case 'rocket-pool-tour': return [3.2, 0.9, zc - 1]; // the table
@@ -340,7 +364,7 @@ function enterLook(slug: string, zc: number): V3 {
 }
 
 export const ROOM_NOTES: Record<string, string> = {
-  'kinetic-email': 'Interactive email, built by AI, at work on the wall',
+  'kinetic-email': 'A Paris salon, with interactive email at work on the wall',
   'money-never-sleeps': 'Center court, with the market on the ribbon board',
   outlooksucks: 'A cubicle, circa 2007. Outlook is still rendering.',
   'buddy-cup': 'Out the back door, onto the course. Match play, scored live.',
