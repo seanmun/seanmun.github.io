@@ -19,7 +19,7 @@
 import * as THREE from 'three';
 
 type Room = { x0: number; x1: number; z0: number; z1: number; h: number };
-type Manifest = { range: number; size: number; room: Room; meshes: Record<string, [number, number]> };
+type Manifest = { range: number; size: number; room: Room; meshes: Record<string, [number, number]>; probe?: { at: [number, number, number]; range: number } };
 
 // x, y, w, h in a 1024 grid, origin bottom-left
 const ATLAS = {
@@ -40,13 +40,18 @@ type Uniforms = {
   uBakeMap: { value: THREE.Texture | null };
   uBakeLo: { value: THREE.Vector3 };
   uBakeHi: { value: THREE.Vector3 };
+  uBakeProbe: { value: THREE.Vector3 };
 };
 
 // Patch a material so its diffuse light comes from the bake. mode 'map' looks
 // the light up in the atlas; 'vertex' reads the mesh's bakeColor attribute.
 function patch(mat: THREE.MeshStandardMaterial, mode: 'map' | 'vertex', u: Uniforms) {
+  // (each material has its own switch for the room's reflection: only the
+  // smoother ones get it)
+  const box = { value: 0 };
+  mat.userData.bakeBox = box;
   mat.onBeforeCompile = (shader) => {
-    Object.assign(shader.uniforms, u);
+    Object.assign(shader.uniforms, u, { uBakeBox: box });
     shader.vertexShader = shader.vertexShader
       .replace('#include <common>', `#include <common>
         varying vec3 vBakeP;
@@ -65,7 +70,22 @@ function patch(mat: THREE.MeshStandardMaterial, mode: 'map' | 'vertex', u: Unifo
         uniform float uBakeGain;
         uniform float uBakeRange;
         uniform vec3 uBakeLo;
-        uniform vec3 uBakeHi;`)
+        uniform vec3 uBakeHi;
+        uniform vec3 uBakeProbe;
+        uniform float uBakeBox;
+        // The room's reflection is one picture taken from its middle. Treat
+        // it as painted on the room's own walls (a box), so a reflection
+        // lands where the thing reflected really is, not at infinity.
+        vec3 bakeBoxProject(vec3 r) {
+          vec3 inside = step(uBakeLo, vBakeP) * step(vBakeP, uBakeHi);
+          if (uBakeBox * inside.x * inside.y * inside.z < 0.5) return r;
+          vec3 d = sign(r) * max(abs(r), vec3(1e-5));
+          vec3 far = max((uBakeHi - vBakeP) / d, (uBakeLo - vBakeP) / d);
+          return normalize(vBakeP + r * min(min(far.x, far.y), far.z) - uBakeProbe);
+        }`)
+      .replace('#include <envmap_physical_pars_fragment>', THREE.ShaderChunk.envmap_physical_pars_fragment.replace(
+        'reflectVec = inverseTransformDirection( reflectVec, viewMatrix );',
+        'reflectVec = bakeBoxProject( inverseTransformDirection( reflectVec, viewMatrix ) );'))
       .replace('#include <lights_fragment_end>', `#include <lights_fragment_end>
         {
           // only inside the baked room: some materials are shared with others
@@ -101,6 +121,8 @@ export function bakedLight(o: {
   scene: THREE.Scene; // searched for meshes named for the bake (userData.bake)
   mobile: boolean;
   gain?: number;
+  pmrem: THREE.PMREMGenerator; // turns the room's reflection picture into an environment map
+  reflect?: number; // how strongly the smoother baked surfaces mirror the room (default 0.35)
   track: <X extends { dispose(): void }>(x: X) => X;
 }) {
   const { room: r, wallT: T } = o;
@@ -112,6 +134,7 @@ export function bakedLight(o: {
     // the atlas's world span: the room, plus the walls' thickness in x and z
     uBakeLo: { value: new THREE.Vector3(r.x0 - T, -0.02, r.z1 - T) },
     uBakeHi: { value: new THREE.Vector3(r.x1 + T, r.h + 0.02, r.z0 + T) },
+    uBakeProbe: { value: new THREE.Vector3() },
   };
   const base = `/media/museum/bake/${o.name}`;
   let cancelled = false;
@@ -121,7 +144,7 @@ export function bakedLight(o: {
       fetch(`${base}-bake.json`).then((res) => res.json() as Promise<Manifest>),
       fetch(`${base}-verts.bin`).then((res) => res.arrayBuffer()),
     ]);
-    const map = await new THREE.TextureLoader().loadAsync(`${base}-light${o.mobile ? '-512' : ''}.webp`);
+    const map = await new THREE.TextureLoader().loadAsync(`${base}-light${o.mobile ? '-half' : ''}.webp`);
     if (cancelled) { map.dispose(); return; }
     map.colorSpace = THREE.NoColorSpace;
     map.generateMipmaps = false; // mips would bleed one surface's light into its neighbour's
@@ -132,6 +155,7 @@ export function bakedLight(o: {
 
     // Vertex-baked meshes: opaque, non-metal ones whose geometry still
     // matches the bake. A material is only patched if every mesh using it does.
+    const patched: THREE.MeshStandardMaterial[] = [];
     const bytes = new Uint8Array(bin);
     const byMat = new Map<THREE.MeshStandardMaterial, { mesh: THREE.Mesh; at: [number, number] | undefined }[]>();
     o.scene.traverse((obj) => {
@@ -151,9 +175,53 @@ export function bakedLight(o: {
         mesh.geometry.setAttribute('bakeColor', new THREE.BufferAttribute(bytes.subarray(offset, offset + count * 3), 3, true));
       }
       patch(mat, 'vertex', u);
+      patched.push(mat);
     }
-    for (const mat of o.shell) patch(mat, 'map', u);
+    for (const mat of o.shell) { patch(mat, 'map', u); patched.push(mat); }
     u.uBakeOn.value = 1;
+
+    // The reflection probe: the room as seen from its middle, stored like
+    // the light (sqrt of value / range). Decoded to linear floats, then
+    // prefiltered so rougher surfaces get a blurrier reflection.
+    if (manifest.probe) {
+      const img = await new THREE.ImageLoader().loadAsync(`${base}-probe.webp`);
+      if (cancelled) return;
+      const w = img.width, h = img.height;
+      const c = document.createElement('canvas');
+      c.width = w; c.height = h;
+      const g = c.getContext('2d')!;
+      g.drawImage(img, 0, 0);
+      const src = g.getImageData(0, 0, w, h).data;
+      const data = new Uint16Array(w * h * 4);
+      const one = THREE.DataUtils.toHalfFloat(1);
+      for (let y = 0; y < h; y++) {
+        for (let x = 0; x < w; x++) {
+          const from = (y * w + x) * 4, to = ((h - 1 - y) * w + x) * 4; // the texture's first row is the bottom
+          for (let k = 0; k < 3; k++) {
+            const v = src[from + k] / 255;
+            data[to + k] = THREE.DataUtils.toHalfFloat(v * v * manifest.probe.range);
+          }
+          data[to + 3] = one;
+        }
+      }
+      const pano = new THREE.DataTexture(data, w, h, THREE.RGBAFormat, THREE.HalfFloatType);
+      pano.mapping = THREE.EquirectangularReflectionMapping;
+      pano.colorSpace = THREE.LinearSRGBColorSpace;
+      pano.magFilter = pano.minFilter = THREE.LinearFilter;
+      pano.needsUpdate = true;
+      const env = o.track(o.pmrem.fromEquirectangular(pano).texture);
+      pano.dispose();
+      u.uBakeProbe.value.fromArray(manifest.probe.at);
+      for (const mat of patched) {
+        // Matte surfaces (plaster, a ceiling) keep the soft default: a
+        // mirror image of the window smeared across them reads as a glow
+        if (mat.roughness > 0.6) continue;
+        (mat.userData.bakeBox as { value: number }).value = 1;
+        mat.envMap = env;
+        mat.envMapIntensity = (o.reflect ?? 0.35) * (o.gain ?? 1);
+        mat.needsUpdate = true;
+      }
+    }
   })().catch((err) => console.warn(`No baked light for ${o.name}:`, err));
 
   return { uniforms: u, dispose() { cancelled = true; } };

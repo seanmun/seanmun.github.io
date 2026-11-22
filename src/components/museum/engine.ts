@@ -237,10 +237,18 @@ export function createMuseum(host: HTMLElement, opts: Options): MuseumHandle {
 
   // ---------- lobby ----------
 
+  // The lobby, the gallery and the salon have their light baked (bake.ts),
+  // and a baked material belongs to one room: so each gets its own copies of
+  // the shared wall, floor and ceiling materials
+  const own = (m: Mat) => track(m.clone() as Mat);
+  const LOBBY_MAT = { wall: own(M.concrete), floor: own(M.marbleFloor) };
+  const GALLERY_MAT = { wall: own(M.plaster), floor: own(M.polished), ceil: own(M.ceiling) };
+  const noBake = new URLSearchParams(window.location.search).has('nobake'); // ?nobake: live light, to compare
+
   const LOBBY_SKYLIGHTS: Hole[] = [-5, 0, 5].map((x) => ({ x0: x - 0.55, x1: x + 0.55, z0: 4, z1: -12 }));
-  space(LOBBY, M.concrete, M.marbleFloor, M.concrete, { skylights: LOBBY_SKYLIGHTS });
-  partition(LOBBY.z0, LOBBY.x0 - WALL_T, LOBBY.x1 + WALL_T, LOBBY.h, M.concrete, M.concrete);
-  partition(LOBBY.z1, LOBBY.x0 - WALL_T, LOBBY.x1 + WALL_T, LOBBY.h, M.concrete, M.plaster, { x: 0, w: 4.2, h: 5.2 });
+  space(LOBBY, LOBBY_MAT.wall, LOBBY_MAT.floor, LOBBY_MAT.wall, { skylights: LOBBY_SKYLIGHTS });
+  partition(LOBBY.z0, LOBBY.x0 - WALL_T, LOBBY.x1 + WALL_T, LOBBY.h, M.concrete, LOBBY_MAT.wall);
+  partition(LOBBY.z1, LOBBY.x0 - WALL_T, LOBBY.x1 + WALL_T, LOBBY.h, LOBBY_MAT.wall, GALLERY_MAT.wall, { x: 0, w: 4.2, h: 5.2 });
 
   // Skylights: open slots to the sky, with soft shafts of light below
   const shaftTex = track(T.shaftGradient());
@@ -466,7 +474,7 @@ export function createMuseum(host: HTMLElement, opts: Options): MuseumHandle {
   // An atrium: nearly the whole ceiling is glass on a steel grid, so the sun
   // pours in from above and lays the grid's shadow across the floor and walls
   const ATRIUM: Hole = { x0: GALLERY.x0 + 0.5, x1: GALLERY.x1 - 0.5, z0: GALLERY.z0 - 0.6, z1: GALLERY.z1 + 0.6 };
-  space(GALLERY, M.plaster, M.polished, M.ceiling, { skylights: [ATRIUM] });
+  space(GALLERY, GALLERY_MAT.wall, GALLERY_MAT.floor, GALLERY_MAT.ceil, { skylights: [ATRIUM] });
   {
     const steel = color('#2a2c2f', { roughness: 0.5, metalness: 0.75 });
     const y = GALLERY.h;
@@ -555,7 +563,7 @@ export function createMuseum(host: HTMLElement, opts: Options): MuseumHandle {
   const MNS_GRID = ((r) => [r.x0, r.z1 + WALL_T / 2] as [number, number])(roomBounds(ROOM_SLUGS.indexOf('money-never-sleeps')));
   const roomStyle: Record<string, { wall: Mat; floor: Mat | null; ceil: Mat; fog: string; fogRange?: [number, number] }> = {
     // A Haussmann salon: warm white plaster, oak chevrons (see haussmann.ts)
-    'kinetic-email': { wall: std(track(T.plaster('#eee8dc', 21)), 4, { roughness: 0.92 }), floor: std(track(T.parquet()), 2.1, { roughness: 0.3 }), ceil: M.ceiling,
+    'kinetic-email': { wall: std(track(T.plaster('#eee8dc', 21)), 4, { roughness: 0.92 }), floor: std(track(T.parquet()), 2.1, { roughness: 0.3 }), ceil: own(M.ceiling),
       // a long, cool haze: nothing indoors is far enough to fog; the sea is
       fog: '#cdd6dc', fogRange: [30, 240] },
     // Tron: a faint cyan grid drawn by the wall and floor shaders (tron.ts)
@@ -574,7 +582,7 @@ export function createMuseum(host: HTMLElement, opts: Options): MuseumHandle {
   const FOG_RANGE: [number, number] = [22, 75];
 
   // Gallery to first room
-  partition(GALLERY.z1, -ROOM.width / 2 - WALL_T, ROOM.width / 2 + WALL_T, GALLERY.h, M.plaster, roomStyle[ROOM_SLUGS[0]].wall,
+  partition(GALLERY.z1, -ROOM.width / 2 - WALL_T, ROOM.width / 2 + WALL_T, GALLERY.h, GALLERY_MAT.wall, roomStyle[ROOM_SLUGS[0]].wall,
     { x: ROOM.doorX, w: ROOM.doorW, h: ROOM.doorH });
 
   const screenFrame = color('#0d0d0d', { roughness: 0.4 });
@@ -721,8 +729,7 @@ export function createMuseum(host: HTMLElement, opts: Options): MuseumHandle {
 
     DRESS[slug]?.({ r, scene, box, plane, color, basic, track, animators, reduceMotion, slab, clickable, videoMat, model: model(i), mobile });
     // The salon's light is baked in Blender (see bake.ts)
-    // (?nobake shows the room live-lit, to compare)
-    if (salon && !new URLSearchParams(window.location.search).has('nobake')) bakedLight({ name: 'salon', room: r, wallT: WALL_T, shell: [style.wall, style.floor ?? M.polished, style.ceil], scene, mobile, track,
+    if (salon && !noBake) bakedLight({ name: 'salon', room: r, wallT: WALL_T, shell: [style.wall, style.floor ?? M.polished, style.ceil], scene, mobile, track, pmrem,
       gain: mobile ? 1.08 : 1.35 }); // phones render at a brighter exposure
   });
 
@@ -1527,12 +1534,19 @@ export function createMuseum(host: HTMLElement, opts: Options): MuseumHandle {
   })() : null;
   tick();
 
+  // The lobby's and the gallery's light is baked in Blender too (bake.ts)
+  if (!noBake) {
+    bakedLight({ name: 'lobby', room: LOBBY, wallT: WALL_T, shell: [LOBBY_MAT.wall, LOBBY_MAT.floor], scene, mobile, track, pmrem, gain: mobile ? 0.95 : 1 });
+    bakedLight({ name: 'gallery', room: GALLERY, wallT: WALL_T, shell: [GALLERY_MAT.wall, GALLERY_MAT.floor, GALLERY_MAT.ceil], scene, mobile, track, pmrem, gain: mobile ? 0.95 : 1 });
+  }
+
   // For the light-baking tools (scripts/museum/bake): with ?bake in the
   // address, the scene is reachable from the page so its geometry can be
-  // exported to Blender
+  // exported to Blender, along with each space's bounds by name
   if (new URLSearchParams(window.location.search).has('bake')) {
     (window as unknown as { __museumBake?: unknown }).__museumBake = {
-      scene, wallT: WALL_T, sun: SUN_DIR.toArray(), rooms: ROOM_SLUGS.map((slug, i) => ({ slug, ...roomBounds(i) })),
+      scene, wallT: WALL_T, sun: SUN_DIR.toArray(),
+      spaces: { lobby: LOBBY, gallery: GALLERY, salon: roomBounds(0), ...Object.fromEntries(ROOM_SLUGS.map((slug, i) => [slug, roomBounds(i)])) },
     };
   }
 
