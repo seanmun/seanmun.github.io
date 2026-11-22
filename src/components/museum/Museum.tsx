@@ -465,7 +465,8 @@ function Hologram({ content: c }: { content: PanelContent }) {
 
 // Buddy Cup's Apple Watch app on score entry: one player's score for the
 // hole, stepped down from 5 to 4 with the minus button, then saved. Sample
-// players only (the same invented group as the phone app).
+// players only (the same invented group as the phone app). Light mode,
+// like the phone: it's what reads best in the sun on the course.
 function WatchScore() {
   return (
     <figure className="watch" aria-label="Apple Watch: entering a hole score in Buddy Cup">
@@ -554,32 +555,32 @@ const HOLO_CSS = `
   background: linear-gradient(145deg, #5b5f66, #2b2e33 45%, #4a4e55); box-shadow: inset 0 1px 1px rgba(255,255,255,0.35), 0 4px 10px rgba(0,0,0,0.5); }
 .watch-crown { position: absolute; right: -6px; top: 40px; width: 8px; height: 26px; border-radius: 3px; background: linear-gradient(90deg, #6a6e75, #2f3237); }
 .watch-button { position: absolute; right: -4px; top: 84px; width: 5px; height: 30px; border-radius: 2px; background: #3a3d43; }
-.watch-screen { height: 100%; border-radius: 28px; background: #000; color: #fff; padding: 11px 11px 8px; box-sizing: border-box;
+.watch-screen { height: 100%; border-radius: 28px; background: #f5f5f7; color: #111; padding: 11px 11px 8px; box-sizing: border-box;
   font-family: -apple-system, "SF Pro Text", "Helvetica Neue", Arial, sans-serif; display: flex; flex-direction: column; overflow: hidden; }
 .watch-head { display: flex; justify-content: space-between; align-items: baseline; }
-.watch-hole { font-size: 13px; font-weight: 700; color: #f2b632; }
-.watch-time { font-size: 11px; font-weight: 600; color: #fff; }
-.watch-sub { font-size: 8px; color: #9a9ea6; margin-top: 1px; white-space: nowrap; }
+.watch-hole { font-size: 13px; font-weight: 700; color: #a16207; }
+.watch-time { font-size: 11px; font-weight: 600; color: #111; }
+.watch-sub { font-size: 8px; color: #6b6b70; margin-top: 1px; white-space: nowrap; }
 .watch-player { font-size: 11px; font-weight: 600; margin-top: 6px; display: flex; align-items: center; gap: 4px; white-space: nowrap; }
 .watch-player i { width: 6px; height: 6px; border-radius: 50%; background: #e2463b; display: inline-block; }
-.watch-player em { font-style: normal; font-size: 8px; color: #f2b632; font-weight: 500; }
+.watch-player em { font-style: normal; font-size: 8px; color: #a16207; font-weight: 500; }
 .watch-entry { display: flex; align-items: center; justify-content: space-between; margin-top: 3px; }
-.watch-btn { width: 22px; height: 22px; border-radius: 50%; background: #2a2b2f; color: #fff; font-size: 15px; line-height: 22px; text-align: center; }
+.watch-btn { width: 22px; height: 22px; border-radius: 50%; background: #e4e4e7; color: #111; font-size: 15px; line-height: 22px; text-align: center; }
 .watch-score { position: relative; width: 34px; height: 36px; font-size: 32px; font-weight: 700; text-align: center; line-height: 36px; }
 .watch-score b { position: absolute; inset: 0; font-weight: 700; }
 .watch-score .b { opacity: 0; }
-.watch-net { font-size: 8px; color: #4cd07d; text-align: center; opacity: 0; }
-.watch-save { margin-top: auto; border-radius: 10px; background: #f2b632; color: #111; font-size: 10px; font-weight: 700; text-align: center; padding: 4px 0; }
+.watch-net { font-size: 8px; color: #15803d; text-align: center; opacity: 0; }
+.watch-save { margin-top: auto; border-radius: 10px; background: #eab308; color: #111; font-size: 10px; font-weight: 700; text-align: center; padding: 4px 0; }
 .watch-dots { display: flex; justify-content: center; gap: 3px; margin-top: 4px; }
-.watch-dots i { width: 3px; height: 3px; border-radius: 50%; background: #555; }
-.watch-dots i.on { background: #fff; }
+.watch-dots i { width: 3px; height: 3px; border-radius: 50%; background: #c7c7cc; }
+.watch-dots i.on { background: #111; }
 .holo-wrap[data-on="1"] .watch-btn.minus, .holo-sheet .watch-btn.minus { animation: watchTap 5s ease-in-out infinite; }
 .holo-wrap[data-on="1"] .watch-score .a, .holo-sheet .watch-score .a { animation: watchOut 5s ease-in-out infinite; }
 .holo-wrap[data-on="1"] .watch-score .b, .holo-sheet .watch-score .b { animation: watchIn 5s ease-in-out infinite; }
 .holo-wrap[data-on="1"] .watch-net, .holo-sheet .watch-net { animation: watchIn 5s ease-in-out infinite; }
 .holo-sheet .holo-figure-row { gap: 14px; }
 .holo-sheet .watch { transform: scale(0.82); margin: -14px -10px; }
-@keyframes watchTap { 0%, 22% { background: #2a2b2f; transform: none; } 26% { background: #f2b632; transform: scale(0.9); } 32%, 100% { background: #2a2b2f; transform: none; } }
+@keyframes watchTap { 0%, 22% { background: #e4e4e7; transform: none; } 26% { background: #eab308; transform: scale(0.9); } 32%, 100% { background: #e4e4e7; transform: none; } }
 @keyframes watchOut { 0%, 26% { opacity: 1; transform: none; } 32%, 92% { opacity: 0; transform: translateY(-8px); } 100% { opacity: 1; transform: none; } }
 @keyframes watchIn { 0%, 26% { opacity: 0; transform: translateY(8px); } 32%, 92% { opacity: 1; transform: none; } 100% { opacity: 0; } }
 @keyframes holoIn {
