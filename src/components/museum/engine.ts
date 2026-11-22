@@ -1918,14 +1918,14 @@ const DRESS: Record<string, (k: Kit) => void | DoorControls> = {
     // deep, shown at 1.3 (monumental, as his outdoor busts are). It faces +z
     // with its back at z = 0, so it's set down by its middle, turned to the tee
     {
-      const S = 1.3, B = { x: -13.5, z: C.z0 - 19.5, depth: 2.15 * S };
+      const S = 1.3, B = { x: -16, z: C.z0 - 25, depth: 2.15 * S };
       const rotY = Math.atan2(C.doorX - B.x, (C.z0 - 1.6) - B.z);
       // seat the plinth on the slope: its lowest corner a little into the turf
       const ground = Math.min(...[[-1.2, -1.1], [1.2, -1.1], [-1.2, 1.1], [1.2, 1.1]].map(([dx, dz]) => [dx * S, dz * S]).map(([dx, dz]) =>
         courseHeight(B.x + dx * Math.cos(rotY) + dz * Math.sin(rotY), B.z - dx * Math.sin(rotY) + dz * Math.cos(rotY))));
       k.model('/models/museum/arsham-bust.glb', (m) => {
         m.scale.setScalar(S);
-        m.position.set(B.x - Math.sin(rotY) * B.depth / 2, ground - 0.06, B.z - Math.cos(rotY) * B.depth / 2);
+        m.position.set(B.x - Math.sin(rotY) * B.depth / 2, ground - 0.16, B.z - Math.cos(rotY) * B.depth / 2);
         m.rotation.y = rotY;
         m.traverse((o) => { if ((o as THREE.Mesh).isMesh) o.castShadow = o.receiveShadow = true; });
         k.scene.add(m);
