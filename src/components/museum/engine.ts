@@ -1857,7 +1857,6 @@ const DRESS: Record<string, (k: Kit) => void | DoorControls> = {
     const fabric = k.color('#7d8a99', { roughness: 1 });
     const trim = k.color('#b9b5ab', { roughness: 0.6 });
     const desk = k.color('#c9b48f', { roughness: 0.7 });
-    const beige = k.color('#d8d0bb', { roughness: 0.6 });
     // open toward the doorway, so you see straight into the cubicle
     const cx = 4.0, cz = r.zc - 1.6;
     k.box([2.6, 1.6, 0.06], [cx, 0.8, cz - 1.0], fabric);
@@ -1867,16 +1866,28 @@ const DRESS: Record<string, (k: Kit) => void | DoorControls> = {
     k.box([2.5, 0.04, 0.8], [cx, 0.74, cz - 0.58], desk);
     k.box([0.04, 0.7, 0.7], [cx - 1.15, 0.37, cz - 0.58], desk);
     k.box([0.04, 0.7, 0.7], [cx + 1.15, 0.37, cz - 0.58], desk);
-    k.box([0.5, 0.42, 0.48], [cx, 0.98, cz - 0.72], beige);
-    k.box([0.3, 0.06, 0.3], [cx, 0.79, cz - 0.72], beige);
-    const crt = k.plane(0.4, 0.3, k.basic(k.track(T.crtScreen())), [cx, 1.0, cz - 0.475]);
+    // The computer (Meshy): a beige CRT on a desktop case, a tower beside it,
+    // keyboard and ball mouse. Raw model is 1.9 units wide, centred, facing
+    // +z; at 0.46 it's 0.87 m wide and sits on the desk top (0.76 m).
+    // (on the right of the desk, clear of the tour card at the cubicle stop)
+    const PC = 0.46, DESK_TOP = 0.76, pcX = cx + 0.55, pcZ = cz - 0.58;
+    k.model('/models/museum/os-computer.glb', (m) => {
+      m.scale.setScalar(PC);
+      m.position.set(pcX, DESK_TOP + 0.657 * PC, pcZ);
+      k.scene.add(m);
+    });
+    // Its screen, stuck on a dialog, laid over the model's glass (the glass
+    // is 0.69 x 0.62 units at x -0.127, y 0.249, front at z 0.335)
+    const crt = k.plane(0.66 * PC, 0.58 * PC, k.basic(k.track(T.crtScreen())), [pcX - 0.127 * PC, DESK_TOP + (0.657 + 0.249) * PC, pcZ + 0.337 * PC]);
     crt.userData.slug = 'outlooksucks';
     k.clickable.push(crt);
-    k.box([0.46, 0.02, 0.16], [cx, 0.77, cz - 0.3], beige);
-    const chair = k.color('#2c2f33', { roughness: 0.8 });
-    k.box([0.5, 0.08, 0.5], [cx + 0.1, 0.48, cz + 0.2], chair);
-    k.box([0.5, 0.55, 0.06], [cx + 0.1, 0.8, cz + 0.45], chair);
-    k.box([0.05, 0.44, 0.05], [cx + 0.1, 0.22, cz + 0.2], chair);
+    // The chair (Meshy): a 2000s task chair, 0.95 m tall at 0.5, turned to the desk
+    k.model('/models/museum/os-chair.glb', (m) => {
+      m.scale.setScalar(0.5);
+      m.position.set(pcX - 0.15, 0.952 * 0.5, cz + 0.25);
+      m.rotation.y = Math.PI - 0.35; // pushed back from the desk, swung a little toward the doorway
+      k.scene.add(m);
+    });
     // fluorescent drop-ceiling panels
     const glow = k.track(new THREE.MeshBasicMaterial({ color: '#f4f8ff', toneMapped: false }));
     for (const x of [-3, 3]) for (const z of [-3.5, 0, 3.5]) {

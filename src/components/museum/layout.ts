@@ -114,7 +114,9 @@ export function roomTour(slug: string, index: number): TourStop[] | null {
     case 'outlooksucks':
       return [
         arrive([3.6, 1.1, r.zc - 2.2]),
-        { id: 'crt', label: 'The cubicle', panel: { kind: 'section', heading: 'The problem, in one ticker' }, pos: [3.2, 1.5, r.zc + 0.6], look: [4.0, 1.0, r.zc - 2.1], place: [-0.55, 0.25, 2.2] },
+        { id: 'crt', label: 'The cubicle', panel: { kind: 'section', heading: 'The problem, in one ticker' }, pos: [3.2, 1.5, r.zc + 0.6], look: [4.0, 1.0, r.zc - 2.1], place: [-0.55, 0.25, 2.2],
+          // phones: square on to the monitor, on the right of the desk
+          narrow: { pos: [4.25, 1.5, r.zc + 0.8], look: [4.45, 1.0, r.zc - 2.1] } },
         screen('Edit on the email itself'),
         { id: 'ai', label: 'The AI', panel: { kind: 'section', heading: 'AI that edits, not generates', bullets: [
           'The model returns a short list of block operations, each checked against its schema: all apply, or none',
