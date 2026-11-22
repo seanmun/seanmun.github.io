@@ -2,14 +2,14 @@
 // Purpose: The Kinetic room as a Haussmann salon: a tall ceiling with a
 // cornice and a ceiling rose, wall panels in moulded frames, a white marble
 // fireplace under the room's screen, a brass chandelier, and the right wall
-// opened into a French window onto a Paris street, its sheers and drapes
-// moving in the breeze.
+// opened into a French window onto the lawn and the sea, its sheers and
+// drapes moving in the breeze.
 //
 // Weight: everything painted white (panels, cornice, rose, casings) is one
 // merged mesh; the window joinery, the railing, the chandelier's brass and
 // its candles are one mesh each. The curtains move in their vertex shader,
-// so nothing is re-uploaded per frame. The street outside is a painted
-// backdrop (T.parisStreet) and one plane of road.
+// so nothing is re-uploaded per frame. The view outside is the golf
+// course's grass and the sea (course.ts).
 
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
@@ -27,7 +27,6 @@ export type SalonOpts = {
   animators: ((t: number, dt: number) => void)[];
   reduceMotion: boolean;
   door: { x: number; w: number; h: number };
-  paris: THREE.Texture; // the street across the way, sky transparent
   screens: { x: number; w: number }[]; // the app screens on the back wall (bezel included)
   tv: { z: number; w: number }; // the room's own screen on the left wall, over the fireplace
 };
@@ -97,9 +96,10 @@ export function buildSalon(o: SalonOpts) {
     for (let u = u0 + 0.1; u < u1 - 0.06; u += 0.14) wb(w, u - 0.03, u + 0.03, H - 0.38, H - 0.3, 0.1, 0.17);
     wb(w, u0, u1, H - 0.92, H - 0.88, 0, 0.03);
   };
-  // n bays of panels between u0 and u1, a frame per tier
-  const bays = (w: Wall, u0: number, u1: number, n: number, tiers = [DADO, MAIN, ATTIC]) => {
-    const g = 0.24, bw = (u1 - u0 - (n + 1) * g) / n;
+  // Bays of panels between u0 and u1, about 2 m each, a frame per tier
+  const bays = (w: Wall, u0: number, u1: number, tiers = [DADO, MAIN, ATTIC]) => {
+    if (u1 - u0 < 0.8) return;
+    const g = 0.24, n = Math.max(1, Math.round((u1 - u0) / 2.1)), bw = (u1 - u0 - (n + 1) * g) / n;
     for (let i = 0; i < n; i++) {
       const a = u0 + g + i * (bw + g);
       for (const [y0, y1] of tiers) frame(w, a, a + bw, y0, y1);
@@ -134,8 +134,8 @@ export function buildSalon(o: SalonOpts) {
   wb('R', winZ0 - 0.32, winZ1 + 0.32, win.h + 0.22, win.h + 0.32, 0, 0.13);
   run('R', zs[0], winZ0 - 0.22);
   run('R', winZ1 + 0.22, zs[1]);
-  bays('R', zs[0], winZ0 - 1.75, 2);
-  bays('R', winZ1 + 1.75, zs[1], 2);
+  bays('R', zs[0], winZ0 - win.w / 2 - 0.1);
+  bays('R', winZ1 + win.w / 2 + 0.1, zs[1]);
   frame('R', winZ0, winZ1, ATTIC[0], ATTIC[1]);
 
   // Left wall: the fireplace, and the room's screen in a tall frame over it
@@ -146,8 +146,8 @@ export function buildSalon(o: SalonOpts) {
   frame('L', fz - tvHalf, fz + tvHalf, ATTIC[0], ATTIC[1]);
   frame('L', fz - tvHalf, fz - 1.3, DADO[0], DADO[1]);
   frame('L', fz + 1.3, fz + tvHalf, DADO[0], DADO[1]);
-  bays('L', zs[0], fz - tvHalf - 0.04, 2);
-  bays('L', fz + tvHalf + 0.04, zs[1], 2);
+  bays('L', zs[0], fz - tvHalf - 0.04);
+  bays('L', fz + tvHalf + 0.04, zs[1]);
 
   // Back wall: each app screen in its own panel, a smaller one above; the
   // giant phone stands in the bay right of the door
@@ -159,11 +159,12 @@ export function buildSalon(o: SalonOpts) {
     frame('B', a, b, 3.3, MAIN[1]);
     frame('B', a, b, ATTIC[0], ATTIC[1]);
   }
-  bays('B', bB, r.x1, 1);
+  bays('B', bB, r.x1);
+  bays('B', r.x0, Math.min(...o.screens.map((s) => s.x - s.w / 2)) - 0.34);
   // Front wall, behind you as you come in
   const [fA, fB] = doorway('F');
-  bays('F', r.x0, fA, 3);
-  bays('F', fB, r.x1, 1);
+  bays('F', r.x0, fA);
+  bays('F', fB, r.x1);
 
   // The ceiling: two nested frames and a rose for the chandelier
   {
@@ -307,7 +308,7 @@ vec3 objectNormal = normalize(cross(drape(position + vec3(0.01, 0.0, 0.0)) - dp0
     return m;
   };
   const rodY = win.h + 0.62;
-  const DW = 1.95, SW = 1.5;
+  const DW = 2.3, SW = 1.8;
   for (const s of [-1, 1]) {
     const edge = s > 0 ? winZ1 : winZ0;
     const drape = curtain(new THREE.MeshStandardMaterial({ color: '#cdb999', roughness: 0.95, side: THREE.DoubleSide }), DW, rodY - 0.06, 0.06, 0.12, s * 1.3, s > 0 ? 1 : 0);
@@ -373,32 +374,5 @@ vec3 objectNormal = normalize(cross(drape(position + vec3(0.01, 0.0, 0.0)) - dp0
     mesh(candles, track(new THREE.MeshStandardMaterial({ color: '#f4efe4', roughness: 0.6 })));
     mesh(flames, track(new THREE.MeshBasicMaterial({ color: '#ffe2b0', toneMapped: false })));
   }
-
-  // ---------- outside: a Paris street, three floors down ----------
-  // The salon is up on the third floor: the road is 9 m below, the building
-  // across the way is a painted backdrop with the real sky above its roofs.
-  // Hidden out on the course, where it would show past the museum.
-  const outside = new THREE.Group();
-  outside.name = 'salon-outside';
-  scene.add(outside);
-  {
-    const across = r.x1 + 18;
-    const street = new THREE.Mesh(track(new THREE.PlaneGeometry(across - r.x1, 90)),
-      track(new THREE.MeshStandardMaterial({ color: '#6d6a64', roughness: 0.92 })));
-    street.rotation.x = -Math.PI / 2;
-    street.position.set((r.x1 + across) / 2, SALON.street, r.zc);
-    outside.add(street);
-    const walk = new THREE.Mesh(track(new THREE.PlaneGeometry(3, 90)), track(new THREE.MeshStandardMaterial({ color: '#a19b90', roughness: 0.9 })));
-    walk.rotation.x = -Math.PI / 2;
-    walk.position.set(across - 1.5, SALON.street + 0.15, r.zc);
-    outside.add(walk);
-    const img = o.paris.image as { width: number; height: number };
-    const BW = 72, BH = BW * (img.height / img.width);
-    const facade = new THREE.Mesh(track(new THREE.PlaneGeometry(BW, BH)),
-      track(new THREE.MeshBasicMaterial({ map: o.paris, alphaTest: 0.5 })));
-    facade.rotation.y = -Math.PI / 2;
-    facade.position.set(across, SALON.street + BH / 2, r.zc);
-    outside.add(facade);
-  }
-  return { outside };
 }
+

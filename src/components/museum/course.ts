@@ -12,11 +12,7 @@
 
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import { COURSE, SALON_STREET } from './layout';
-
-// Under the street outside the Kinetic salon's window (see SALON_STREET)
-const inStreet = (x: number, z: number) =>
-  x > SALON_STREET.x0 && x < SALON_STREET.x1 && z > SALON_STREET.z0 && z < SALON_STREET.z1;
+import { COURSE, GALLERY, SEA_X, SEA_Y, coastX } from './layout';
 import { buildVault, hatchDist, inHatch } from './vault';
 
 function rng(seed: number) {
@@ -93,7 +89,9 @@ export function courseHeight(x: number, z: number) {
 
   // Hills beyond the hole, and out to the sides
   const R = Math.hypot(x - COURSE.green.x, (z - COURSE.green.z) * 0.8);
-  h += smoothstep(38, 120, R) * (4.5 + 3.5 * Math.sin(0.031 * x + 1) * Math.cos(0.027 * z) + 1.5 * Math.sin(0.07 * x + z * 0.05));
+  // (not on the right: there the land rolls down to the sea)
+  h += smoothstep(38, 120, R) * (1 - smoothstep(4, 22, x)) * (4.5 + 3.5 * Math.sin(0.031 * x + 1) * Math.cos(0.027 * z) + 1.5 * Math.sin(0.07 * x + z * 0.05));
+  h = THREE.MathUtils.lerp(h, SEA_Y, smoothstep(16, 70, x));
 
   return nearBuilding > 0 ? THREE.MathUtils.lerp(h, -0.05, nearBuilding) : h;
 }
@@ -469,9 +467,32 @@ export function buildCourse(o: {
   // where the fine one covers)
   const step = mobile ? 0.4 : 0.22;
   const fine = new THREE.Mesh(track(terrain(MASK.w, MASK.d, MASK.x0 + MASK.w / 2, MASK.z1 + MASK.d / 2, step, 0, (x, z) => inHatch(x, z))), mat);
-  const far = new THREE.Mesh(track(terrain(440, 330, 0, COURSE.z0 - 95, 2.5, 0.04, (x, z) => inHatch(x, z, 3) || inStreet(x, z))), mat);
+  // The far grass runs from beyond the hole up the museum's side to the
+  // gallery's front (the salon's window looks out over it), and down to the beach
+  const farZ0 = COURSE.z0 - 260, farZ1 = GALLERY.z0 + 4;
+  const far = new THREE.Mesh(track(terrain(440, farZ1 - farZ0, 0, (farZ0 + farZ1) / 2, 2.5, 0.04, (x, z) => inHatch(x, z, 3) || x > coastX(z))), mat);
   fine.receiveShadow = far.receiveShadow = true;
   scene.add(fine, far);
+
+  // The beach, under the grass's ragged edge, and the sea beyond it
+  {
+    const len = farZ1 - farZ0 + 400, zc = (farZ0 + farZ1) / 2;
+    const sand = new THREE.Mesh(track(new THREE.PlaneGeometry(SEA_X + 8 - 60, len)), track(new THREE.MeshStandardMaterial({ color: '#d9c9a3', roughness: 0.95 })));
+    sand.rotation.x = -Math.PI / 2;
+    sand.position.set((60 + SEA_X + 8) / 2, SEA_Y - 0.1, zc);
+    sand.receiveShadow = true;
+    const sea = new THREE.Mesh(track(new THREE.PlaneGeometry(3000, 3000)),
+      track(new THREE.MeshStandardMaterial({ color: '#2d5b73', roughness: 0.22, metalness: 0.15 })));
+    sea.rotation.x = -Math.PI / 2;
+    sea.position.set(SEA_X + 1500, SEA_Y - 0.06, zc);
+    scene.add(sand, sea);
+  }
+  // A few oaks on the lawn, out the salon's window (the hole's own oak is below)
+  // (kept out of the line from the room through the window, so they frame the sea, not hide it)
+  for (const [x, z, seed] of (mobile ? [[28, -18, 11], [38, -126, 13]] : [[28, -18, 11], [38, -126, 13], [62, -28, 17], [55, -142, 19]])) {
+    const t = oak(track, x, z, seed);
+    scene.add(t.wood, t.crown);
+  }
 
   // A flagstone path from the back door onto the grass
   const stone = track(new THREE.MeshStandardMaterial({ color: '#b8b2a6', roughness: 0.9 }));

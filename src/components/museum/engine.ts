@@ -285,7 +285,6 @@ export function createMuseum(host: HTMLElement, opts: Options): MuseumHandle {
   const COURSE_CENTER = new THREE.Vector3(COURSE.green.x - 3, 0, COURSE.z0 - 26);
   const sunCenter = MUSEUM_CENTER.clone();
   let outT = 0; // 0 indoors, 1 out on the course
-  let parisView: THREE.Object3D | null = null; // the street outside the salon's window
   const setOutdoors = (on: boolean, dt: number) => {
     const goal = on ? 1 : 0;
     if (outT === goal) return;
@@ -300,7 +299,6 @@ export function createMuseum(host: HTMLElement, opts: Options): MuseumHandle {
     sunCenter.lerpVectors(MUSEUM_CENTER, COURSE_CENTER, e);
     sun.target.position.copy(sunCenter);
     sun.position.copy(sunCenter).addScaledVector(sunDir, 90);
-    if (parisView) parisView.visible = outT < 0.5; // out on the course it would show past the museum
     if (mobile) return;
     const cam = sun.shadow.camera, half = outT > 0.5 ? 40 : 80;
     if (cam.right !== half) {
@@ -552,8 +550,10 @@ export function createMuseum(host: HTMLElement, opts: Options): MuseumHandle {
   // fogRange: [near, far]; rooms keep the building's default
   const roomStyle: Record<string, { wall: Mat; floor: Mat | null; ceil: Mat; fog: string; fogRange?: [number, number] }> = {
     // A Haussmann salon: warm white plaster, oak chevrons (see haussmann.ts)
-    'kinetic-email': { wall: std(track(T.plaster('#eee8dc', 21)), 4, { roughness: 0.92 }), floor: std(track(T.parquet()), 2.1, { roughness: 0.3 }), ceil: M.ceiling, fog: '#dcd6cc' },
-    'money-never-sleeps': { wall: std(track(T.grain('#0e0e15', 7, 0.05)), 4), floor: null, ceil: std(track(T.grain('#09090d', 8, 0.04)), 4), fog: '#0a0a0f' },
+    'kinetic-email': { wall: std(track(T.plaster('#eee8dc', 21)), 4, { roughness: 0.92 }), floor: std(track(T.parquet()), 2.1, { roughness: 0.3 }), ceil: M.ceiling,
+      // a long, cool haze: nothing indoors is far enough to fog; the sea is
+      fog: '#cdd6dc', fogRange: [30, 240] },
+    'money-never-sleeps': { wall: std(track(T.grain('#0e0e15', 7, 0.05)), 4), floor: std(track(T.grain('#121216', 12, 0.05)), 3, { roughness: 0.4 }), ceil: std(track(T.grain('#09090d', 8, 0.04)), 4), fog: '#0a0a0f' },
     outlooksucks: { wall: std(track(T.grain('#cbc3ae', 9)), 4), floor: std(track(T.grain('#56606b', 10, 0.18)), 2), ceil: std(track(T.grain('#ecebe6', 11)), 4), fog: '#c9c4b5' },
     // Outdoors: "wall" is the building's back face, seen from the course;
     // the fog is a blue daylight haze that hides where the world ends
@@ -665,7 +665,8 @@ export function createMuseum(host: HTMLElement, opts: Options): MuseumHandle {
     }
 
     // Room light
-    const lamp = new THREE.PointLight('#fff1dc', slug === 'rocket-pool-tour' ? 14 : slug === 'money-never-sleeps' ? 9 : 26, 0, 1.6);
+    // (×1.5 since the rooms grew from 14 to 18 m: the walls are further from it)
+    const lamp = new THREE.PointLight('#fff1dc', 1.5 * (slug === 'rocket-pool-tour' ? 14 : slug === 'money-never-sleeps' ? 9 : 26), 0, 1.6);
     lamp.position.set(0, salon ? SALON.chandelier.y + 0.2 : r.h - 0.6, r.zc);
     scene.add(lamp);
 
@@ -711,7 +712,6 @@ export function createMuseum(host: HTMLElement, opts: Options): MuseumHandle {
 
     DRESS[slug]?.({ r, scene, box, plane, color, basic, track, animators, reduceMotion, slab, clickable, videoMat, model: model(i), mobile });
   });
-  parisView = scene.getObjectByName('salon-outside') ?? null;
 
   // ---------- art ----------
 
@@ -1129,6 +1129,12 @@ export function createMuseum(host: HTMLElement, opts: Options): MuseumHandle {
   let camPitch = heading[0].pitch;
   const targetPos = new THREE.Vector3();
   let targetYaw = camYaw;
+  // The camera's springs (see tick): rates in 1/s. Position settles in
+  // about 2 s, turns a little slower, since a swinging view tires the eye
+  // more than walking does
+  const SPRING_POS = 2.4, SPRING_TURN = 2.1;
+  const camVel = new THREE.Vector3(), springAcc = new THREE.Vector3();
+  let yawVel = 0, pitchVel = 0;
   let targetPitch = camPitch;
   const fogTarget = new THREE.Color();
   const lean = new THREE.Vector3();
@@ -1379,10 +1385,29 @@ export function createMuseum(host: HTMLElement, opts: Options): MuseumHandle {
     routeAt(scroll);
     // Inertia: the camera glides after the scroll instead of tracking it
     // frame for frame, so a fast flick of the wheel still reads as a walk.
+    // A critically damped spring, not a plain ease-out: it gathers speed
+    // and sheds it smoothly at both ends. (Easing out alone starts every
+    // move at full speed, a jolt the eye has to chase: a turn between stops
+    // began at over 200°/s. The spring peaks at about a third of that.)
     const k = reduceMotion ? 1 : 1 - Math.exp(-dt * 2.6);
-    camPos.lerp(targetPos, k);
-    camYaw += wrap(targetYaw - camYaw) * k;
-    camPitch += (targetPitch - camPitch) * k;
+    if (reduceMotion) {
+      camPos.copy(targetPos);
+      camYaw = targetYaw;
+      camPitch = targetPitch;
+      camVel.set(0, 0, 0);
+      yawVel = pitchVel = 0;
+    } else {
+      const steps = Math.ceil(dt / (1 / 120)), h = dt / steps;
+      for (let i = 0; i < steps; i++) {
+        springAcc.subVectors(targetPos, camPos).multiplyScalar(SPRING_POS * SPRING_POS).addScaledVector(camVel, -2 * SPRING_POS);
+        camVel.addScaledVector(springAcc, h);
+        camPos.addScaledVector(camVel, h);
+        yawVel += (wrap(targetYaw - camYaw) * SPRING_TURN * SPRING_TURN - 2 * SPRING_TURN * yawVel) * h;
+        camYaw = wrap(camYaw + yawVel * h);
+        pitchVel += ((targetPitch - camPitch) * SPRING_TURN * SPRING_TURN - 2 * SPRING_TURN * pitchVel) * h;
+        camPitch += pitchVel * h;
+      }
+    }
     (scene.fog as THREE.Fog).color.lerp(fogTarget, k);
     fogNearFar.lerp(fogNearFarTarget, k);
     (scene.fog as THREE.Fog).near = fogNearFar.x;
@@ -1424,7 +1449,7 @@ export function createMuseum(host: HTMLElement, opts: Options): MuseumHandle {
           if (!t || seen.has(t)) continue;
           seen.add(t);
           // tiling surfaces, labels, placards and mats: 512 is plenty at phone size
-          if ((t as THREE.CanvasTexture).isCanvasTexture && !t.userData.live) shrink(t, t.userData.phoneMax ?? 512);
+          if ((t as THREE.CanvasTexture).isCanvasTexture && !t.userData.live) shrink(t, 512);
           lighten(t);
         }
       }
@@ -1654,7 +1679,7 @@ function giantPhone(k: Kit, at: [number, number], rotY: number, video: string, p
 // A room's dressing; the course returns the classified door's knock
 const DRESS: Record<string, (k: Kit) => void | DoorControls> = {
   // A Haussmann salon (haussmann.ts), the right wall a French window onto
-  // Paris. The app at work: on the back wall, three screens loop the real
+  // the lawn and the sea. The app at work: on the back wall, three screens loop the real
   // product, left to right: describe an email and get a build, the AMP
   // version live in Gmail, and Kineticize turning an old email interactive
   'kinetic-email'(k) {
@@ -1695,7 +1720,7 @@ const DRESS: Record<string, (k: Kit) => void | DoorControls> = {
     // (the room's own screen is 16:9, 2.5 m tall, capped at 4.6 m wide; see the room loop)
     buildSalon({
       r, scene: k.scene, wallT: WALL_T, track: k.track, animators: k.animators, reduceMotion: k.reduceMotion,
-      door: { x: ROOM.doorX, w: ROOM.doorW, h: ROOM.doorH }, paris: k.track(T.parisStreet()),
+      door: { x: ROOM.doorX, w: ROOM.doorW, h: ROOM.doorH },
       screens, tv: { z: r.zc + 0.4, w: Math.min(4.6, 2.5 * 16 / 9) + 0.14 },
     });
   },
@@ -1706,6 +1731,7 @@ const DRESS: Record<string, (k: Kit) => void | DoorControls> = {
     // Black hardwood, its lines laid in neon: green, cyan and purple
     const court = T.neonCourt(-3.5);
     // (phones draw it at 1024: see setPhoneTextures)
+    // the court is 14 m; the room's dark floor runs round it
     const floor = k.plane(14, 14, k.track(new THREE.MeshStandardMaterial({
       map: k.track(court.map), emissive: '#ffffff', emissiveMap: k.track(court.glow), emissiveIntensity: 1.6, roughness: 0.28, metalness: 0.1,
     })), [0, 0.003, r.zc]);
@@ -1773,8 +1799,8 @@ const DRESS: Record<string, (k: Kit) => void | DoorControls> = {
     };
     // Two walls only: the back wall you walk toward, and the right wall over
     // the roster phone (the ribbon board stop). Four was a lot going on
-    add(14, [0, y, r.z1 + WALL_T / 2 + 0.01], 0);
-    add(14, [r.x1 - 0.01, y, r.zc], -Math.PI / 2);
+    add(ROOM.width, [0, y, r.z1 + WALL_T / 2 + 0.01], 0);
+    add(ROOM.depth, [r.x1 - 0.01, y, r.zc], -Math.PI / 2);
     k.animators.push((_t, dt) => {
       if (k.reduceMotion) return;
       for (const b of bands) b.mat.map!.offset.x = (b.mat.map!.offset.x + dt * 0.06) % 1;

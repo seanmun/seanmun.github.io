@@ -77,7 +77,10 @@ export function roomTour(slug: string, index: number): TourStop[] | null {
   // panel can float to its right, and the way out by the far doorway
   const screen = (heading: string, label = 'The screen'): TourStop => ({
     id: 'screen', label, panel: { kind: 'section', heading },
-    pos: [-0.6, 1.8, r.zc + 3.6], look: [-7, 2.4, r.zc - 1.6], place: [1.0, -0.05, 2.4],
+    // framed from the wall it hangs on (x0), so it holds whatever the room's width
+    pos: [r.x0 + 6.4, 1.8, r.zc + 3.6], look: [r.x0, 2.4, r.zc - 1.6], place: [1.0, -0.05, 2.4],
+    // phones: square on to it, far enough back to see it whole
+    narrow: { pos: [r.x0 + 11.6, 1.75, r.zc + 0.4], look: [r.x0, 1.9, r.zc + 0.4] },
   });
   const finale = (heading: string): TourStop => ({
     id: 'finale', label: 'Before you go', panel: { kind: 'finale', heading },
@@ -89,8 +92,10 @@ export function roomTour(slug: string, index: number): TourStop[] | null {
   switch (slug) {
     case 'kinetic-email':
       return [
-        // in through the door, the French window and its curtains ahead and to the right
-        arrive([7, 2.7, r.zc - 0.4]),
+        // in through the door, the French window and its curtains ahead and to
+        // the right, the lawn running down to the sea. Phones walk closer and
+        // look a little down, so the view clears the card
+        { ...arrive([7, 2.35, r.zc - 0.4]), narrow: { pos: [3.2, 1.75, r.zc + 1.6], look: [9, 1.5, r.zc - 0.4] } },
         { id: 'atwork', label: 'The app at work', panel: { kind: 'section', heading: 'Interactive email, without the hacks', bullets: [
           'Describe it: the AI Playground turns a plain-English prompt into an interactive build',
           'Live in the inbox: the AMP version runs right in Gmail, carousels and forms included',
@@ -98,12 +103,12 @@ export function roomTour(slug: string, index: number): TourStop[] | null {
         ] },
           // Desktop: the three screens on the back wall, left of the panel's
           // spot on the right. Phones: back far enough to see all three
-          pos: [-0.96, 1.75, r.z1 + 7.3], look: [-0.96, 2.05, r.z1], place: [0.95, -0.05, 2.4],
-          narrow: { pos: [-3.53, 1.75, r.z1 + 13.4], look: [-3.53, 1.15, r.z1] } },
+          pos: [-1.88, 1.75, r.z1 + 7.5], look: [-1.88, 2.05, r.z1], place: [0.95, -0.05, 2.4],
+          narrow: { pos: [-4.5, 1.75, r.z1 + 13.6], look: [-4.5, 1.15, r.z1] } },
         // the screen hangs high, over the fireplace: phones step back across the room
-        { ...screen('Describe an email → get two production builds'), narrow: { pos: [2.6, 1.75, r.zc + 0.4], look: [-7, 2.3, r.zc + 0.4] } },
+        { ...screen('Describe an email → get two production builds'), narrow: { pos: [2.6, 1.75, r.zc + 0.4], look: [r.x0, 2.4, r.zc + 0.4] } },
         { id: 'finale', label: 'Bolt', panel: { kind: 'finale', heading: 'Bolt: the game that markets it', link: { label: 'Play Bolt', href: 'https://bolt.kinetic.email/' } },
-          pos: [3.2, 1.75, r.z1 + 5.8], look: [SALON.phoneX, 2.1, r.z1], place: [-1.05, -0.05, 2.5],
+          pos: [4.0, 1.75, r.z1 + 5.8], look: [SALON.phoneX, 2.1, r.z1], place: [-1.05, -0.05, 2.5],
           narrow: { pos: [SALON.phoneX, 1.75, r.z1 + 9.6], look: [SALON.phoneX, 2.1, r.z1] } },
       ];
     case 'outlooksucks':
@@ -131,7 +136,8 @@ export function roomTour(slug: string, index: number): TourStop[] | null {
     case 'rocket-pool-tour':
       return [
         arrive([3.2, 0.9, r.zc - 1]),
-        { id: 'rro', label: 'The RRO app', panel: { kind: 'section', heading: 'The RRO app: every rack, rated' }, pos: [-2.4, 1.75, r.z1 + 5.8], look: [-4.2, 2.1, r.z1], place: [1.05, -0.05, 2.5] },
+        { id: 'rro', label: 'The RRO app', panel: { kind: 'section', heading: 'The RRO app: every rack, rated' }, pos: [-2.4, 1.75, r.z1 + 5.8], look: [-4.2, 2.1, r.z1], place: [1.05, -0.05, 2.5],
+          narrow: { pos: [-4.2, 1.75, r.z1 + 9.6], look: [-4.2, 2.1, r.z1] } },
         { ...screen('A pitch deck for every partner'), id: 'finale', label: 'Before you go', panel: { kind: 'finale', heading: 'A pitch deck for every partner', bullets: [
           'More than two dozen bespoke decks across ten industries, all from one slide system',
           'Each deck feeds the team CRM: deal status, contacts, and every call, email and meeting logged',
@@ -151,8 +157,8 @@ export function roomTour(slug: string, index: number): TourStop[] | null {
           'Nine-category head-to-head matchups, with up to eight keepers priced by draft round',
           'The prize pool is tracked like a portfolio: point MNS at the league\'s crypto wallet and the pot is priced live',
           'Every payout is a share of the pot, so the champion\'s prize rises and falls with the market',
-        ] }, pos: [1.4, 1.75, r.zc + 1.0], look: [7, 2.7, r.zc - 1.9], place: [1.05, -0.15, 2.5] },
-        { id: 'bump', label: 'Bump', panel: { kind: 'section', heading: 'Bump, your AI general manager' }, pos: [-2.2, 1.8, r.zc + 0.8], look: [-7, 2.35, r.zc + 0.4], place: [1.0, -0.05, 2.4] },
+        ] }, pos: [1.4, 1.75, r.zc + 1.0], look: [r.x1, 2.7, r.zc - 1.9], place: [1.05, -0.15, 2.5] },
+        { id: 'bump', label: 'Bump', panel: { kind: 'section', heading: 'Bump, your AI general manager' }, pos: [r.x0 + 4.8, 1.8, r.zc + 0.8], look: [r.x0, 2.35, r.zc + 0.4], place: [1.0, -0.05, 2.4] },
         { id: 'hoop', label: 'Every game', panel: { kind: 'finale', heading: 'One login. Every game.' }, pos: [-1.7, 1.7, r.z1 + 6.0], look: [-1.75, 2.45, r.z1 + 0.2], place: [1.1, -0.1, 2.5],
           narrow: { pos: [-3.5, 1.8, r.z1 + 8.8], look: [-3.5, 2.95, r.z1 + 0.2] } },
       ];
@@ -163,27 +169,28 @@ export function roomTour(slug: string, index: number): TourStop[] | null {
 
 export const LOBBY = { x0: -9, x1: 9, z0: 6, z1: -14, h: 12 };
 export const GALLERY = { x0: -6, x1: 6, z0: -14, z1: -48, h: 8 };
-export const ROOM = { width: 14, depth: 14, h: 6, doorX: 1.8, doorW: 3.2, doorH: 3.6 };
+// 18 m square: room to stand back from the work, so walls don't stream past
+export const ROOM = { width: 18, depth: 18, h: 6, doorX: 1.8, doorW: 3.2, doorH: 3.6 };
 
 // The Kinetic room is a Haussmann salon (haussmann.ts): a taller ceiling,
 // and the right wall opened into a French window, centered on the room.
 // win.open is how far its leaves swing in (180 would lie flat on the wall).
-// The street is 9 m down: the salon is on the third floor.
 export const SALON = {
   h: 7.5,
-  win: { w: 3.4, h: 5.0, leaf: 4.0, open: 172 },
+  win: { w: 4.0, h: 5.2, leaf: 4.2, open: 172 },
   chandelier: { y: 5.1 },
-  street: -9,
   // the app screens along the back wall, left of the door (centers, x)
-  screens: [-5.76, -3.62, -1.39],
+  screens: [-6.79, -4.585, -2.295],
   screenY: 2.25,
-  phoneX: 5.43, // Bolt, in the bay right of the door
+  phoneX: 6.3, // Bolt, in the bay right of the door
   tvY: 2.95, // the room's own screen, over the fireplace
 };
-// The street outside the salon, 9 m down. The golf course's far grass
-// reaches this far, so it's cut away here (you never see this spot from
-// the course: it's behind the museum, and the course looks away from it).
-export const SALON_STREET = { x0: ROOM.width / 2, x1: ROOM.width / 2 + 19, z0: GALLERY.z1 - ROOM.depth / 2 - 37, z1: GALLERY.z1 + 1 };
+// The coast: the course's grass rolls down the museum's right side to a
+// beach, and the ocean beyond. coastX(z) is where the grass ends; the sea
+// starts at SEA_X. Seen from the salon's window and from the golf hole.
+export const SEA_X = 104;
+export const SEA_Y = -9; // the land falls away to the beach: from the museum you see over the water
+export const coastX = (z: number) => 86 + 10 * Math.sin(z * 0.025) + 5 * Math.sin(z * 0.061 + 1);
 
 // Room order follows the project grid on the home page, except Buddy Cup:
 // its room is outdoors, so it comes last, out the museum's back door
@@ -323,7 +330,7 @@ export function buildStations(projects: MuseumProject[], tours: Record<string, P
     }
     stations.push(
       { id: `${slug}-enter`, group: p.title, label: p.title, sub: ROOM_NOTES[slug] ?? '', slug, pos: [ROOM.doorX, 1.75, r.z0 - 1.5], look: enterLook(slug, r.zc) },
-      { id: `${slug}-screen`, group: p.title, label: p.title, sub: 'Open the placard to read about it', slug, pos: [-2.2, 1.8, r.zc + 0.8], look: [-7, 2.35, r.zc + 0.4] },
+      { id: `${slug}-screen`, group: p.title, label: p.title, sub: 'Open the placard to read about it', slug, pos: [r.x0 + 4.8, 1.8, r.zc + 0.8], look: [r.x0, 2.35, r.zc + 0.4] },
     );
   });
   // Past the last room, in the trap beside the green: the hatch, then down
