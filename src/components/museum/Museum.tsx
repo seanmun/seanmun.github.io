@@ -10,6 +10,7 @@ import { createPortal } from 'react-dom';
 import Link from 'next/link';
 import { STEP, buildStations, type MuseumProject, type PanelContent } from './layout';
 import { BunkerDoor } from './BunkerDoor';
+import { ProgressRail } from './ProgressRail';
 import { getDeviceType, getVisitorId, sendEvents } from '@/lib/track-utils';
 
 // Crash breadcrumb: iOS reloads a tab it killed for using too much memory.
@@ -289,6 +290,9 @@ export default function Museum({ projects, ordinals, tours }: { projects: Museum
           </Link>
         </div>
       </header>
+
+      {/* Where you are: a rail of rooms (desktop), a bar along the top (phones) */}
+      <ProgressRail groups={groups} total={stations.length} current={station.group} narrow={narrow} onGo={goTo} />
 
       {/* Room map */}
       {mapOpen && (
