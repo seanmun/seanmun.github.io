@@ -150,7 +150,7 @@ export function roomTour(slug: string, index: number): TourStop[] | null {
         ] }, pos: [1.4, 1.75, r.zc + 1.0], look: [7, 2.7, r.zc - 1.9], place: [1.05, -0.15, 2.5] },
         { id: 'bump', label: 'Bump', panel: { kind: 'section', heading: 'Bump, your AI general manager' }, pos: [-2.2, 1.8, r.zc + 0.8], look: [-7, 2.35, r.zc + 0.4], place: [1.0, -0.05, 2.4] },
         { id: 'hoop', label: 'Every game', panel: { kind: 'finale', heading: 'One login. Every game.' }, pos: [-1.7, 1.7, r.z1 + 6.0], look: [-1.75, 2.45, r.z1 + 0.2], place: [1.1, -0.1, 2.5],
-          narrow: { pos: [-3.5, 1.8, r.z1 + 8.8], look: [-3.5, 2.25, r.z1 + 0.2] } },
+          narrow: { pos: [-3.5, 1.8, r.z1 + 8.8], look: [-3.5, 2.95, r.z1 + 0.2] } },
       ];
     default:
       return null;
@@ -233,8 +233,7 @@ export interface GalleryPiece {
   labelY?: number; // wall label height, when two pieces share one wall
 }
 
-// Photos only: the sculptures are basketball pieces, so they live in the
-// Money Never Sleeps room (see MNS_ART). Each wall hangs a print every
+// Photos only. Each wall hangs a print every
 // 5.6 m, the right wall offset half a step, so walking down the middle the
 // eye moves left, right, left.
 const PITCH = 5.6;
@@ -255,19 +254,6 @@ export const GALLERY_PIECES: GalleryPiece[] = [
   { id: 'vibe', kind: 'photo', src: '/media/museum/photos/vibe.jpg', side: 1, z: R(3), y: 2.0, size: 1.7, title: 'Vibe', note: 'Building mural' },
   { id: 'hang11', kind: 'photo', src: '/media/museum/photos/hang11.jpg', side: 1, z: R(4), y: 2.0, size: 1.5, title: 'Hang 11', note: 'A sneaker on the line' },
 ];
-
-// The basketball sculptures in the Money Never Sleeps room, gathered as one
-// group on the back wall over the court's key. Wall pieces hang on the
-// left, right or back wall; `at` is z from the room's center on a side
-// wall, or x on the back wall. y is the bottom edge.
-export const MNS_ART = {
-  wall: [
-    // Over the court's key: Shooting Hoops, with the two Tyrell Winstons side by side beneath it
-    { src: '/models/museum/scars-of-the-game.glb', wall: 'back', at: -3.5, y: 2.35, width: 1.6, title: 'Shooting Hoops', artist: 'New York Sunshine', labelY: 3.05 },
-    { src: '/models/museum/tangled-nets.glb', wall: 'back', at: -4.45, y: 0.8, width: 1.5, title: 'Tangled Nets', artist: 'Tyrell Winston', labelY: 1.45, labelLeft: true },
-    { src: '/models/museum/deflated-legends.glb', wall: 'back', at: -2.55, y: 1.05, width: 1.6, title: 'Deflated Legends', artist: 'Tyrell Winston', labelY: 1.45 },
-  ] as { src: string; wall: 'left' | 'right' | 'back'; at: number; y: number; width: number; title: string; artist: string; labelY: number; labelLeft?: boolean }[],
-};
 
 // Scroll per stop, in screen heights: room to linger at each piece
 export const STEP = 1.35;
