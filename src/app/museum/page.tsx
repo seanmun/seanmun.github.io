@@ -70,6 +70,25 @@ function panelFor(p: Project, stop: TourStop, k: number, count: number, stats?: 
   const caseStudy = { label: 'Read the case study', href: `/projects/${p.slug}` };
   const base: PanelContent = { kicker, title: '', body: '', bullets: [], chips: [], stats: [], links: [] };
 
+  // A stop with a narration line shows just its heading and that sentence
+  // (the last stop keeps its buttons, and any figure): the case study has
+  // the rest
+  if (stop.panel.line) {
+    const heading = stop.panel.kind === 'overview' ? p.title : stop.panel.heading;
+    const lined: PanelContent = { ...base, title: stop.panel.title ?? heading ?? stop.label, body: stop.panel.line };
+    if (stop.panel.kind !== 'finale') return lined;
+    return {
+      ...lined,
+      ...(stop.panel.figure ? { figure: stop.panel.figure } : {}),
+      links: [
+        ...(stop.panel.link ? [{ ...stop.panel.link, external: true }] : []),
+        ...(p.link ? [{ label: `Visit ${new URL(p.link).hostname.replace(/^www\./, '')}`, href: p.link, external: true }] : []),
+        caseStudy,
+        { label: 'Work with me', href: '/#work-with-me' },
+      ],
+    };
+  }
+
   switch (stop.panel.kind) {
     case 'overview':
       return {

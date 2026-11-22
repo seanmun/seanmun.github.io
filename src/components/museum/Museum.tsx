@@ -518,7 +518,7 @@ function WatchScore() {
 
 // Light, cyan, a little unstable: projected light, not a UI card
 const HOLO_CSS = `
-.holo-wrap { width: 560px; }
+.holo-wrap { width: 480px; }
 .holo-sheet .holo {
   /* never over 45% of the screen you can see: svh counts Safari's toolbars
      (vh doesn't, which let cards run taller on iPhones); longer ones scroll */
@@ -526,8 +526,8 @@ const HOLO_CSS = `
   background: linear-gradient(180deg, rgba(14,70,110,0.92) 0%, rgba(6,36,66,0.94) 100%);
 }
 .holo-sheet .holo-kicker { font-size: 10px; margin-bottom: 6px; }
-.holo-sheet .holo-title { font-size: 21px; margin-bottom: 8px; }
-.holo-sheet .holo-body { font-size: 15px; line-height: 1.45; }
+.holo-sheet .holo-title { font-size: 18px; margin-bottom: 6px; }
+.holo-sheet .holo-body { font-size: 17px; line-height: 1.4; }
 .holo-sheet .holo-list li { font-size: 14px; }
 .holo-sheet .holo-stats dd { font-size: 20px; }
 .holo-sheet .holo-links a { font-size: 14px; padding: 7px 13px; }
@@ -552,8 +552,8 @@ const HOLO_CSS = `
 }
 .holo-wrap[data-on="1"] .holo { animation: holoIn .8s ease-out forwards; }
 .holo-kicker { font-size: 12px; letter-spacing: .28em; text-transform: uppercase; color: rgba(170,235,255,0.75); margin: 0 0 10px; }
-.holo-title { font-size: 30px; line-height: 1.12; font-weight: 600; margin: 0 0 12px; color: #fff; }
-.holo-body { font-size: 17px; line-height: 1.5; margin: 0; color: rgba(228,250,255,0.92); }
+.holo-title { font-size: 24px; line-height: 1.15; font-weight: 600; margin: 0 0 10px; color: #fff; }
+.holo-body { font-size: 21px; line-height: 1.42; margin: 0; color: rgba(236,252,255,0.96); }
 .holo-list { margin: 14px 0 0; padding: 0; list-style: none; }
 .holo-list li { position: relative; padding-left: 18px; font-size: 15px; line-height: 1.45; margin-top: 7px; color: rgba(228,250,255,0.88); }
 .holo-list li::before { content: ""; position: absolute; left: 0; top: .6em; width: 7px; height: 7px; border-radius: 50%; background: #7fe3ff; box-shadow: 0 0 8px #7fe3ff; }

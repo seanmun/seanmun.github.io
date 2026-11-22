@@ -56,10 +56,58 @@ export type PanelFigure = 'watch-score';
 // A panel's copy comes from the case study section with this heading.
 // `bullets` replaces the section's bullets when they're too long to read
 // standing up, or when the stop shows something the section doesn't cover.
-export type TourPanel =
+// `line` is the stop's narration: one short sentence, written to be said
+// aloud, about what the visitor is looking at (see TOUR_LINES). When a stop
+// has one, the panel shows just its heading and that sentence; the detail
+// stays in the case study. `title` replaces the heading on the panel.
+export type TourPanel = (
   | { kind: 'overview' }
   | { kind: 'section'; heading: string; bullets?: string[] }
-  | { kind: 'finale'; heading?: string; bullets?: string[]; link?: { label: string; href: string }; figure?: PanelFigure };
+  | { kind: 'finale'; heading?: string; bullets?: string[]; link?: { label: string; href: string }; figure?: PanelFigure }
+) & { line?: string; title?: string };
+
+// The narration, stop by stop, in each room's tour order. One sentence a
+// stop, short enough to read in a few seconds (and the script for a voice
+// guide later). A stop's entry is its line, or [title, line] to rename its
+// panel too.
+const TOUR_LINES: Record<string, (string | [string, string])[]> = {
+  'kinetic-email': [
+    'Most emails are static brochures. Kinetic.email builds interactive ones, and tracks how people use them in the inbox.',
+    ['Three ways in', 'Describe an email to the AI, watch the AMP build run live in Gmail, or bring an old email to life.'],
+    ['One prompt, two builds', 'One prompt makes two builds of the same email, and every inbox gets the best one it can run.'],
+    ['Bolt', 'The ad is a game: Bolt is free in your browser, and every level teaches a real email idea.'],
+  ],
+  'money-never-sleeps': [
+    'MNS Fantasy began as one dynasty league with real NBA salary cap rules and a prize pool held in crypto.',
+    ['Real money problems', 'Every player costs what his NBA contract pays, and the prize pot rises and falls with the market.'],
+    ['Bump', 'Bump is your AI general manager: tap the mic, ask out loud, and he answers with the facts on screen.'],
+    ['One login. Every game.', "Five games now share one app: NBA and WNBA dynasty, NFL pick'em, PGA golf and March Madness."],
+  ],
+  outlooksucks: [
+    "Classic Outlook draws email with Microsoft Word's engine, so modern layouts break. This tool writes the old-style tables for you.",
+    ['The problem', "The site's ticker runs through about 200 web features that don't work in Outlook for Windows."],
+    ['Build it visually', 'You build the email from brand-approved blocks: click any text on the canvas and type.'],
+    ['AI that edits', 'Describe the email or attach a design, and Claude drafts it from those same blocks. It never writes HTML.'],
+    ['A real Outlook template', 'What you download is a real Outlook template, made by a file writer I wrote byte by byte.'],
+  ],
+  'rocket-pool-tour': [
+    'The Rocket Pool Tour is a pro billiards league built around a new game, Rocket Run-Out, from Hall of Famer Rodney Morris.',
+    ['Every rack, rated', 'The score tracker rates each rack from four taps: the break, ball-in-hand, balls pocketed and the 8.'],
+    ['A deck for every partner', 'Every brand the league pitches gets its own deck, generated from one record and an industry template.'],
+  ],
+  'human-diet': [
+    'For nearly all of history we ate one broadly stable diet. Human Diet lets you walk through how that changed.',
+    ['300,000 years', 'Scroll, and three people walk from 300,000 years ago to today, on a road made of what we ate.'],
+    ['Bodies that follow the data', "The walkers' height and weight follow the evidence for each era, down to what they wear."],
+    ['Modelled in Blender', 'Its world is more than 80 objects modelled in Blender, from the rigged walkers to the woolly mammoth.'],
+  ],
+  'buddy-cup': [
+    'Buddy Cup runs a Ryder-Cup-style golf trip from one phone: players, tee times, matchups and a live leaderboard.',
+    ['The idea', 'No more human spreadsheet: create the trip, invite your buddies, and the cup stops being settled by vibes.'],
+    ['Real match play', "It scores real match play, with handicap strokes hole by hole, and reads a course's scorecard from a photo."],
+    ['On the course', 'On the course, enter scores from the iPhone app or straight from your Apple Watch.'],
+  ],
+};
 
 export interface TourStop {
   id: string;
@@ -72,6 +120,19 @@ export interface TourStop {
 }
 
 export function roomTour(slug: string, index: number): TourStop[] | null {
+  const stops = tourStops(slug, index);
+  const lines = TOUR_LINES[slug];
+  if (!stops || !lines) return stops;
+  return stops.map((stop, i) => {
+    const entry = lines[i];
+    if (!entry) return stop;
+    const [title, line] = typeof entry === 'string' ? [undefined, entry] : entry;
+    return { ...stop, panel: { ...stop.panel, line, ...(title ? { title } : {}) } };
+  });
+}
+
+// Where each room's tour stops, and what its panel draws on
+function tourStops(slug: string, index: number): TourStop[] | null {
   const r = roomBounds(index);
   // Shared viewpoints: the screen on the left wall, seen at an angle so the
   // panel can float to its right, and the way out by the far doorway
