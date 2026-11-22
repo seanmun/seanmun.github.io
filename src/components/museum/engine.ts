@@ -24,6 +24,7 @@ import type { DoorControls } from './vault';
 import { buildSalon } from './haussmann';
 import { createPost } from './post';
 import { tronGrid } from './tron';
+import { bakedLight } from './bake';
 import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js';
 import * as T from './textures';
 import {
@@ -133,6 +134,7 @@ export function createMuseum(host: HTMLElement, opts: Options): MuseumHandle {
     const mesh = new THREE.Mesh(g, material);
     mesh.receiveShadow = true;
     mesh.castShadow = true; // the building blocks the sun; light only gets in through openings
+    mesh.userData.shell = true; // floor, walls, ceiling: what a room's baked light map covers (see bake.ts)
     scene.add(mesh);
     return mesh;
   }
@@ -718,6 +720,10 @@ export function createMuseum(host: HTMLElement, opts: Options): MuseumHandle {
     }
 
     DRESS[slug]?.({ r, scene, box, plane, color, basic, track, animators, reduceMotion, slab, clickable, videoMat, model: model(i), mobile });
+    // The salon's light is baked in Blender (see bake.ts)
+    // (?nobake shows the room live-lit, to compare)
+    if (salon && !new URLSearchParams(window.location.search).has('nobake')) bakedLight({ name: 'salon', room: r, wallT: WALL_T, shell: [style.wall, style.floor ?? M.polished, style.ceil], scene, mobile, track,
+      gain: mobile ? 1.08 : 1.35 }); // phones render at a brighter exposure
   });
 
   // ---------- art ----------
@@ -1520,6 +1526,15 @@ export function createMuseum(host: HTMLElement, opts: Options): MuseumHandle {
     };
   })() : null;
   tick();
+
+  // For the light-baking tools (scripts/museum/bake): with ?bake in the
+  // address, the scene is reachable from the page so its geometry can be
+  // exported to Blender
+  if (new URLSearchParams(window.location.search).has('bake')) {
+    (window as unknown as { __museumBake?: unknown }).__museumBake = {
+      scene, wallT: WALL_T, sun: SUN_DIR.toArray(), rooms: ROOM_SLUGS.map((slug, i) => ({ slug, ...roomBounds(i) })),
+    };
+  }
 
   return {
     setScroll(s: number) {

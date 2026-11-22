@@ -31,8 +31,12 @@ export type SalonOpts = {
   tv: { z: number; w: number }; // the room's own screen on the left wall, over the fireplace
 };
 
+// Long boxes (a cornice, a baseboard) are cut into ~1 m lengths: their light
+// is baked per vertex (bake.ts), and one box the length of the room would
+// only know the light at its two ends
+const cuts = (len: number) => (len > 1.5 ? Math.min(24, Math.ceil(len)) : 1);
 const box = (sx: number, sy: number, sz: number, x: number, y: number, z: number) => {
-  const g = new THREE.BoxGeometry(sx, sy, sz);
+  const g = new THREE.BoxGeometry(sx, sy, sz, cuts(sx), cuts(sy), cuts(sz));
   g.translate(x, y, z);
   return g;
 };
@@ -43,10 +47,14 @@ export function buildSalon(o: SalonOpts) {
   const win = SALON.win;
   const winZ0 = r.zc - win.w / 2, winZ1 = r.zc + win.w / 2;
 
+  // Each merged mesh gets a stable name, so its baked light (one colour per
+  // vertex, see bake.ts) can find it again
+  let meshes = 0;
   const mesh = (geos: THREE.BufferGeometry[], mat: THREE.Material, shadow = false) => {
     const g = track(mergeGeometries(geos, false));
     geos.forEach((x) => x.dispose());
     const m = new THREE.Mesh(g, mat);
+    m.userData.bake = `salon-${meshes++}`;
     m.receiveShadow = true;
     m.castShadow = shadow;
     scene.add(m);
