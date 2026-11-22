@@ -1918,7 +1918,7 @@ const DRESS: Record<string, (k: Kit) => void | DoorControls> = {
     // deep, shown at 1.3 (monumental, as his outdoor busts are). It faces +z
     // with its back at z = 0, so it's set down by its middle, turned to the tee
     {
-      const S = 1.3, B = { x: -16, z: C.z0 - 25, depth: 2.15 * S };
+      const S = 1.3, B = { x: -19, z: C.z0 - 25, depth: 2.15 * S };
       const rotY = Math.atan2(C.doorX - B.x, (C.z0 - 1.6) - B.z);
       // seat the plinth on the slope: its lowest corner a little into the turf
       const ground = Math.min(...[[-1.2, -1.1], [1.2, -1.1], [-1.2, 1.1], [1.2, 1.1]].map(([dx, dz]) => [dx * S, dz * S]).map(([dx, dz]) =>
