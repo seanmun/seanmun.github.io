@@ -23,6 +23,7 @@ import { buildCourse, courseHeight } from './course';
 import type { DoorControls } from './vault';
 import { buildSalon } from './haussmann';
 import { createPost } from './post';
+import { tronGrid } from './tron';
 import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js';
 import * as T from './textures';
 import {
@@ -548,12 +549,18 @@ export function createMuseum(host: HTMLElement, opts: Options): MuseumHandle {
   const clickable: THREE.Object3D[] = [];
 
   // fogRange: [near, far]; rooms keep the building's default
+  // the MNS grid runs from the room's back left corner
+  const MNS_GRID = ((r) => [r.x0, r.z1 + WALL_T / 2] as [number, number])(roomBounds(ROOM_SLUGS.indexOf('money-never-sleeps')));
   const roomStyle: Record<string, { wall: Mat; floor: Mat | null; ceil: Mat; fog: string; fogRange?: [number, number] }> = {
     // A Haussmann salon: warm white plaster, oak chevrons (see haussmann.ts)
     'kinetic-email': { wall: std(track(T.plaster('#eee8dc', 21)), 4, { roughness: 0.92 }), floor: std(track(T.parquet()), 2.1, { roughness: 0.3 }), ceil: M.ceiling,
       // a long, cool haze: nothing indoors is far enough to fog; the sea is
       fog: '#cdd6dc', fogRange: [30, 240] },
-    'money-never-sleeps': { wall: std(track(T.grain('#0e0e15', 7, 0.05)), 4), floor: std(track(T.grain('#121216', 12, 0.05)), 3, { roughness: 0.4 }), ceil: std(track(T.grain('#09090d', 8, 0.04)), 4), fog: '#0a0a0f' },
+    // Tron: a faint cyan grid drawn by the wall and floor shaders (tron.ts)
+    'money-never-sleeps': {
+      wall: tronGrid(std(track(T.grain('#0c0f17', 7, 0.05)), 4, { roughness: 0.55, metalness: 0.15 }), { fadeTo: ROOM.h, origin: MNS_GRID }),
+      floor: tronGrid(std(track(T.grain('#121216', 12, 0.05)), 3, { roughness: 0.4 }), { origin: MNS_GRID }),
+      ceil: std(track(T.grain('#07090e', 8, 0.04)), 4), fog: '#0a0a0f' },
     outlooksucks: { wall: std(track(T.grain('#cbc3ae', 9)), 4), floor: std(track(T.grain('#56606b', 10, 0.18)), 2), ceil: std(track(T.grain('#ecebe6', 11)), 4), fog: '#c9c4b5' },
     // Outdoors: "wall" is the building's back face, seen from the course;
     // the fog is a blue daylight haze that hides where the world ends
@@ -1809,6 +1816,25 @@ const DRESS: Record<string, (k: Kit) => void | DoorControls> = {
     // roster against the cap (sample team, real NBA contracts)
     giantPhone(k, [r.x1 - 0.47, r.zc - 1.9], -Math.PI / 2, '/media/mns/roster.mp4', '/media/mns/roster.jpg',
       ['The roster', 'MNS Fantasy', 'Real NBA contracts, a real cap', 'Sample team, mnsfantasy.com']);
+
+    // Light lines along every seam: bright at the floor, dimmer at the
+    // ceiling, up each corner. The floor lines break for the doorways
+    {
+      const seam = k.track(new THREE.MeshBasicMaterial({ color: new THREE.Color('#00e5ff').multiplyScalar(1.6), toneMapped: false }));
+      const seamTop = k.track(new THREE.MeshBasicMaterial({ color: new THREE.Color('#00e5ff').multiplyScalar(0.55), toneMapped: false }));
+      const T = 0.035, zb = r.z1 + WALL_T / 2 + T / 2, zf = r.z0 - WALL_T / 2 - T / 2, d = zf - zb;
+      const dl = ROOM.doorX - ROOM.doorW / 2, dr = ROOM.doorX + ROOM.doorW / 2;
+      for (const [y, mat] of [[T / 2, seam], [ROOM.h - T / 2, seamTop]] as const) {
+        k.box([T, T, d], [r.x0 + T / 2, y, (zb + zf) / 2], mat);
+        k.box([T, T, d], [r.x1 - T / 2, y, (zb + zf) / 2], mat);
+        for (const z of [zb, zf]) {
+          if (y > 1) { k.box([r.x1 - r.x0, T, T], [0, y, z], mat); continue; }
+          k.box([dl - r.x0, T, T], [(r.x0 + dl) / 2, y, z], mat);
+          k.box([r.x1 - dr, T, T], [(dr + r.x1) / 2, y, z], mat);
+        }
+      }
+      for (const x of [r.x0 + T / 2, r.x1 - T / 2]) for (const z of [zb, zf]) k.box([T, ROOM.h, T], [x, ROOM.h / 2, z], seam);
+    }
 
     // a ball at the free throw line
     const ball = new THREE.Mesh(k.track(new THREE.SphereGeometry(0.12, 24, 16)), k.color('#c8642c', { roughness: 0.8 }));
