@@ -24,12 +24,13 @@ interface PageView {
   id: string;
   cookieId: string;
   timestamp: Date;
-  eventType: 'pageview' | 'project_click' | 'modal_open' | 'link_click' | 'click' | 'museum_crash';
+  eventType: 'pageview' | 'project_click' | 'modal_open' | 'link_click' | 'click' | 'museum_crash' | 'museum_progress';
   path?: string | null;
   label?: string | null;
   elementKind?: string | null;
   section?: string | null;
   href?: string | null;
+  xPercent?: number | null;
   country?: string | null;
   region?: string | null;
   city?: string | null;
@@ -180,6 +181,74 @@ function StatTile({ label, value, delta }: { label: string; value: string; delta
   );
 }
 
+// The museum: how far people get. Reached = visits that got to each room;
+// Stopped = the room each visit got no further than (where they dropped off)
+type MuseumStats = {
+  visits: number; finished: number; medianTime: number; jumps: number;
+  reached: { room: string; count: number }[];
+  stoppedIn: { room: string; count: number }[];
+  clicks: { key: string; count: number }[];
+};
+
+function RoomBars({ title, rows, total, hue }: { title: string; rows: { room: string; count: number }[]; total: number; hue: string }) {
+  return (
+    <div>
+      <h4 className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-3">{title}</h4>
+      <ol className="space-y-2">
+        {rows.map((r) => {
+          const pct = total ? Math.round((100 * r.count) / total) : 0;
+          return (
+            <li key={r.room} className="grid grid-cols-[minmax(0,9rem)_1fr_4.5rem] items-center gap-3 text-sm">
+              <span className="truncate text-gray-700 dark:text-gray-300" title={r.room}>{r.room}</span>
+              <span className="h-3 rounded-sm bg-gray-100 dark:bg-gray-700 overflow-hidden">
+                <span className="block h-full rounded-sm" style={{ width: `${pct}%`, background: hue }} />
+              </span>
+              <span className="text-right tabular-nums text-gray-600 dark:text-gray-400">{r.count} · {pct}%</span>
+            </li>
+          );
+        })}
+      </ol>
+    </div>
+  );
+}
+
+function MuseumPanel({ m, isDark }: { m: MuseumStats; isDark: boolean }) {
+  const hue = isDark ? SERIES.dark : SERIES.light;
+  return (
+    <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-5 space-y-6">
+      <div>
+        <h3 className="text-sm font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Museum</h3>
+        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+          How far visits get through /museum. A stop counts once someone settles on it.
+        </p>
+      </div>
+      {m.visits === 0 ? (
+        <p className="text-sm text-gray-500 dark:text-gray-400">No museum visits in this range yet.</p>
+      ) : (
+        <>
+          <dl className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {[
+              ['Visits', String(m.visits)],
+              ['Reached the end', `${Math.round((100 * m.finished) / m.visits)}%`],
+              ['Median time', formatDuration(m.medianTime)],
+              ['Jumps (rail or Rooms)', String(m.jumps)],
+            ].map(([label, value]) => (
+              <div key={label}>
+                <dt className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">{label}</dt>
+                <dd className="text-2xl font-semibold tabular-nums text-gray-900 dark:text-white mt-1">{value}</dd>
+              </div>
+            ))}
+          </dl>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <RoomBars title="Reached each room" rows={m.reached} total={m.visits} hue={hue} />
+            <RoomBars title="Got no further than" rows={m.stoppedIn} total={m.visits} hue={hue} />
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
 export default function DashboardView() {
   const [pageViews, setPageViews] = useState<PageView[]>([]);
   const [loading, setLoading] = useState(true);
@@ -279,9 +348,18 @@ export default function DashboardView() {
             text:
               event.eventType === 'pageview'
                 ? prettyPath(event.path)
-                : event.label ?? event.modalName ?? event.linkName ?? event.eventType,
+                : event.eventType === 'museum_progress'
+                  ? `${event.section ?? event.label}${event.elementKind === 'rail' || event.elementKind === 'rooms' ? ` (jumped via ${event.elementKind === 'rail' ? 'the rail' : 'Rooms'})` : ''}`
+                  : event.label ?? event.modalName ?? event.linkName ?? event.eventType,
             href: event.href ?? event.linkUrl ?? null,
           };
+
+          // A room has several stops: say "reached" once per room
+          const last = open?.steps[open.steps.length - 1];
+          if (open && step.kind === 'museum_progress' && last?.kind === 'museum_progress' && last.text.split(' (')[0] === step.text.split(' (')[0]) {
+            open.end = event.timestamp;
+            return;
+          }
 
           if (open) {
             open.end = event.timestamp;
@@ -342,7 +420,52 @@ export default function DashboardView() {
       visits,
     }));
 
+    // The museum: visits split like sessions (same visitor, 30-minute gap),
+    // from its arrival pageviews and progress events
+    const museumEvents = current
+      .filter((e) => e.eventType === 'museum_progress' || (e.eventType === 'pageview' && e.path === '/museum'))
+      .sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime());
+    const museumVisits: { cookieId: string; end: number; stops: PageView[] }[] = [];
+    museumEvents.forEach((e) => {
+      const t = e.timestamp.getTime();
+      const open = museumVisits.find((v) => v.cookieId === e.cookieId && t - v.end < SESSION_GAP_MS);
+      const visit = open ?? { cookieId: e.cookieId, end: t, stops: [] };
+      if (!open) museumVisits.push(visit);
+      visit.end = t;
+      if (e.eventType === 'museum_progress') visit.stops.push(e);
+    });
+    // Rooms in tour order: by how far through the tour each one starts
+    const roomStart = new Map<string, number>();
+    museumEvents.forEach((e) => {
+      if (e.eventType !== 'museum_progress' || !e.section) return;
+      roomStart.set(e.section, Math.min(roomStart.get(e.section) ?? 101, e.xPercent ?? 101));
+    });
+    const rooms = [...roomStart.entries()].sort((a, b) => a[1] - b[1]).map(([room]) => room);
+    const furthestOf = (v: { stops: PageView[] }) =>
+      v.stops.reduce<PageView | null>((best, s) => (!best || (s.xPercent ?? 0) > (best.xPercent ?? 0) ? s : best), null);
+    const museumTimes = museumVisits
+      .map((v) => Math.max(0, ...v.stops.map((s) => s.timeOnSite ?? 0)))
+      .filter((s) => s > 0)
+      .sort((a, b) => a - b);
+    const museum = {
+      visits: museumVisits.length,
+      finished: museumVisits.filter((v) => (furthestOf(v)?.xPercent ?? 0) >= 95).length,
+      medianTime: museumTimes.length ? museumTimes[Math.floor(museumTimes.length / 2)] : 0,
+      jumps: museumEvents.filter((e) => e.elementKind === 'rail' || e.elementKind === 'rooms').length,
+      // How many visits reached each room, and how many stopped there
+      reached: rooms.map((room) => ({
+        room,
+        count: museumVisits.filter((v) => v.stops.some((s) => s.section === room)).length,
+      })),
+      stoppedIn: rooms.map((room) => ({
+        room,
+        count: museumVisits.filter((v) => furthestOf(v)?.section === room).length,
+      })),
+      clicks: rank(clicks.filter((e) => e.path === '/museum').map((e) => e.label?.replace(/^Museum (\w)/, (_, c: string) => c.toUpperCase()) ?? null)),
+    };
+
     return {
+      museum,
       sessions: [...sessions].reverse(),
       trend,
       stats: {
@@ -523,6 +646,15 @@ export default function DashboardView() {
         <BarPanel title="Devices" rows={view.charts.devices} empty="No device data yet." isDark={isDark} />
       </div>
 
+      <MuseumPanel m={view.museum} isDark={isDark} />
+      <BarPanel
+        title="Museum clicks"
+        subtitle="The rail, the Rooms menu, card links and things in the 3D scene"
+        rows={view.museum.clicks}
+        empty="No museum clicks in this range yet."
+        isDark={isDark}
+      />
+
       {/* Individual visits: at a few visits a day, reading them beats any chart */}
       <div id="recent-visits" className="bg-white dark:bg-gray-800 rounded-lg shadow p-5 scroll-mt-4">
         <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
@@ -588,6 +720,10 @@ export default function DashboardView() {
                             <>opened <span className="font-medium text-gray-900 dark:text-white">{step.text}</span></>
                           ) : step.kind === 'modal_open' ? (
                             <>opened the {step.text} panel</>
+                          ) : step.kind === 'museum_progress' ? (
+                            <>in the museum, reached <span className="font-medium text-gray-900 dark:text-white">{step.text}</span></>
+                          ) : step.kind === 'museum_crash' ? (
+                            <>the museum crashed at &ldquo;{step.text}&rdquo; on the last visit</>
                           ) : (
                             <>clicked &ldquo;{step.text}&rdquo;{step.href?.startsWith('http') ? ' ↗' : ''}</>
                           )}

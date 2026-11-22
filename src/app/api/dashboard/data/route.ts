@@ -82,6 +82,7 @@ export async function GET(request: Request) {
           elementKind: data.elementKind ?? null,
           section: data.section ?? null,
           href: data.href ?? null,
+          xPercent: data.xPercent ?? null,
           deviceType: data.deviceType ?? null,
           userAgent: data.userAgent ?? null,
           referrer: data.referrer ?? null,

@@ -6,7 +6,7 @@
 
 export type TrackEvent = {
   cookieId: string;
-  eventType: 'pageview' | 'project_click' | 'modal_open' | 'link_click' | 'click' | 'museum_crash';
+  eventType: 'pageview' | 'project_click' | 'modal_open' | 'link_click' | 'click' | 'museum_crash' | 'museum_progress';
   timestamp?: Date; // set server-side; kept for call-site compatibility
   path?: string;
   projectName?: string;
@@ -24,6 +24,8 @@ export type TrackEvent = {
   href?: string;
   xPercent?: number;
   yPercent?: number;
+  // 'museum_progress': label = stop id, section = room, xPercent = how far
+  // through the tour, elementKind = how they got there, timeOnSite = seconds
 }
 
 // Stable per-browser id, shared with the rest of the tracking

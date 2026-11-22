@@ -70,6 +70,7 @@ export function ProgressRail({ groups, total, current, narrow, onGo }: Props) {
           <button
             key={s.name}
             onClick={() => onGo(s.first)}
+            data-track={`Museum rail: ${s.name}`}
             aria-current={here ? 'location' : undefined}
             className="group flex items-start gap-3 min-h-[22px] text-left"
             style={{ flexGrow: s.n, flexBasis: 0 }}

@@ -11,6 +11,7 @@ import Link from 'next/link';
 import { STEP, buildStations, type MuseumProject, type PanelContent } from './layout';
 import { BunkerDoor } from './BunkerDoor';
 import { ProgressRail } from './ProgressRail';
+import { museumTracker, type Via } from './tracking';
 import { getDeviceType, getVisitorId, sendEvents } from '@/lib/track-utils';
 
 // Crash breadcrumb: iOS reloads a tab it killed for using too much memory.
@@ -64,6 +65,24 @@ export default function Museum({ projects, ordinals, tours }: { projects: Museum
     activeIdRef.current = stations[active]?.id ?? '';
     try { sessionStorage.setItem(AT_KEY, activeIdRef.current); } catch { /* ignore */ }
   }, [active, stations]);
+  // Analytics (see tracking.ts): a stop counts once the visitor settles on
+  // it, so stops flown past on the way to a rail jump don't
+  const trackerRef = useRef<ReturnType<typeof museumTracker> | null>(null);
+  const viaRef = useRef<Via>('scroll');
+  useEffect(() => {
+    const t = museumTracker(stations.length);
+    trackerRef.current = t;
+    return () => { t.dispose(); trackerRef.current = null; };
+  }, [stations.length]);
+  useEffect(() => {
+    const st = stations[active];
+    if (!st) return;
+    const timer = setTimeout(() => {
+      trackerRef.current?.stop(active, st.id, st.group, viaRef.current);
+      viaRef.current = 'scroll'; // until the next jump
+    }, 1200);
+    return () => clearTimeout(timer);
+  }, [active, stations]);
   const [progress, setProgress] = useState({ loaded: 0, total: 1 });
   const [failed, setFailed] = useState(false);
   const [placard, setPlacard] = useState<string | null>(null);
@@ -116,7 +135,7 @@ export default function Museum({ projects, ordinals, tours }: { projects: Museum
           ordinals,
           panels: panels.map(({ station, element }) => ({ station, element })),
           reduceMotion,
-          onPlacard: (slug) => setPlacard(slug),
+          onPlacard: (slug) => { setPlacard(slug); trackerRef.current?.pick(slug); },
           onKnock: () => knockRef.current(),
           onProgress: (loaded, total) => setProgress({ loaded, total }),
         });
@@ -241,7 +260,8 @@ export default function Museum({ projects, ordinals, tours }: { projects: Museum
     };
   }, [stations, projects, ordinals, panels]);
 
-  const goTo = useCallback((i: number) => {
+  const goTo = useCallback((i: number, via: 'rail' | 'rooms' = 'rail') => {
+    viaRef.current = via;
     const smooth = !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     window.scrollTo({ top: i * STEP * window.innerHeight, behavior: smooth ? 'smooth' : 'auto' });
     setMapOpen(false);
@@ -292,7 +312,7 @@ export default function Museum({ projects, ordinals, tours }: { projects: Museum
       </header>
 
       {/* Where you are: a rail of rooms (desktop), a bar along the top (phones) */}
-      <ProgressRail groups={groups} total={stations.length} current={station.group} narrow={narrow} onGo={goTo} />
+      <ProgressRail groups={groups} total={stations.length} current={station.group} narrow={narrow} onGo={(i) => goTo(i, 'rail')} />
 
       {/* Room map */}
       {mapOpen && (
@@ -303,7 +323,8 @@ export default function Museum({ projects, ordinals, tours }: { projects: Museum
               return (
                 <li key={g.name}>
                   <button
-                    onClick={() => goTo(g.first)}
+                    onClick={() => goTo(g.first, 'rooms')}
+                    data-track={`Museum rooms menu: ${g.name}`}
                     className={`w-full text-left rounded-lg px-3 py-2 text-sm ${here ? 'bg-white/20' : 'hover:bg-white/10'}`}
                     aria-current={here ? 'location' : undefined}
                   >
@@ -423,6 +444,8 @@ ${HOLO_CSS}`}</style>
 // ---------- hologram panel ----------
 
 function Hologram({ content: c }: { content: PanelContent }) {
+  // the kicker reads "PROJECT · 2 OF 4": its first part names the project
+  const project = c.kicker.split('·')[0].trim();
   return (
     <section className="holo" aria-label={c.title}>
       <p className="holo-kicker">{c.kicker}</p>
@@ -453,9 +476,9 @@ function Hologram({ content: c }: { content: PanelContent }) {
       {c.links.length > 0 && (
         <div className="holo-links">
           {c.links.map((l, i) => l.external ? (
-            <a key={l.href} href={l.href} target="_blank" rel="noopener noreferrer" className={i === 0 ? 'primary' : ''}>{l.label} ↗</a>
+            <a key={l.href} href={l.href} target="_blank" rel="noopener noreferrer" className={i === 0 ? 'primary' : ''} data-track={`Museum card: ${project} · ${l.label}`}>{l.label} ↗</a>
           ) : (
-            <Link key={l.href} href={l.href} className={i === 0 ? 'primary' : ''}>{l.label} →</Link>
+            <Link key={l.href} href={l.href} className={i === 0 ? 'primary' : ''} data-track={`Museum card: ${project} · ${l.label}`}>{l.label} →</Link>
           ))}
         </div>
       )}
