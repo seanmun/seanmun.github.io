@@ -560,13 +560,6 @@ export function createMuseum(host: HTMLElement, opts: Options): MuseumHandle {
   const animators: ((t: number, dt: number) => void)[] = [];
   const clickable: THREE.Object3D[] = [];
 
-  // The front desk, right of the gallery door (desk.ts)
-  {
-    const sign = T.lettering('INFORMATION', { size: 60, weight: 400, spacing: 0.6, color: '#46433e' });
-    track(sign.texture);
-    buildDesk({ scene, track, clickable, concrete: M.concrete.map, marble: plinthMat.map, wallZ: LOBBY.z1 + WALL_T / 2, sign: basic(sign.texture, true), signAspect: sign.aspect });
-  }
-
   // fogRange: [near, far]; rooms keep the building's default
   // the MNS grid runs from the room's back left corner
   const MNS_GRID = ((r) => [r.x0, r.z1 + WALL_T / 2] as [number, number])(roomBounds(ROOM_SLUGS.indexOf('money-never-sleeps')));
@@ -827,6 +820,13 @@ export function createMuseum(host: HTMLElement, opts: Options): MuseumHandle {
     });
     return root;
   };
+
+  // The front desk, right of the gallery door (desk.ts)
+  {
+    const sign = T.lettering('INFORMATION', { size: 60, weight: 400, spacing: 0.6, color: '#46433e' });
+    track(sign.texture);
+    buildDesk({ scene, track, clickable, concrete: M.concrete.map, load: (src, onLoad) => gltf.load(src, (g) => onLoad(asArt(g.scene))), wallZ: LOBBY.z1 + WALL_T / 2, sign: basic(sign.texture, true), signAspect: sign.aspect });
+  }
   // Room models. Desktop loads them all up front, behind the loading
   // screen. Phones can't hold them all (eight Meshy pieces are ~17 MB of
   // GPU memory each, and iOS Safari drops the tab near 450 MB), so there a
