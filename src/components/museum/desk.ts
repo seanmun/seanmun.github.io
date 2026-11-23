@@ -1,10 +1,10 @@
 // File: src/components/museum/desk.ts
 // Purpose: The lobby's front desk: who built the museum. A concrete desk
-// with a walnut top, and four things on it, one per link about Sean (the
-// same four as the home page's hero): a brass plaque for GitHub, business
-// cards for LinkedIn, a résumé on a clipboard, and a card-catalogue of
-// skills. Each can be clicked; the stop's caption carries the same four as
-// buttons, which is what phones use.
+// with a walnut top, and five things on it, one per link about Sean (the
+// same five as the home page's hero): a brass plaque for GitHub, business
+// cards for LinkedIn, a résumé on a clipboard, a book for his AI
+// philosophy, and a card-catalogue of skills. Each can be clicked; the
+// stop's caption carries the same five as buttons, which is what phones use.
 // Nothing here is personal beyond what the home page already shows: the
 // résumé's text is drawn as rules, not words.
 
@@ -82,11 +82,11 @@ export function buildDesk(k: DeskKit) {
 
   // Each thing stands in its own group on the desk top; an unseen box
   // around it is what a click lands on, so small things are easy to hit
-  const item = (id: AboutId, x: number, z = 0) => {
+  const item = (id: AboutId, x: number, w = 0.56, z = 0) => {
     const g = new THREE.Group();
     g.position.set(x, TOP, z);
     desk.add(g);
-    const hitBox = new THREE.Mesh(track(new THREE.BoxGeometry(0.66, 0.74, 0.5)), concrete);
+    const hitBox = new THREE.Mesh(track(new THREE.BoxGeometry(w, 0.74, 0.5)), concrete);
     hitBox.position.set(x, TOP + 0.36, z);
     hitBox.visible = false; // (still raycast)
     hitBox.userData.about = id;
@@ -97,7 +97,7 @@ export function buildDesk(k: DeskKit) {
 
   // ---------- GitHub: an engraved brass plaque ----------
   {
-    const g = item('github', -1.06);
+    const g = item('github', -1.15);
     box([0.52, 0.05, 0.18], [0, 0.025, 0], walnut, g);
     const plate = mat({
       metalness: 0.85, roughness: 0.36,
@@ -119,7 +119,7 @@ export function buildDesk(k: DeskKit) {
 
   // ---------- LinkedIn: business cards in a holder ----------
   {
-    const g = item('linkedin', -0.37);
+    const g = item('linkedin', -0.6, 0.48);
     box([0.44, 0.07, 0.16], [0, 0.035, 0], walnut, g);
     const paper = mat({ color: '#f4f2ed', roughness: 0.8 });
     const card = mat({
@@ -143,7 +143,7 @@ export function buildDesk(k: DeskKit) {
 
   // ---------- Resume: a page on a clipboard ----------
   {
-    const g = item('resume', 0.36);
+    const g = item('resume', -0.05);
     box([0.52, 0.04, 0.14], [0, 0.02, 0.02], walnut, g);
     const stand = new THREE.Group();
     stand.position.set(0, 0.03, 0);
@@ -175,9 +175,37 @@ export function buildDesk(k: DeskKit) {
     box([0.17, 0.05, 0.03], [0, 0.585, 0.014], brass, stand);
   }
 
+  // ---------- AI Philosophy: a clothbound book, cover out ----------
+  {
+    const g = item('ai', 0.44, 0.4);
+    box([0.36, 0.035, 0.14], [0, 0.0175, 0.01], walnut, g);
+    const cloth = mat({ color: '#16233a', roughness: 0.85 });
+    const cover = mat({
+      roughness: 0.8,
+      map: face(384, 544, (c, w, h) => {
+        c.fillStyle = '#16233a'; c.fillRect(0, 0, w, h);
+        const gold = '#d9b45e';
+        c.strokeStyle = gold; c.lineWidth = 3; c.strokeRect(22, 22, w - 44, h - 44);
+        c.fillStyle = gold; c.textAlign = 'center'; c.textBaseline = 'middle';
+        c.font = `700 104px ${SANS}`; c.fillText('AI', w / 2, 150);
+        c.fillRect(w / 2 - 50, 222, 100, 3);
+        c.font = `500 34px ${SANS}`; spaced(c, 'PHILOSOPHY', w / 2, 274, 6);
+        c.font = `400 22px ${SANS}`; c.fillStyle = 'rgba(217,180,94,0.8)';
+        c.fillText('Embracing AI', w / 2, 366); c.fillText('in development', w / 2, 396);
+        c.font = `500 22px ${SANS}`; c.fillStyle = gold; spaced(c, 'SEAN MUNLEY', w / 2, 482, 4);
+      }),
+    });
+    const book = box([0.3, 0.425, 0.05], [0, 0.235, -0.03], fronted(cloth, cover), g);
+    book.rotation.x = -0.22;
+    // the pages, seen at the top and the fore edge
+    const pages = box([0.285, 0.41, 0.036], [0.006, 0.235, -0.03], mat({ color: '#efe9da', roughness: 0.9 }), g);
+    pages.rotation.x = -0.22;
+    pages.scale.set(1.03, 1.03, 0.7);
+  }
+
   // ---------- Skills: a card catalogue, a drawer per kind ----------
   {
-    const g = item('skills', 1.07);
+    const g = item('skills', 1.08, 0.7);
     const W = 0.68, H = 0.46;
     const front = mat({
       roughness: 0.5,

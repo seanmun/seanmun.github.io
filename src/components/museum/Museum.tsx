@@ -19,10 +19,11 @@ import { getDeviceType, getVisitorId, sendEvents } from '@/lib/track-utils';
 // While the museum is open, sessionStorage holds the stop the visitor is
 // at; leaving cleanly (pagehide) clears it. Finding it on load means the
 // last visit died there, so report the stop (and nothing about the person)
-// The home page's Resume and Skills panels, opened over the walk (loaded
+// The home page's Resume, Skills and AI Philosophy panels, opened over the walk (loaded
 // only when someone asks for one)
 const ResumeModal = dynamic(() => import('@/components/modals/ResumeModal').then((m) => m.ResumeModal), { ssr: false });
 const CertsModal = dynamic(() => import('@/components/modals/CertsModal').then((m) => m.CertsModal), { ssr: false });
+const AIModal = dynamic(() => import('@/components/modals/AIModal').then((m) => m.AIModal), { ssr: false });
 const MODAL_THEME = { theme: 'light' as const };
 
 const AT_KEY = 'museum:at';
@@ -94,13 +95,13 @@ export default function Museum({ projects, ordinals, tours }: { projects: Museum
   const [failed, setFailed] = useState(false);
   const [placard, setPlacard] = useState<string | null>(null);
   const [mapOpen, setMapOpen] = useState(false);
-  // The front desk's links: GitHub and LinkedIn open in a new tab, Resume
-  // and Skills open here as panels
-  const [about, setAbout] = useState<'resume' | 'skills' | null>(null);
+  // The front desk's links: GitHub and LinkedIn open in a new tab; Resume,
+  // Skills and AI Philosophy open here as panels
+  const [about, setAbout] = useState<Exclude<AboutId, 'github' | 'linkedin'> | null>(null);
   const openAbout = useCallback((id: AboutId) => {
     const href = ABOUT_LINKS.find((l) => l.id === id)?.href;
     if (href) window.open(href, '_blank', 'noopener,noreferrer');
-    else setAbout(id as 'resume' | 'skills');
+    else setAbout(id as Exclude<AboutId, 'github' | 'linkedin'>);
     setMapOpen(false);
   }, []);
   // Narrow (portrait) screens get a bottom-sheet layout; the same aspect
@@ -302,7 +303,7 @@ export default function Museum({ projects, ordinals, tours }: { projects: Museum
   const project = placard ? projects.find((p) => p.slug === placard) : null;
   const sheetPanel = station.panel !== undefined && station.slug ? tours[station.slug]?.[station.panel] : undefined;
   const loading = progress.loaded < progress.total;
-  // The last room's last card carries the four links too: the end of the
+  // The last room's last card carries the five links too: the end of the
   // walk is where a visitor decides what to do next
   const lastPanel = panels.length ? panels[panels.length - 1].station : -1;
 
@@ -392,7 +393,7 @@ export default function Museum({ projects, ordinals, tours }: { projects: Museum
           <p className="text-sm text-white/75 mt-1">{station.sub}</p>
           {station.knock && <BunkerDoor door={doorControls} register={registerKnock} />}
           {station.about && (
-            <AboutLinks from="desk" onOpen={openAbout} className="mt-3 grid grid-cols-2 sm:grid-cols-4 gap-2" linkClass="rounded-full border border-white/40 px-4 py-1.5 text-sm text-center hover:bg-white/10" />
+            <AboutLinks from="desk" onOpen={openAbout} className="mt-3 flex flex-wrap gap-2" linkClass="rounded-full border border-white/40 px-4 py-1.5 text-sm text-center hover:bg-white/10" />
           )}
           {station.slug && (
             <div className="mt-3 flex flex-wrap gap-2">
@@ -464,9 +465,10 @@ export default function Museum({ projects, ordinals, tours }: { projects: Museum
         </div>
       )}
 
-      {/* Resume and Skills, over the walk */}
+      {/* Resume, Skills and AI Philosophy, over the walk */}
       {about === 'resume' && <ResumeModal isOpen onClose={() => setAbout(null)} settings={MODAL_THEME} />}
       {about === 'skills' && <CertsModal isOpen onClose={() => setAbout(null)} settings={MODAL_THEME} />}
+      {about === 'ai' && <AIModal isOpen onClose={() => setAbout(null)} settings={MODAL_THEME} />}
 
       <style>{`@keyframes museumIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
 ${HOLO_CSS}`}</style>
@@ -476,8 +478,8 @@ ${HOLO_CSS}`}</style>
 
 // ---------- hologram panel ----------
 
-// The four links about Sean (layout's ABOUT_LINKS): GitHub and LinkedIn are
-// real links, Resume and Skills are buttons that open their panel
+// The five links about Sean (layout's ABOUT_LINKS): GitHub and LinkedIn are
+// real links; Resume, Skills and AI Philosophy are buttons that open their panel
 function AboutLinks({ from, onOpen, className, linkClass }: { from: string; onOpen: (id: AboutId) => void; className: string; linkClass: string }) {
   return (
     <div className={className}>
