@@ -32,6 +32,7 @@ export interface Station {
   fog?: string; // fog color and range here, when not the room's
   fogRange?: [number, number];
   knock?: boolean; // the classified door: the caption offers a knock
+  about?: boolean; // the front desk: the caption offers the links about Sean
 }
 
 // ---------- room tours ----------
@@ -231,6 +232,17 @@ function tourStops(slug: string, index: number): TourStop[] | null {
 }
 
 export const LOBBY = { x0: -9, x1: 9, z0: 6, z1: -14, h: 12 };
+// The front desk, right of the gallery door: who built all this. Four
+// things on it, one per link (the same four as the home page's hero).
+// Resume and Skills have no href: they open over the walk, in place.
+export const DESK = { x: 5.6, z: -12.4, w: 2.9, d: 0.75, h: 1.0 };
+export type AboutId = 'github' | 'linkedin' | 'resume' | 'skills';
+export const ABOUT_LINKS: { id: AboutId; label: string; href?: string }[] = [
+  { id: 'github', label: 'GitHub', href: 'https://github.com/seanmun' },
+  { id: 'linkedin', label: 'LinkedIn', href: 'https://www.linkedin.com/in/sean-munley/' },
+  { id: 'resume', label: 'Resume' },
+  { id: 'skills', label: 'Skills' },
+];
 export const GALLERY = { x0: -6, x1: 6, z0: -14, z1: -48, h: 8 };
 // 18 m square: room to stand back from the work, so walls don't stream past
 export const ROOM = { width: 18, depth: 18, h: 6, doorX: 1.8, doorW: 3.2, doorH: 3.6 };
@@ -369,6 +381,9 @@ export function buildStations(projects: MuseumProject[], tours: Record<string, P
   const stations: Station[] = [
     { id: 'entrance', group: 'Lobby', label: 'Sean Munley', sub: 'Selected works. Scroll to walk in.', pos: [0, EYE, 4.5], look: [0, 4.2, -14] },
     { id: 'mark', group: 'Lobby', label: 'The S', sub: 'Porcelain and gold leaf, on a marble plinth', pos: [0, 2.0, -4.2], look: [0, 1.9, -8.5] },
+    { id: 'desk', group: 'Lobby', label: 'The front desk', sub: 'Before you go in: who built all this.', about: true,
+      pos: [DESK.x - 1.5, EYE, DESK.z + 3.3], look: [DESK.x - 0.1, 1.15, DESK.z],
+      narrow: { pos: [DESK.x - 2.0, EYE, DESK.z + 7.4], look: [DESK.x, 0.9, DESK.z] } },
     { id: 'gallery', group: 'Gallery', label: 'The Gallery', sub: 'Prints from the mood board, under a glass roof', pos: [0, EYE, -11.5], look: [0, 3.1, -32] },
   ];
   stations.push(

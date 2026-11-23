@@ -8,7 +8,8 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import Link from 'next/link';
-import { STEP, buildStations, type MuseumProject, type PanelContent } from './layout';
+import dynamic from 'next/dynamic';
+import { ABOUT_LINKS, STEP, buildStations, type AboutId, type MuseumProject, type PanelContent } from './layout';
 import { BunkerDoor } from './BunkerDoor';
 import { ProgressRail } from './ProgressRail';
 import { museumTracker, type Via } from './tracking';
@@ -18,6 +19,12 @@ import { getDeviceType, getVisitorId, sendEvents } from '@/lib/track-utils';
 // While the museum is open, sessionStorage holds the stop the visitor is
 // at; leaving cleanly (pagehide) clears it. Finding it on load means the
 // last visit died there, so report the stop (and nothing about the person)
+// The home page's Resume and Skills panels, opened over the walk (loaded
+// only when someone asks for one)
+const ResumeModal = dynamic(() => import('@/components/modals/ResumeModal').then((m) => m.ResumeModal), { ssr: false });
+const CertsModal = dynamic(() => import('@/components/modals/CertsModal').then((m) => m.CertsModal), { ssr: false });
+const MODAL_THEME = { theme: 'light' as const };
+
 const AT_KEY = 'museum:at';
 let crashChecked = false;
 import type { MuseumHandle } from './engine';
@@ -87,6 +94,15 @@ export default function Museum({ projects, ordinals, tours }: { projects: Museum
   const [failed, setFailed] = useState(false);
   const [placard, setPlacard] = useState<string | null>(null);
   const [mapOpen, setMapOpen] = useState(false);
+  // The front desk's links: GitHub and LinkedIn open in a new tab, Resume
+  // and Skills open here as panels
+  const [about, setAbout] = useState<'resume' | 'skills' | null>(null);
+  const openAbout = useCallback((id: AboutId) => {
+    const href = ABOUT_LINKS.find((l) => l.id === id)?.href;
+    if (href) window.open(href, '_blank', 'noopener,noreferrer');
+    else setAbout(id as 'resume' | 'skills');
+    setMapOpen(false);
+  }, []);
   // Narrow (portrait) screens get a bottom-sheet layout; the same aspect
   // threshold the engine uses
   const [narrow, setNarrow] = useState(false);
@@ -94,7 +110,7 @@ export default function Museum({ projects, ordinals, tours }: { projects: Museum
   const insetRef = useRef(0);
   // While a dialog or the room map is open, gestures belong to it
   const blockRef = useRef(false);
-  useEffect(() => { blockRef.current = placard !== null || mapOpen; }, [placard, mapOpen]);
+  useEffect(() => { blockRef.current = placard !== null || mapOpen || about !== null; }, [placard, mapOpen, about]);
 
   useEffect(() => {
     const mq = window.matchMedia('(max-aspect-ratio: 4/5)');
@@ -137,6 +153,7 @@ export default function Museum({ projects, ordinals, tours }: { projects: Museum
           reduceMotion,
           onPlacard: (slug) => { setPlacard(slug); trackerRef.current?.pick(slug); },
           onKnock: () => knockRef.current(),
+          onAbout: (id) => { openAbout(id); trackerRef.current?.pick(`desk ${id}`); },
           onProgress: (loaded, total) => setProgress({ loaded, total }),
         });
         engineRef.current.setScroll(window.scrollY / (STEP * window.innerHeight));
@@ -203,8 +220,10 @@ export default function Museum({ projects, ordinals, tours }: { projects: Museum
 
     let lastWheel = -Infinity, lastMag = 0;
     const onWheel = (e: WheelEvent) => {
-      if (e.ctrlKey || blocked()) return; // pinch zoom, or a dialog is open
+      if (e.ctrlKey) return; // pinch zoom
       if (scrollsItself(e.target, e.deltaY)) return;
+      // a dialog is open: it scrolls itself (above), and the walk stays put
+      if (blocked()) { e.preventDefault(); return; }
       e.preventDefault();
       const now = performance.now();
       const mag = Math.abs(e.deltaY) * (e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? window.innerHeight : 1);
@@ -215,9 +234,9 @@ export default function Museum({ projects, ordinals, tours }: { projects: Museum
       lastMag = mag;
       if (fresh && mag >= 4 && now - lastStep > 500) go(Math.sign(e.deltaY));
     };
-    let touch: { y: number; t: number; native: boolean | null } | null = null;
+    let touch: { y: number; t: number; native: boolean | null; held: boolean } | null = null; // held: a dialog is open
     const onTouchStart = (e: TouchEvent) => {
-      touch = e.touches.length === 1 && !blocked() ? { y: e.touches[0].clientY, t: performance.now(), native: null } : null;
+      touch = e.touches.length === 1 ? { y: e.touches[0].clientY, t: performance.now(), native: null, held: blocked() } : null;
     };
     const onTouchMove = (e: TouchEvent) => {
       if (!touch) return;
@@ -226,7 +245,7 @@ export default function Museum({ projects, ordinals, tours }: { projects: Museum
       if (touch.native === false) e.preventDefault();
     };
     const onTouchEnd = (e: TouchEvent) => {
-      if (!touch || touch.native !== false) { touch = null; return; }
+      if (!touch || touch.native !== false || touch.held) { touch = null; return; }
       const dy = touch.y - e.changedTouches[0].clientY;
       const quick = performance.now() - touch.t < 300;
       touch = null;
@@ -258,7 +277,7 @@ export default function Museum({ projects, ordinals, tours }: { projects: Museum
       engineRef.current?.dispose();
       engineRef.current = null;
     };
-  }, [stations, projects, ordinals, panels]);
+  }, [stations, projects, ordinals, panels, openAbout]);
 
   const goTo = useCallback((i: number, via: 'rail' | 'rooms' = 'rail') => {
     viaRef.current = via;
@@ -268,11 +287,11 @@ export default function Museum({ projects, ordinals, tours }: { projects: Museum
   }, []);
 
   useEffect(() => {
-    if (!placard) return;
-    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setPlacard(null); };
+    if (!placard && !about) return;
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') { setPlacard(null); setAbout(null); } };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [placard]);
+  }, [placard, about]);
 
   const station = stations[active];
   const groups = useMemo(() => {
@@ -283,11 +302,14 @@ export default function Museum({ projects, ordinals, tours }: { projects: Museum
   const project = placard ? projects.find((p) => p.slug === placard) : null;
   const sheetPanel = station.panel !== undefined && station.slug ? tours[station.slug]?.[station.panel] : undefined;
   const loading = progress.loaded < progress.total;
+  // The last room's last card carries the four links too: the end of the
+  // walk is where a visitor decides what to do next
+  const lastPanel = panels.length ? panels[panels.length - 1].station : -1;
 
   return (
     <div className="bg-[#d9d5ce] text-[#1d1c1a]">
       <div ref={hostRef} className="fixed inset-0" />
-      {panels.map((p) => createPortal(<Hologram content={p.content} />, p.element, `holo-${p.station}`))}
+      {panels.map((p) => createPortal(<Hologram content={p.content} about={p.station === lastPanel ? openAbout : undefined} />, p.element, `holo-${p.station}`))}
 
       {/* Scroll track: STEP screens between stations */}
       <div style={{ height: `${((stations.length - 1) * STEP + 1) * 100}vh` }} />
@@ -334,6 +356,10 @@ export default function Museum({ projects, ordinals, tours }: { projects: Museum
               );
             })}
           </ol>
+          <div className="mt-2 border-t border-white/15 pt-2 px-1">
+            <p className="px-2 pb-1 text-[10px] uppercase tracking-widest text-white/50">About Sean</p>
+            <AboutLinks from="rooms menu" onOpen={openAbout} className="grid grid-cols-2 gap-1" linkClass="rounded-lg px-2 py-1.5 text-sm text-left hover:bg-white/10" />
+          </div>
         </nav>
       )}
 
@@ -341,7 +367,7 @@ export default function Museum({ projects, ordinals, tours }: { projects: Museum
       {narrow && sheetPanel && (
         <div ref={sheetRef} className="fixed bottom-0 inset-x-0 z-10 px-3 pb-3">
           <div key={station.id} className="holo-sheet">
-            <Hologram content={sheetPanel} />
+            <Hologram content={sheetPanel} about={active === lastPanel ? openAbout : undefined} />
           </div>
         </div>
       )}
@@ -365,6 +391,9 @@ export default function Museum({ projects, ordinals, tours }: { projects: Museum
           {station.artist && <p className="text-sm text-white/90 mt-0.5">by {station.artist}</p>}
           <p className="text-sm text-white/75 mt-1">{station.sub}</p>
           {station.knock && <BunkerDoor door={doorControls} register={registerKnock} />}
+          {station.about && (
+            <AboutLinks from="desk" onOpen={openAbout} className="mt-3 grid grid-cols-2 sm:grid-cols-4 gap-2" linkClass="rounded-full border border-white/40 px-4 py-1.5 text-sm text-center hover:bg-white/10" />
+          )}
           {station.slug && (
             <div className="mt-3 flex flex-wrap gap-2">
               <button onClick={() => setPlacard(station.slug!)} className="rounded-full bg-white text-black px-4 py-1.5 text-sm font-medium hover:bg-white/85">
@@ -435,6 +464,10 @@ export default function Museum({ projects, ordinals, tours }: { projects: Museum
         </div>
       )}
 
+      {/* Resume and Skills, over the walk */}
+      {about === 'resume' && <ResumeModal isOpen onClose={() => setAbout(null)} settings={MODAL_THEME} />}
+      {about === 'skills' && <CertsModal isOpen onClose={() => setAbout(null)} settings={MODAL_THEME} />}
+
       <style>{`@keyframes museumIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
 ${HOLO_CSS}`}</style>
     </div>
@@ -443,7 +476,21 @@ ${HOLO_CSS}`}</style>
 
 // ---------- hologram panel ----------
 
-function Hologram({ content: c }: { content: PanelContent }) {
+// The four links about Sean (layout's ABOUT_LINKS): GitHub and LinkedIn are
+// real links, Resume and Skills are buttons that open their panel
+function AboutLinks({ from, onOpen, className, linkClass }: { from: string; onOpen: (id: AboutId) => void; className: string; linkClass: string }) {
+  return (
+    <div className={className}>
+      {ABOUT_LINKS.map((l) => l.href ? (
+        <a key={l.id} href={l.href} target="_blank" rel="noopener noreferrer" className={linkClass} data-track={`Museum ${from}: ${l.label}`}>{l.label} ↗</a>
+      ) : (
+        <button key={l.id} type="button" onClick={() => onOpen(l.id)} className={linkClass} data-track={`Museum ${from}: ${l.label}`}>{l.label}</button>
+      ))}
+    </div>
+  );
+}
+
+function Hologram({ content: c, about }: { content: PanelContent; about?: (id: AboutId) => void }) {
   // the kicker reads "PROJECT · 2 OF 4": its first part names the project
   const project = c.kicker.split('·')[0].trim();
   return (
@@ -482,6 +529,7 @@ function Hologram({ content: c }: { content: PanelContent }) {
           ))}
         </div>
       )}
+      {about && <AboutLinks from="last card" onOpen={about} className="holo-about" linkClass="" />}
     </section>
   );
 }
@@ -568,6 +616,10 @@ const HOLO_CSS = `
 .holo-links a { font-size: 15px; padding: 8px 15px; border-radius: 999px; border: 1px solid rgba(140,225,255,0.6); color: #e4fbff; text-decoration: none; text-shadow: none; }
 .holo-links a:hover { background: rgba(120,220,255,0.18); }
 .holo-links a.primary { background: rgba(140,230,255,0.9); color: #04202e; border-color: transparent; font-weight: 600; }
+.holo-about { display: flex; flex-wrap: wrap; gap: 4px 18px; margin-top: 16px; padding-top: 12px; border-top: 1px solid rgba(140,225,255,0.3); }
+.holo-about a, .holo-about button { font: inherit; font-size: 14px; color: rgba(200,242,255,0.9); background: none; border: 0; padding: 2px 0; cursor: pointer; text-decoration: underline; text-underline-offset: 3px; text-shadow: none; }
+.holo-about a:hover, .holo-about button:hover { color: #fff; }
+.holo-sheet .holo-about { margin-top: 10px; padding-top: 8px; }
 .holo-figure-row { display: flex; gap: 22px; align-items: center; }
 .holo-figure-row .holo-body { flex: 1; }
 .watch { flex: none; margin: 0; display: flex; flex-direction: column; align-items: center; text-shadow: none; filter: drop-shadow(0 0 14px rgba(120,220,255,0.35)); }

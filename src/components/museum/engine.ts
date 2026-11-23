@@ -25,11 +25,12 @@ import { buildSalon } from './haussmann';
 import { createPost } from './post';
 import { tronGrid } from './tron';
 import { bakedLight } from './bake';
+import { buildDesk } from './desk';
 import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js';
 import * as T from './textures';
 import {
   COURSE, GALLERY, GALLERY_PIECES, LOBBY, ORDINAL, OUTDOOR_SLUG, ROOM, SALON, ROOM_SLUGS, roomBounds,
-  type MuseumProject, type Station, type V3,
+  type AboutId, type MuseumProject, type Station, type V3,
 } from './layout';
 
 export interface MuseumHandle {
@@ -50,6 +51,7 @@ interface Options {
   reduceMotion: boolean;
   onPlacard(slug: string): void;
   onKnock(): void; // the classified door was clicked
+  onAbout(id: AboutId): void; // something on the front desk was clicked
   onProgress(loaded: number, total: number): void;
 }
 
@@ -557,6 +559,13 @@ export function createMuseum(host: HTMLElement, opts: Options): MuseumHandle {
   const videoScreens: { index: number; video: HTMLVideoElement; src: string; mat: THREE.MeshBasicMaterial; loaded: boolean }[] = [];
   const animators: ((t: number, dt: number) => void)[] = [];
   const clickable: THREE.Object3D[] = [];
+
+  // The front desk, right of the gallery door (desk.ts)
+  {
+    const sign = T.lettering('INFORMATION', { size: 60, weight: 400, spacing: 0.6, color: '#46433e' });
+    track(sign.texture);
+    buildDesk({ scene, track, clickable, concrete: M.concrete.map, wallZ: LOBBY.z1 + WALL_T / 2, sign: basic(sign.texture, true), signAspect: sign.aspect });
+  }
 
   // fogRange: [near, far]; rooms keep the building's default
   // the MNS grid runs from the room's back left corner
@@ -1316,7 +1325,7 @@ export function createMuseum(host: HTMLElement, opts: Options): MuseumHandle {
     ndc.set(((e.clientX - rect.left) / rect.width) * 2 - 1, -((e.clientY - rect.top) / rect.height) * 2 + 1);
     raycaster.setFromCamera(ndc, camera);
     const h = raycaster.intersectObjects(clickable, false)[0];
-    return h && h.distance < 12 ? (h.object.userData as { slug?: string; action?: string }) : null;
+    return h && h.distance < 12 ? (h.object.userData as { slug?: string; action?: string; about?: AboutId }) : null;
   };
   const onMove = (e: PointerEvent) => {
     pointer.set((e.clientX / window.innerWidth) * 2 - 1, (e.clientY / window.innerHeight) * 2 - 1);
@@ -1327,6 +1336,7 @@ export function createMuseum(host: HTMLElement, opts: Options): MuseumHandle {
     if (!downAt || Math.hypot(e.clientX - downAt.x, e.clientY - downAt.y) > 8) return;
     const target = hit(e);
     if (target?.action === 'knock') opts.onKnock();
+    else if (target?.about) opts.onAbout(target.about);
     else if (target?.slug) opts.onPlacard(target.slug);
   };
   window.addEventListener('pointermove', onMove);
