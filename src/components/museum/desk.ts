@@ -1,21 +1,27 @@
 // File: src/components/museum/desk.ts
 // Purpose: The lobby's front desk: who built the museum. A concrete desk
 // with a walnut top, and five things on it, one per link about Sean (the
-// same five as the home page's hero): a brass plaque for GitHub, business
-// cards for LinkedIn, a résumé on a clipboard, a book for his AI
+// same five as the home page's hero): GitHub's and LinkedIn's marks carved
+// in marble on short columns, a résumé on a clipboard, a book for his AI
 // philosophy, and a card-catalogue of skills. Each can be clicked; the
 // stop's caption carries the same five as buttons, which is what phones use.
 // Nothing here is personal beyond what the home page already shows: the
 // résumé's text is drawn as rules, not words.
 
 import * as THREE from 'three';
+import { SVGLoader } from 'three/examples/jsm/loaders/SVGLoader.js';
 import { DESK, type AboutId } from './layout';
+
+// The two marks' outlines (the standard 24-unit icon paths)
+const GITHUB_MARK = 'M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12';
+const LINKEDIN_MARK = 'M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z';
 
 interface DeskKit {
   scene: THREE.Scene;
   track: <T extends { dispose(): void }>(x: T) => T;
   clickable: THREE.Object3D[];
   concrete: THREE.Texture | null; // the lobby walls' concrete, for the desk's body
+  marble: THREE.Texture | null; // the S's plinth's marble, for the carved marks
   wallZ: number; // the face of the wall behind the desk
   sign: THREE.Material; // lettering for the wall behind
   signAspect: number;
@@ -95,50 +101,45 @@ export function buildDesk(k: DeskKit) {
     return g;
   };
 
-  // ---------- GitHub: an engraved brass plaque ----------
+  // ---------- GitHub and LinkedIn: their marks, carved in marble ----------
+  // Each mark stands on a short column, like a museum's antiquities: the
+  // logo's own outline, cut deep into a slab of white marble (a darker
+  // slab behind makes the cut read as carved shadow)
   {
-    const g = item('github', -1.15);
-    box([0.52, 0.05, 0.18], [0, 0.025, 0], walnut, g);
-    const plate = mat({
-      metalness: 0.85, roughness: 0.36,
-      map: face(512, 336, (c, w, h) => {
-        const grad = c.createLinearGradient(0, 0, w, h);
-        grad.addColorStop(0, '#d9b45e'); grad.addColorStop(0.5, '#c39a42'); grad.addColorStop(1, '#a9822f');
-        c.fillStyle = grad; c.fillRect(0, 0, w, h);
-        c.strokeStyle = 'rgba(70,48,12,0.7)'; c.lineWidth = 3; c.strokeRect(18, 18, w - 36, h - 36);
-        c.fillStyle = '#3b2a0e';
-        for (const [x, y] of [[34, 34], [w - 34, 34], [34, h - 34], [w - 34, h - 34]]) { c.beginPath(); c.arc(x, y, 5, 0, 7); c.fill(); }
-        c.textBaseline = 'middle';
-        c.font = `700 84px ${SANS}`; spaced(c, 'GITHUB', w / 2, h * 0.42, 10);
-        c.font = `500 34px ${SANS}`; c.textAlign = 'center'; c.fillText('github.com/seanmun', w / 2, h * 0.7);
-      }),
-    });
-    const p = box([0.48, 0.315, 0.018], [0, 0.2, -0.02], fronted(brass, plate), g);
-    p.rotation.x = -0.3;
-  }
-
-  // ---------- LinkedIn: business cards in a holder ----------
-  {
-    const g = item('linkedin', -0.6, 0.48);
-    box([0.44, 0.07, 0.16], [0, 0.035, 0], walnut, g);
-    const paper = mat({ color: '#f4f2ed', roughness: 0.8 });
-    const card = mat({
-      roughness: 0.75,
-      map: face(512, 300, (c, w, h) => {
-        c.fillStyle = '#fbfaf7'; c.fillRect(0, 0, w, h);
-        c.fillStyle = '#0a66c2'; c.beginPath(); c.roundRect(36, 40, 92, 92, 14); c.fill();
-        c.fillStyle = '#fff'; c.font = `700 68px ${SANS}`; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText('in', 82, 90);
-        c.fillStyle = '#1d1c1a'; c.textAlign = 'left';
-        c.font = `700 50px ${SANS}`; c.fillText('Sean Munley', 150, 70);
-        c.font = `400 26px ${SANS}`; c.fillStyle = '#5c5952'; c.fillText('LinkedIn', 152, 112);
-        c.fillStyle = '#0a66c2'; c.fillRect(36, 176, w - 72, 3);
-        c.fillStyle = '#1d1c1a'; c.font = `500 31px ${SANS}`; c.fillText('linkedin.com/in/sean-munley', 36, 232);
-      }),
-    });
-    for (let i = 0; i < 5; i++) {
-      const cd = box([0.38, 0.222, 0.004], [0, 0.165, -0.012 * i], i === 0 ? fronted(paper, card) : paper, g);
-      cd.rotation.x = -0.34;
-    }
+    const veined = (tint: string, repeat: number) => {
+      const map = k.marble ? track(k.marble.clone()) : null;
+      if (map) { map.wrapS = map.wrapT = THREE.RepeatWrapping; map.repeat.set(repeat, repeat); map.needsUpdate = true; }
+      return mat({ map, color: tint, roughness: 0.42 });
+    };
+    const stone = veined('#ffffff', 1), carved = veined('#ffffff', 1 / 24), recess = veined('#8f8a82', 1);
+    const SIZE = 0.36, S = SIZE / 24; // the marks are drawn on a 24-unit square
+    const flutes = track(new THREE.CylinderGeometry(0.105, 0.115, 0.13, 18, 1));
+    const sculpture = (id: AboutId, x: number, d: string, round: boolean) => {
+      const g = item(id, x, 0.5);
+      box([0.3, 0.03, 0.3], [0, 0.015, 0], stone, g);
+      const drum = new THREE.Mesh(flutes, mat({ map: stone.map, color: '#f4f1ea', roughness: 0.5, flatShading: true }));
+      drum.position.y = 0.095;
+      drum.castShadow = drum.receiveShadow = true;
+      g.add(drum);
+      box([0.27, 0.03, 0.27], [0, 0.175, 0], stone, g);
+      const shapes = new SVGLoader().parse(`<svg xmlns="http://www.w3.org/2000/svg"><path d="${d}"/></svg>`).paths.flatMap((path) => SVGLoader.createShapes(path));
+      const geo = track(new THREE.ExtrudeGeometry(shapes, { depth: 3.4, bevelEnabled: true, bevelThickness: 0.5, bevelSize: 0.3, bevelOffset: -0.3, bevelSegments: 3, curveSegments: 14 }));
+      geo.translate(-12, -12, -1.7);
+      geo.rotateX(Math.PI); // SVG's y runs down
+      geo.scale(S, S, S);
+      const mark = new THREE.Mesh(geo, carved);
+      mark.position.set(0, 0.19 + SIZE / 2, 0);
+      mark.castShadow = mark.receiveShadow = true;
+      g.add(mark);
+      const back = round
+        ? new THREE.Mesh(track(new THREE.CylinderGeometry(SIZE * 0.485, SIZE * 0.485, 0.02, 48)), recess)
+        : new THREE.Mesh(track(new THREE.BoxGeometry(SIZE * 0.96, 0.02, SIZE * 0.96)), recess);
+      back.rotation.x = Math.PI / 2;
+      back.position.set(0, 0.19 + SIZE / 2, -0.02);
+      g.add(back);
+    };
+    sculpture('github', -1.15, GITHUB_MARK, true);
+    sculpture('linkedin', -0.62, LINKEDIN_MARK, false);
   }
 
   // ---------- Resume: a page on a clipboard ----------

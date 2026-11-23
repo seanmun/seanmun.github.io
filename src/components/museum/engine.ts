@@ -564,7 +564,7 @@ export function createMuseum(host: HTMLElement, opts: Options): MuseumHandle {
   {
     const sign = T.lettering('INFORMATION', { size: 60, weight: 400, spacing: 0.6, color: '#46433e' });
     track(sign.texture);
-    buildDesk({ scene, track, clickable, concrete: M.concrete.map, wallZ: LOBBY.z1 + WALL_T / 2, sign: basic(sign.texture, true), signAspect: sign.aspect });
+    buildDesk({ scene, track, clickable, concrete: M.concrete.map, marble: plinthMat.map, wallZ: LOBBY.z1 + WALL_T / 2, sign: basic(sign.texture, true), signAspect: sign.aspect });
   }
 
   // fogRange: [near, far]; rooms keep the building's default
