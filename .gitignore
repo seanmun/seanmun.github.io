@@ -34,6 +34,9 @@ firebase-credentials.json
 !public/maps/*.json
 !public/maps/us-states.json
 !public/maps/world.json
+# the museum's baked light: each room's manifest, and the bake settings
+!public/media/museum/bake/*.json
+!scripts/museum/bake/rooms.json
 
 # debug
 npm-debug.log*

@@ -1,0 +1,5 @@
+{
+  "salon": {"sun": 5, "sky": 44, "lights": 0.6, "size": 1024, "knee": 0.8, "peak": 1.6, "skyColor": [0.62, 0.78, 1.0]},
+  "gallery": {"sun": 6.5, "sky": 2.0, "lights": 1, "size": 2048, "knee": 1.6, "peak": 3.2, "skyColor": [0.82, 0.89, 1.0]},
+  "lobby": {"sun": 6.5, "sky": 3.6, "lights": 1, "size": 1024, "knee": 1.2, "peak": 2.4, "skyColor": [0.82, 0.89, 1.0]}
+}
