@@ -21,6 +21,7 @@ import { WorkWithMe } from '@/components/WorkWithMe';
 import { GitSummaryLine } from '@/components/ui/GitActivity';
 import { SpinningMarkLazy } from '@/components/ui/SpinningMarkLazy';
 import { LivingPortraitLazy } from '@/components/ui/LivingPortraitLazy';
+import { MuseumDoor } from '@/components/ui/MuseumDoor';
 import type { GitStatsSnapshot } from '@/lib/github-stats';
 
 interface ModernLayoutProps {
@@ -117,7 +118,12 @@ export function ModernLayout({
               <LivingPortraitLazy className="absolute inset-0 bg-white dark:bg-gray-800 amber-bg" />
             </div>
           </div>
-          <SpinningMarkLazy className="justify-self-start self-center w-24 h-36 sm:justify-self-end sm:self-start sm:mt-12 sm:order-3 sm:w-40 sm:h-60" />
+          {/* The door into the museum stands where the spinning S used to:
+              the S is on its plinth just inside */}
+          <MuseumDoor
+            className="hero-spring-5 justify-self-start self-center sm:justify-self-end sm:self-start sm:mt-8 sm:order-3"
+            onEnter={() => trackLinkClick(cookieId, 'Museum Door', '/museum')}
+          />
           <div className="col-span-2 sm:col-span-1 sm:order-2">
             <h1 className={`hero-spring-2 text-[length:clamp(2rem,calc((100vw_-_2rem)/7.4),3rem)] font-black mb-2 leading-relaxed tracking-wide ${orbitron.className}`}>
               <span className="name-bright bg-gradient-to-r bg-clip-text text-transparent">SeanMun</span><span className="name-dull bg-gradient-to-r bg-clip-text text-transparent">ley</span>
