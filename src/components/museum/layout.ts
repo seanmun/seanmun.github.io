@@ -232,17 +232,16 @@ function tourStops(slug: string, index: number): TourStop[] | null {
 }
 
 export const LOBBY = { x0: -9, x1: 9, z0: 6, z1: -14, h: 12 };
-// The front desk, right of the gallery door: who built all this. Five
-// things on it, one per link (the same five as the home page's hero).
-// Resume, Skills and AI Philosophy have no href: they open over the walk,
-// in place.
+// The front desk, right of the gallery door: who built all this. Four
+// things on it, one per link (the home page's hero links, less Skills:
+// the rooms show those). Resume and AI Philosophy have no href: they open
+// over the walk, in place.
 export const DESK = { x: 5.6, z: -12.4, w: 2.9, d: 0.75, h: 1.0 };
-export type AboutId = 'github' | 'linkedin' | 'resume' | 'skills' | 'ai';
+export type AboutId = 'github' | 'linkedin' | 'resume' | 'ai';
 export const ABOUT_LINKS: { id: AboutId; label: string; href?: string }[] = [
   { id: 'github', label: 'GitHub', href: 'https://github.com/seanmun' },
   { id: 'linkedin', label: 'LinkedIn', href: 'https://www.linkedin.com/in/sean-munley/' },
   { id: 'resume', label: 'Resume' },
-  { id: 'skills', label: 'Skills' },
   { id: 'ai', label: 'AI Philosophy' },
 ];
 export const GALLERY = { x0: -6, x1: 6, z0: -14, z1: -48, h: 8 };
