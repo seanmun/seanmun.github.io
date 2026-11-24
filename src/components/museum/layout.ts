@@ -67,7 +67,8 @@ export type TourPanel = (
   | { kind: 'finale'; heading?: string; bullets?: string[]; link?: { label: string; href: string }; figure?: PanelFigure }
 ) & { line?: string; title?: string };
 
-// The narration, stop by stop, in each room's tour order. One sentence a
+// The narration, stop by stop, in each room's tour order: three stops a
+// room (arrive, the thing to see, the way out), so nobody tires. One sentence a
 // stop, short enough to read in a few seconds (and the script for a voice
 // guide later). A stop's entry is its line, or [title, line] to rename its
 // panel too.
@@ -75,20 +76,16 @@ const TOUR_LINES: Record<string, (string | [string, string])[]> = {
   'kinetic-email': [
     'Most emails are static brochures. Kinetic.email builds interactive ones, and tracks how people use them in the inbox.',
     ['Three ways in', 'Describe an email to the AI, watch the AMP build run live in Gmail, or bring an old email to life.'],
-    ['One prompt, two builds', 'One prompt makes two builds of the same email, and every inbox gets the best one it can run.'],
     ['Bolt', 'The ad is a game: Bolt is free in your browser, and every level teaches a real email idea.'],
   ],
   'money-never-sleeps': [
     'MNS Fantasy began as one dynasty league with real NBA salary cap rules and a prize pool held in crypto.',
-    ['Real money problems', 'Every player costs what his NBA contract pays, and the prize pot rises and falls with the market.'],
     ['Bump', 'Bump is your AI general manager: tap the mic, ask out loud, and he answers with the facts on screen.'],
     ['One login. Every game.', "Five games now share one app: NBA and WNBA dynasty, NFL pick'em, PGA golf and March Madness."],
   ],
   outlooksucks: [
     "Classic Outlook draws email with Microsoft Word's engine, so modern layouts break. This tool writes the old-style tables for you.",
-    ['The problem', "The site's ticker runs through about 200 web features that don't work in Outlook for Windows."],
-    ['Build it visually', 'You build the email from brand-approved blocks: click any text on the canvas and type.'],
-    ['AI that edits', 'Describe the email or attach a design, and Claude drafts it from those same blocks. It never writes HTML.'],
+    ['Build it visually', 'Build the email from brand-approved blocks, or describe it and Claude drafts it from those same blocks.'],
     ['A real Outlook template', 'What you download is a real Outlook template, made by a file writer I wrote byte by byte.'],
   ],
   'rocket-pool-tour': [
@@ -99,12 +96,10 @@ const TOUR_LINES: Record<string, (string | [string, string])[]> = {
   'human-diet': [
     'For nearly all of history we ate one broadly stable diet. Human Diet lets you walk through how that changed.',
     ['300,000 years', 'Scroll, and three people walk from 300,000 years ago to today, on a road made of what we ate.'],
-    ['Bodies that follow the data', "The walkers' height and weight follow the evidence for each era, down to what they wear."],
-    ['Modelled in Blender', 'Its world is more than 80 objects modelled in Blender, from the rigged walkers to the woolly mammoth.'],
+    ['Modelled in Blender', "The walkers' bodies follow the evidence for each era, in a world of more than 80 objects modelled in Blender."],
   ],
   'buddy-cup': [
     'Buddy Cup runs a Ryder-Cup-style golf trip from one phone: players, tee times, matchups and a live leaderboard.',
-    ['The idea', 'No more human spreadsheet: create the trip, invite your buddies, and the cup stops being settled by vibes.'],
     ['Real match play', "It scores real match play, with handicap strokes hole by hole, and reads a course's scorecard from a photo."],
     ['On the course', 'On the course, enter scores from the iPhone app or straight from your Apple Watch.'],
   ],
@@ -167,8 +162,6 @@ function tourStops(slug: string, index: number): TourStop[] | null {
           // spot on the right. Phones: back far enough to see all three
           pos: [-1.88, 1.75, r.z1 + 7.5], look: [-1.88, 2.05, r.z1], place: [0.95, -0.05, 2.4],
           narrow: { pos: [-4.5, 1.75, r.z1 + 13.6], look: [-4.5, 1.15, r.z1] } },
-        // the screen hangs high, over the fireplace: phones step back across the room
-        { ...screen('Describe an email → get two production builds'), narrow: { pos: [2.6, 1.75, r.zc + 0.4], look: [r.x0, 2.4, r.zc + 0.4] } },
         { id: 'finale', label: 'Bolt', panel: { kind: 'finale', heading: 'Bolt: the game that markets it', link: { label: 'Play Bolt', href: 'https://bolt.kinetic.email/' } },
           pos: [4.0, 1.75, r.z1 + 5.8], look: [SALON.phoneX, 2.1, r.z1], place: [-1.05, -0.05, 2.5],
           narrow: { pos: [SALON.phoneX, 1.75, r.z1 + 9.6], look: [SALON.phoneX, 2.1, r.z1] } },
@@ -176,15 +169,7 @@ function tourStops(slug: string, index: number): TourStop[] | null {
     case 'outlooksucks':
       return [
         arrive([3.6, 1.1, r.zc - 2.2]),
-        { id: 'crt', label: 'The cubicle', panel: { kind: 'section', heading: 'The problem, in one ticker' }, pos: [3.2, 1.5, r.zc + 0.6], look: [4.0, 1.0, r.zc - 2.1], place: [-0.55, 0.25, 2.2],
-          // phones: square on to the monitor, on the right of the desk
-          narrow: { pos: [4.25, 1.5, r.zc + 0.8], look: [4.45, 1.0, r.zc - 2.1] } },
         screen('Edit on the email itself'),
-        { id: 'ai', label: 'The AI', panel: { kind: 'section', heading: 'AI that edits, not generates', bullets: [
-          'The model returns a short list of block operations, each checked against its schema: all apply, or none',
-          'It writes [[PLACEHOLDER]] instead of inventing facts or links, flagged before export',
-          'Every AI change is a single undo step',
-        ] }, pos: [-1.2, 1.75, r.z1 + 5.6], look: [-3.9, 2.3, r.z1], place: [1.05, -0.05, 2.5] },
         { ...finale('A real Outlook template, written byte by byte'), look: [3.0, 1.9, r.z1], place: [-0.75, -0.1, 2.5] },
       ];
     case 'buddy-cup': {
@@ -192,8 +177,7 @@ function tourStops(slug: string, index: number): TourStop[] | null {
       const C = COURSE;
       return [
         { id: 'arrive', label: 'Out on the course', panel: { kind: 'overview' }, pos: [C.doorX, 1.75, C.z0 - 1.6], look: [C.green.x - 1, 0.9, C.green.z], place: [0.95, 0.05, 2.5] },
-        { id: 'green', label: 'The green', panel: { kind: 'section', heading: 'The idea' }, pos: [C.cup.x + 2.6, 1.7, C.cup.z + 9.5], look: [C.cup.x, 1.0, C.cup.z], place: [-0.95, -0.05, 2.4] },
-        { id: 'bunker', label: 'The bunker', panel: { kind: 'section', heading: 'Signature features' }, pos: [C.bunker.x + 5.2, 1.7, C.bunker.z + 5.6], look: [C.bunker.x - 0.5, 0.0, C.bunker.z - 0.6], place: [0.95, 0.05, 2.4] },
+        { id: 'green', label: 'The green', panel: { kind: 'section', heading: 'Signature features' }, pos: [C.cup.x + 2.6, 1.7, C.cup.z + 9.5], look: [C.cup.x, 1.0, C.cup.z], place: [-0.95, -0.05, 2.4] },
         { id: 'finale', label: 'Before you go', panel: { kind: 'finale', heading: 'On the course: iPhone and Apple Watch', figure: 'watch-score' }, pos: [C.phone.x - 4.4, 1.75, C.phone.z + 6.2], look: [C.phone.x, 2.0, C.phone.z], place: [-0.95, -0.05, 2.5] },
       ];
     }
@@ -211,17 +195,11 @@ function tourStops(slug: string, index: number): TourStop[] | null {
       return [
         arrive([3.6, 1.0, r.zc - 1.2]),
         screen('A walk through 300,000 years'),
-        { id: 'diorama', label: 'The diorama', panel: { kind: 'section', heading: 'Bodies that follow the data' }, pos: [0.2, 1.7, r.zc + 2.6], look: [3.6, 0.9, r.zc - 1], place: [-0.6, 0.2, 2.4] },
         { id: 'finale', label: 'Before you go', panel: { kind: 'finale', heading: 'Next: a photorealistic world built in Blender' }, pos: [-1.2, 1.7, r.zc - 3.5], look: [3.6, 1.2, r.zc - 1.5], place: [-0.55, 0.0, 2.5] },
       ];
     case 'money-never-sleeps':
       return [
         { id: 'arrive', label: 'Center court', panel: { kind: 'overview' }, pos: [ROOM.doorX, 1.75, r.z0 - 1.5], look: [-3, 2.3, r.zc - 4], place: [0.8, 0.0, 2.5] },
-        { id: 'ribbon', label: 'The ribbon board', panel: { kind: 'section', heading: 'A real league, with real money problems', bullets: [
-          'Nine-category head-to-head matchups, with up to eight keepers priced by draft round',
-          'The prize pool is tracked like a portfolio: point MNS at the league\'s crypto wallet and the pot is priced live',
-          'Every payout is a share of the pot, so the champion\'s prize rises and falls with the market',
-        ] }, pos: [1.4, 1.75, r.zc + 1.0], look: [r.x1, 2.7, r.zc - 1.9], place: [1.05, -0.15, 2.5] },
         { id: 'bump', label: 'Bump', panel: { kind: 'section', heading: 'Bump, your AI general manager' }, pos: [r.x0 + 4.8, 1.8, r.zc + 0.8], look: [r.x0, 2.35, r.zc + 0.4], place: [1.0, -0.05, 2.4] },
         { id: 'hoop', label: 'Every game', panel: { kind: 'finale', heading: 'One login. Every game.' }, pos: [-1.7, 1.7, r.z1 + 6.0], look: [-1.75, 2.45, r.z1 + 0.2], place: [1.1, -0.1, 2.5],
           narrow: { pos: [-3.5, 1.8, r.z1 + 8.8], look: [-3.5, 2.95, r.z1 + 0.2] } },
