@@ -1,10 +1,10 @@
 // File: src/components/museum/desk.ts
 // Purpose: The lobby's front desk: who built the museum. A concrete desk
 // with a walnut top, and five things on it, one per link about Sean (the
-// same five as the home page's hero): GitHub's and LinkedIn's marks as
-// marble antiquities on column drums, a résumé on a clipboard, a book for his AI
-// philosophy, and a card-catalogue of skills. Each can be clicked; the
-// stop's caption carries the same five as buttons, which is what phones use.
+// same five as the home page's hero): marble statues for GitHub, LinkedIn
+// and AI Philosophy (the last a bust of Sean), a résumé on a clipboard,
+// and a card-catalogue of skills. Each can be clicked; the stop's caption
+// carries the same five as buttons, which is what phones use.
 // Nothing here is personal beyond what the home page already shows: the
 // résumé's text is drawn as rules, not words.
 
@@ -96,27 +96,27 @@ export function buildDesk(k: DeskKit) {
     return g;
   };
 
-  // ---------- GitHub and LinkedIn: their marks, as marble antiquities ----------
-  // Each mark is cut into a slab of marble on a fluted column drum, worn and
-  // chipped like something dug up (sculpted and baked in Blender:
-  // scripts/museum/desk/carve_mark.py). The models are 1 unit across the mark.
-  {
-    const SIZE = 0.34;
-    const sculpture = (id: AboutId, x: number, src: string, turn: number) => {
-      const g = item(id, x, 0.5);
-      k.load(src, (m) => {
-        m.scale.setScalar(SIZE);
-        m.rotation.y = turn;
-        g.add(m);
-      });
-    };
-    sculpture('github', -1.15, '/models/museum/mark-github.glb', 0.1);
-    sculpture('linkedin', -0.62, '/models/museum/mark-linkedin.glb', 0.04);
-  }
+  // ---------- GitHub, LinkedIn and AI Philosophy: marble statues ----------
+  // Sean's own designs, made into models with Meshy: the Octocat in a ring
+  // and the LinkedIn plaque, each on a carved pedestal, and a bust of Sean
+  // on a base cut with PHILOSOPHY. The models are 1.9 units tall, centred.
+  const statue = (id: AboutId, x: number, src: string, turn = 0) => {
+    const SCALE = 0.29;
+    const g = item(id, x, 0.46);
+    k.load(src, (m) => {
+      m.scale.setScalar(SCALE);
+      m.position.y = 0.952 * SCALE;
+      m.rotation.y = turn;
+      g.add(m);
+    });
+  };
+  statue('github', -1.19, '/models/museum/statue-github.glb', 0.1);
+  statue('linkedin', -0.69, '/models/museum/statue-linkedin.glb', 0.05);
+  statue('ai', 0.42, '/models/museum/statue-philosophy.glb', -0.06);
 
   // ---------- Resume: a page on a clipboard ----------
   {
-    const g = item('resume', -0.05);
+    const g = item('resume', -0.15, 0.5);
     box([0.52, 0.04, 0.14], [0, 0.02, 0.02], walnut, g);
     const stand = new THREE.Group();
     stand.position.set(0, 0.03, 0);
@@ -146,34 +146,6 @@ export function buildDesk(k: DeskKit) {
     sheet.receiveShadow = true;
     stand.add(sheet);
     box([0.17, 0.05, 0.03], [0, 0.585, 0.014], brass, stand);
-  }
-
-  // ---------- AI Philosophy: a clothbound book, cover out ----------
-  {
-    const g = item('ai', 0.44, 0.4);
-    box([0.36, 0.035, 0.14], [0, 0.0175, 0.01], walnut, g);
-    const cloth = mat({ color: '#16233a', roughness: 0.85 });
-    const cover = mat({
-      roughness: 0.8,
-      map: face(384, 544, (c, w, h) => {
-        c.fillStyle = '#16233a'; c.fillRect(0, 0, w, h);
-        const gold = '#d9b45e';
-        c.strokeStyle = gold; c.lineWidth = 3; c.strokeRect(22, 22, w - 44, h - 44);
-        c.fillStyle = gold; c.textAlign = 'center'; c.textBaseline = 'middle';
-        c.font = `700 104px ${SANS}`; c.fillText('AI', w / 2, 150);
-        c.fillRect(w / 2 - 50, 222, 100, 3);
-        c.font = `500 34px ${SANS}`; spaced(c, 'PHILOSOPHY', w / 2, 274, 6);
-        c.font = `400 22px ${SANS}`; c.fillStyle = 'rgba(217,180,94,0.8)';
-        c.fillText('Embracing AI', w / 2, 366); c.fillText('in development', w / 2, 396);
-        c.font = `500 22px ${SANS}`; c.fillStyle = gold; spaced(c, 'SEAN MUNLEY', w / 2, 482, 4);
-      }),
-    });
-    const book = box([0.3, 0.425, 0.05], [0, 0.235, -0.03], fronted(cloth, cover), g);
-    book.rotation.x = -0.22;
-    // the pages, seen at the top and the fore edge
-    const pages = box([0.285, 0.41, 0.036], [0.006, 0.235, -0.03], mat({ color: '#efe9da', roughness: 0.9 }), g);
-    pages.rotation.x = -0.22;
-    pages.scale.set(1.03, 1.03, 0.7);
   }
 
   // ---------- Skills: a card catalogue, a drawer per kind ----------
