@@ -29,7 +29,6 @@ export interface Station {
   pos: V3;
   look: V3;
   narrow?: { pos: V3; look: V3 }; // a different view on tall, narrow screens
-  via?: V3; // a doorway the walk passes through on the way to this stop
   fog?: string; // fog color and range here, when not the room's
   fogRange?: [number, number];
   knock?: boolean; // the classified door: the caption offers a knock
@@ -115,7 +114,6 @@ export interface TourStop {
   look: V3;
   place: V3;
   narrow?: { pos: V3; look: V3 };
-  via?: V3; // walk through here on the way in (a room's first stop, when it isn't at the door)
 }
 
 export function roomTour(slug: string, index: number): TourStop[] | null {
@@ -149,14 +147,12 @@ function tourStops(slug: string, index: number): TourStop[] | null {
   const arrive = (look: V3, place: V3 = [-0.6, 0.12, 2.5]): TourStop => ({
     id: 'arrive', label: 'Arrive', panel: { kind: 'overview' }, pos: [ROOM.doorX, 1.75, r.z0 - 1.5], look, place,
   });
-  // A room whose first stop is already at a display still comes in by the door
-  const door: V3 = [ROOM.doorX, 1.75, r.z0];
   switch (slug) {
     case 'kinetic-email':
       return [
         // straight to the film on the left wall, over the fireplace, the card
         // floating to its right. It hangs high: phones step back across the room
-        { ...screen('Interactive email, without the hacks', 'The film'), id: 'arrive', panel: { kind: 'overview' }, via: door,
+        { ...screen('Interactive email, without the hacks', 'The film'), id: 'arrive', panel: { kind: 'overview' },
           pos: [r.x0 + 7.8, 1.8, r.zc + 3.2], look: [r.x0, 2.5, r.zc - 0.5], // its screen is the widest: stand back to see it whole
           narrow: { pos: [2.6, 1.75, r.zc + 0.4], look: [r.x0, 2.4, r.zc + 0.4] } },
         { id: 'atwork', label: 'The app at work', panel: { kind: 'section', heading: 'Interactive email, without the hacks', bullets: [
@@ -174,7 +170,7 @@ function tourStops(slug: string, index: number): TourStop[] | null {
       ];
     case 'outlooksucks':
       return [
-        { id: 'crt', label: 'The cubicle', panel: { kind: 'section', heading: 'The problem, in one ticker' }, via: door, pos: [3.2, 1.5, r.zc + 0.6], look: [4.0, 1.0, r.zc - 2.1], place: [-0.55, 0.25, 2.2],
+        { id: 'crt', label: 'The cubicle', panel: { kind: 'section', heading: 'The problem, in one ticker' }, pos: [3.2, 1.5, r.zc + 0.6], look: [4.0, 1.0, r.zc - 2.1], place: [-0.55, 0.25, 2.2],
           // phones: square on to the monitor, on the right of the desk
           narrow: { pos: [4.25, 1.5, r.zc + 0.8], look: [4.45, 1.0, r.zc - 2.1] } },
         screen('Edit on the email itself'),
@@ -185,7 +181,12 @@ function tourStops(slug: string, index: number): TourStop[] | null {
       const C = COURSE;
       return [
         { id: 'arrive', label: 'Out on the course', panel: { kind: 'overview' }, pos: [C.doorX, 1.75, C.z0 - 1.6], look: [C.green.x - 1, 0.9, C.green.z], place: [0.95, 0.05, 2.5] },
-        { id: 'green', label: 'The green', panel: { kind: 'section', heading: 'Signature features' }, pos: [C.cup.x + 2.6, 1.7, C.cup.z + 9.5], look: [C.cup.x, 1.0, C.cup.z], place: [-0.95, -0.05, 2.4] },
+        // on the green, facing the cup standings on a phone by the flag; the card
+        // floats to its right, clear of the screen
+        { id: 'green', label: 'The green', panel: { kind: 'section', heading: 'Signature features' },
+          pos: [C.standings.x + 1.0, 1.7, C.standings.z + 6.7], look: [C.standings.x + 1.8, 2.0, C.standings.z - 0.3], place: [1.05, -0.05, 2.5],
+          // phones: square on to the standings
+          narrow: { pos: [C.standings.x + 1.2, 1.75, C.standings.z + 8.0], look: [C.standings.x, 2.1, C.standings.z] } },
         { id: 'finale', label: 'Before you go', panel: { kind: 'finale', heading: 'On the course: iPhone and Apple Watch', figure: 'watch-score' }, pos: [C.phone.x - 4.4, 1.75, C.phone.z + 6.2], look: [C.phone.x, 2.0, C.phone.z], place: [-0.95, -0.05, 2.5] },
       ];
     }
@@ -194,20 +195,24 @@ function tourStops(slug: string, index: number): TourStop[] | null {
         arrive([3.2, 0.9, r.zc - 1]),
         { id: 'rro', label: 'The RRO app', panel: { kind: 'section', heading: 'The RRO app: every rack, rated' }, pos: [-2.4, 1.75, r.z1 + 5.8], look: [-4.2, 2.1, r.z1], place: [1.05, -0.05, 2.5],
           narrow: { pos: [-4.2, 1.75, r.z1 + 9.6], look: [-4.2, 2.1, r.z1] } },
-        { ...screen('A pitch deck for every partner'), id: 'finale', label: 'Before you go', panel: { kind: 'finale', heading: 'A pitch deck for every partner', bullets: [
+        { ...screen('A pitch deck for every partner'), id: 'finale', label: 'Before you go',
+          // phones: back as far as the pool table allows, not standing in it
+          narrow: { pos: [r.x0 + 10.1, 1.75, r.zc + 0.4], look: [r.x0, 1.9, r.zc + 0.4] },
+          panel: { kind: 'finale', heading: 'A pitch deck for every partner', bullets: [
           'More than two dozen bespoke decks across ten industries, all from one slide system',
           'Each deck feeds the team CRM: deal status, contacts, and every call, email and meeting logged',
         ] } },
       ];
     case 'human-diet':
       return [
-        { ...screen('A walk through 300,000 years'), via: door },
+        // phones: clear of the diorama's rocks
+        { ...screen('A walk through 300,000 years'), narrow: { pos: [r.x0 + 10.6, 1.75, r.zc + 1.6], look: [r.x0, 1.9, r.zc + 0.4] } },
         { id: 'diorama', label: 'The diorama', panel: { kind: 'section', heading: 'Bodies that follow the data' }, pos: [0.2, 1.7, r.zc + 2.6], look: [3.6, 0.9, r.zc - 1], place: [-0.6, 0.2, 2.4] },
         { id: 'finale', label: 'Before you go', panel: { kind: 'finale', heading: 'Next: a photorealistic world built in Blender' }, pos: [-1.2, 1.7, r.zc - 3.5], look: [3.6, 1.2, r.zc - 1.5], place: [-0.55, 0.0, 2.5] },
       ];
     case 'money-never-sleeps':
       return [
-        { id: 'ribbon', label: 'The ribbon board', panel: { kind: 'section', heading: 'A real league, with real money problems' }, via: door, pos: [1.4, 1.75, r.zc + 1.0], look: [r.x1, 2.7, r.zc - 1.9], place: [1.05, -0.15, 2.5] },
+        { id: 'ribbon', label: 'The ribbon board', panel: { kind: 'section', heading: 'A real league, with real money problems' }, pos: [1.4, 1.75, r.zc + 1.0], look: [r.x1, 2.7, r.zc - 1.9], place: [1.05, -0.15, 2.5] },
         { id: 'bump', label: 'Bump', panel: { kind: 'section', heading: 'Bump, your AI general manager' }, pos: [r.x0 + 4.8, 1.8, r.zc + 0.8], look: [r.x0, 2.35, r.zc + 0.4], place: [1.0, -0.05, 2.4] },
         { id: 'hoop', label: 'Every game', panel: { kind: 'finale', heading: 'One login. Every game.' }, pos: [-1.7, 1.7, r.z1 + 6.0], look: [-1.75, 2.45, r.z1 + 0.2], place: [1.1, -0.1, 2.5],
           narrow: { pos: [-3.5, 1.8, r.z1 + 8.8], look: [-3.5, 2.95, r.z1 + 0.2] } },
@@ -218,6 +223,7 @@ function tourStops(slug: string, index: number): TourStop[] | null {
 }
 
 export const LOBBY = { x0: -9, x1: 9, z0: 6, z1: -14, h: 12 };
+export const LOBBY_DOOR = { x: 0, w: 4.2, h: 5.2 }; // into the gallery
 // The front desk, right of the gallery door: who built all this. Four
 // things on it, one per link (the home page's hero links, less Skills:
 // the rooms show those). Resume and AI Philosophy have no href: they open
@@ -277,6 +283,9 @@ export const COURSE = {
   bunker: { x: -11.4, z: COURSE_Z0 - 12.2, rx: 5.4, rz: 2.6, rot: 0.45 },
   tree: { x: -15, z: COURSE_Z0 - 50 },
   phone: { x: 9.2, z: COURSE_Z0 - 14.5, rotY: -0.5 },
+  // a second phone on the green, left of the flag: the cup standings. From
+  // the door it stands between the tree and the arrival card, hidden by neither
+  standings: { x: -1.7, z: COURSE_Z0 - 17.6, rotY: 0.15 },
 };
 
 // The bunker under the bunker: a steel hatch open in the sand trap, stairs
@@ -348,6 +357,44 @@ export const GALLERY_PIECES: GalleryPiece[] = [
   { id: 'hang11', kind: 'photo', src: '/media/museum/photos/hang11.jpg', side: 1, z: R(4), y: 2.0, size: 1.5, title: 'Hang 11', note: 'A sneaker on the line' },
 ];
 
+// ---------- the walk ----------
+// The visitor walks like a person: between two stops the route never cuts
+// through a wall, it goes by the doorway. Every wall that crosses the
+// building, and the opening in it:
+export function doorways(): { z: number; x: number; w: number }[] {
+  const indoor = ROOM_SLUGS.filter((slug) => slug !== OUTDOOR_SLUG);
+  return [
+    { z: LOBBY.z1, x: LOBBY_DOOR.x, w: LOBBY_DOOR.w },
+    { z: GALLERY.z1, x: ROOM.doorX, w: ROOM.doorW },
+    ...indoor.map((_, i) => ({ z: roomBounds(i).z1, x: ROOM.doorX, w: ROOM.doorW })),
+  ];
+}
+
+const DOOR_STEP = 1.1; // squared up to a doorway this far before it, and held this far past
+const DOOR_SHOULDER = 0.95; // how close to a jamb the walk will pass
+
+// The points to walk through between two stops: for each wall between
+// them, one just before its doorway and one just past it. Within the
+// opening the walk keeps to the side it was heading for, as people do.
+export function walkVia(a: V3, b: V3): V3[] {
+  const dir = Math.sign(b[2] - a[2]);
+  if (!dir) return [];
+  const walls = doorways()
+    .filter((d) => (d.z - a[2]) * dir > 0 && (b[2] - d.z) * dir > 0)
+    .sort((p, q) => (p.z - q.z) * dir);
+  const out: V3[] = [];
+  walls.forEach((d) => {
+    const t = (d.z - a[2]) / (b[2] - a[2]);
+    const slack = Math.max(0, d.w / 2 - DOOR_SHOULDER);
+    const x = Math.min(d.x + slack, Math.max(d.x - slack, a[0] + (b[0] - a[0]) * t));
+    const y = a[1] + (b[1] - a[1]) * t;
+    // a stop that already stands in the doorway is its own waypoint
+    if ((d.z - a[2]) * dir > DOOR_STEP + 0.3) out.push([x, y, d.z - dir * DOOR_STEP]);
+    if ((b[2] - d.z) * dir > DOOR_STEP + 0.3) out.push([x, y, d.z + dir * DOOR_STEP]);
+  });
+  return out;
+}
+
 // Scroll per stop, in screen heights: room to linger at each piece
 export const STEP = 1.35;
 
@@ -388,7 +435,7 @@ export function buildStations(projects: MuseumProject[], tours: Record<string, P
       tour.forEach((t, k) => {
         stations.push({
           id: `${slug}-${t.id}`, group: p.title, label: p.title, sub: t.label, slug,
-          pos: t.pos, look: t.look, panel: k, place: t.place, narrow: t.narrow, via: t.via,
+          pos: t.pos, look: t.look, panel: k, place: t.place, narrow: t.narrow,
         });
       });
       return;

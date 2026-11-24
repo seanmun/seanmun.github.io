@@ -29,7 +29,7 @@ import { buildDesk } from './desk';
 import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js';
 import * as T from './textures';
 import {
-  COURSE, GALLERY, GALLERY_PIECES, LOBBY, ORDINAL, OUTDOOR_SLUG, ROOM, SALON, ROOM_SLUGS, roomBounds,
+  COURSE, GALLERY, GALLERY_PIECES, LOBBY, LOBBY_DOOR, ORDINAL, OUTDOOR_SLUG, ROOM, SALON, ROOM_SLUGS, roomBounds, walkVia,
   type AboutId, type MuseumProject, type Station, type V3,
 } from './layout';
 
@@ -103,7 +103,7 @@ export function createMuseum(host: HTMLElement, opts: Options): MuseumHandle {
   host.appendChild(renderer.domElement);
   // Fit the canvas to its host: its pixel buffer is sized for the screen's
   // density, and without this a high-density screen shows only its top-left
-  Object.assign(renderer.domElement.style, { display: 'block', width: '100%', height: '100%' });
+  Object.assign(renderer.domElement.style, { display: 'block', width: '100%', height: '100%', transition: 'filter 0.18s' });
   renderer.domElement.setAttribute('aria-hidden', 'true');
 
   // Hologram panels are real HTML placed in the scene: crisp text, links
@@ -250,7 +250,7 @@ export function createMuseum(host: HTMLElement, opts: Options): MuseumHandle {
   const LOBBY_SKYLIGHTS: Hole[] = [-5, 0, 5].map((x) => ({ x0: x - 0.55, x1: x + 0.55, z0: 4, z1: -12 }));
   space(LOBBY, LOBBY_MAT.wall, LOBBY_MAT.floor, LOBBY_MAT.wall, { skylights: LOBBY_SKYLIGHTS });
   partition(LOBBY.z0, LOBBY.x0 - WALL_T, LOBBY.x1 + WALL_T, LOBBY.h, M.concrete, LOBBY_MAT.wall);
-  partition(LOBBY.z1, LOBBY.x0 - WALL_T, LOBBY.x1 + WALL_T, LOBBY.h, LOBBY_MAT.wall, GALLERY_MAT.wall, { x: 0, w: 4.2, h: 5.2 });
+  partition(LOBBY.z1, LOBBY.x0 - WALL_T, LOBBY.x1 + WALL_T, LOBBY.h, LOBBY_MAT.wall, GALLERY_MAT.wall, LOBBY_DOOR);
 
   // Skylights: open slots to the sky, with soft shafts of light below
   const shaftTex = track(T.shaftGradient());
@@ -1136,26 +1136,55 @@ export function createMuseum(host: HTMLElement, opts: Options): MuseumHandle {
   const n = stations.length;
   const view = (s: Station, narrow: boolean) => (narrow && s.narrow) || s;
   let P: THREE.Vector3[] = [];
-  let path!: THREE.CatmullRomCurve3;
-  let at: number[] = [];
-  let pathSpan = 1;
+  // The walk, as a line of closely spaced points: walkPts[k] is walkLen[k]
+  // meters along it, and stop i stands stopLen[i] meters along
+  let walkPts: THREE.Vector3[] = [];
+  let walkLen: number[] = [];
+  let stopLen: number[] = [];
   let heading: { yaw: number; pitch: number }[] = [];
+  // Legs that go through a doorway: partway (at `e` of the leg) the visitor
+  // faces the way they're walking, then turns to the next stop's view
+  let doorTurn: ({ e: number; yaw: number } | null)[] = [];
   const buildRoute = (narrow: boolean) => {
     P = stations.map((s) => new THREE.Vector3(...view(s, narrow).pos));
-    // The curve also threads the doorways some stops are reached through
-    // (via): at[i] is where stop i sits among the curve's points
+    // One smooth curve through every stop, by way of the doorways between
+    // them (walkVia); at[i] is where stop i sits among the curve's points
     const pts: THREE.Vector3[] = [];
-    at = stations.map((s, i) => {
-      if (s.via) pts.push(new THREE.Vector3(...s.via));
-      pts.push(P[i]);
+    const doorAt: (number | null)[] = []; // per leg: the curve point at its first doorway
+    const at = P.map((p, i) => {
+      if (i) {
+        const via = walkVia(P[i - 1].toArray(), p.toArray());
+        doorAt.push(via.length ? pts.length : null);
+        for (const v of via) pts.push(new THREE.Vector3(...v));
+      }
+      pts.push(p);
       return pts.length - 1;
     });
-    pathSpan = pts.length - 1;
-    path = new THREE.CatmullRomCurve3(pts, false, 'centripetal', 0.5);
+    const curve = new THREE.CatmullRomCurve3(pts, false, 'centripetal', 0.5);
+    // Measured out by distance, so the pace is even: a short step through a
+    // doorway takes a short time, not the same time as crossing a room
+    const PER = 24, span = pts.length - 1;
+    walkPts = [];
+    walkLen = [];
+    for (let k = 0; k <= span * PER; k++) {
+      const p = curve.getPoint(k / (span * PER));
+      walkLen.push(k ? walkLen[k - 1] + p.distanceTo(walkPts[k - 1]) : 0);
+      walkPts.push(p);
+    }
+    stopLen = at.map((k) => walkLen[k * PER]);
     heading = stations.map((s) => {
       const v = view(s, narrow);
       const d = new THREE.Vector3(...v.look).sub(new THREE.Vector3(...v.pos)).normalize();
       return { yaw: Math.atan2(-d.x, -d.z), pitch: Math.asin(d.y) };
+    });
+    doorTurn = doorAt.map((k, i) => {
+      if (k === null) return null;
+      // in the doorway itself: midway between the points either side of it
+      const k1 = Math.min(k + 1, at[i + 1]);
+      const mid = (walkLen[k * PER] + walkLen[k1 * PER]) / 2;
+      const e = (mid - stopLen[i]) / Math.max(1e-6, stopLen[i + 1] - stopLen[i]);
+      const d = pts[k1].clone().sub(pts[Math.max(k - 1, at[i])]);
+      return { e: Math.min(0.85, Math.max(0.15, e)), yaw: Math.atan2(-d.x, -d.z) };
     });
   };
   buildRoute(false);
@@ -1169,16 +1198,20 @@ export function createMuseum(host: HTMLElement, opts: Options): MuseumHandle {
   let camPitch = heading[0].pitch;
   const targetPos = new THREE.Vector3();
   let targetYaw = camYaw;
-  // The camera's springs (see tick): rates in 1/s. Position settles in
-  // about 2 s, turns a little slower, since a swinging view tires the eye
-  // more than walking does
-  const SPRING_POS = 2.4, SPRING_TURN = 2.1;
-  const camVel = new THREE.Vector3(), springAcc = new THREE.Vector3();
+  // The camera's springs (see tick): rates in 1/s. The walk settles in
+  // about 2 s; the view trails the walk's heading by a fraction of a second
+  const SPRING_POS = 2.4, SPRING_TURN = 5;
+  let walked = -1, walkVel = 0; // how far along the walk the visitor is, in stops (-1: not placed yet)
+  const leanNow = new THREE.Vector3();
   let yawVel = 0, pitchVel = 0;
+  // Jumps of more than this many stops are cut, not walked
+  const JUMP = 2.5, BLINK = 0.2;
+  let blink = false, blinkAt = 0, blinkWant = 0, blinkMoved = 0;
   let targetPitch = camPitch;
   const fogTarget = new THREE.Color();
   const lean = new THREE.Vector3();
   let scroll = 0;
+  let held: number | null = null; // ?bake tools: stand at this point of the walk, whatever the scroll
   const pointer = new THREE.Vector2();
   const pointerSmooth = new THREE.Vector2();
 
@@ -1188,16 +1221,42 @@ export function createMuseum(host: HTMLElement, opts: Options): MuseumHandle {
   };
   const wrap = (a: number) => Math.atan2(Math.sin(a), Math.cos(a)); // to [-π, π]
 
-  function routeAt(s: number) {
+  // The point d meters along the walk
+  function walkAt(d: number, out: THREE.Vector3) {
+    let lo = 0, hi = walkLen.length - 1;
+    while (hi - lo > 1) {
+      const m = (lo + hi) >> 1;
+      if (walkLen[m] <= d) lo = m; else hi = m;
+    }
+    const seg = walkLen[hi] - walkLen[lo];
+    return out.lerpVectors(walkPts[lo], walkPts[hi], seg > 0 ? Math.min(1, Math.max(0, (d - walkLen[lo]) / seg)) : 0);
+  }
+
+  // Where a scroll position is on the walk: stop number plus how far along
+  // the leg to the next. The visitor rests at each stop for the first and
+  // last fifth of the scroll between them
+  function easeAt(s: number) {
     const clamped = Math.min(n - 1, Math.max(0, s));
     const i = Math.min(n - 2, Math.floor(clamped));
-    const f = clamped - i;
-    // Rest at each stop for the first and last fifth of the scroll between them
-    const e = smooth(0.2, 0.8, f);
-    path.getPoint((at[i] + e * (at[i + 1] - at[i])) / pathSpan, targetPos);
+    return i + smooth(0.2, 0.8, clamped - i);
+  }
+  // Standing at that point of the walk: where, and facing which way
+  function poseAt(w: number) {
+    const i = Math.min(n - 2, Math.max(0, Math.floor(w)));
+    const e = Math.min(1, Math.max(0, w - i));
+    walkAt(stopLen[i] + e * (stopLen[i + 1] - stopLen[i]), targetPos);
     const a = heading[i], b = heading[i + 1];
-    targetYaw = a.yaw + wrap(b.yaw - a.yaw) * e;
+    const turn = doorTurn[i];
+    if (!turn) targetYaw = a.yaw + wrap(b.yaw - a.yaw) * e;
+    else if (e < turn.e) targetYaw = a.yaw + wrap(turn.yaw - a.yaw) * smooth(0, turn.e, e);
+    else targetYaw = turn.yaw + wrap(b.yaw - turn.yaw) * smooth(turn.e, 1, e);
     targetPitch = a.pitch + (b.pitch - a.pitch) * e;
+  }
+  // The air at a scroll position, and the drift toward what you're looking at
+  function airAt(s: number) {
+    const clamped = Math.min(n - 1, Math.max(0, s));
+    const i = Math.min(n - 2, Math.floor(clamped));
+    const e = smooth(0.2, 0.8, clamped - i);
     fogTarget.lerpColors(fogColors[i], fogColors[i + 1], e);
     fogNearFarTarget.set(
       THREE.MathUtils.lerp(fogRanges[i][0], fogRanges[i + 1][0], e),
@@ -1208,7 +1267,6 @@ export function createMuseum(host: HTMLElement, opts: Options): MuseumHandle {
     const near = Math.round(clamped);
     const rest = Math.max(0, 1 - Math.abs(clamped - near) / 0.3);
     lean.set(-Math.sin(heading[near].yaw), 0, -Math.cos(heading[near].yaw)).multiplyScalar(0.45 * smooth(0, 1, rest) * (clamped - near + 0.3) / 0.6);
-    targetPos.add(lean);
   }
 
   // ---------- hologram panels ----------
@@ -1423,32 +1481,66 @@ export function createMuseum(host: HTMLElement, opts: Options): MuseumHandle {
     const dt = Math.min(rawDt, 0.1);
     const t = timer.getElapsed();
     adapt(rawDt);
-    routeAt(scroll);
-    // Inertia: the camera glides after the scroll instead of tracking it
-    // frame for frame, so a fast flick of the wheel still reads as a walk.
-    // A critically damped spring, not a plain ease-out: it gathers speed
-    // and sheds it smoothly at both ends. (Easing out alone starts every
-    // move at full speed, a jolt the eye has to chase: a turn between stops
-    // began at over 200°/s. The spring peaks at about a third of that.)
+    airAt(scroll);
+    // The visitor never leaves the walk. What glides after the scroll is
+    // how far along it they are (walked), one number on a critically damped
+    // spring: it gathers speed and sheds it smoothly at both ends, and the
+    // camera stands exactly on the route at that point, so it goes round by
+    // the doorways however fast the scroll moves. (A camera sprung straight
+    // toward the scroll's point cuts the corner, through the wall.)
     const k = reduceMotion ? 1 : 1 - Math.exp(-dt * 2.6);
-    if (reduceMotion) {
-      camPos.copy(targetPos);
+    const want = easeAt(held ?? scroll);
+    const still = reduceMotion || held !== null || walked < 0;
+    if (still) {
+      walked = want;
+      walkVel = 0;
+    } else {
+      // A jump across rooms (the room list, the scrollbar): no one walks
+      // that in two seconds. Blink, and arrive one stop short of it
+      const gap = want - walked;
+      if (!blink && Math.abs(gap) > JUMP) {
+        blink = true;
+        blinkAt = t;
+        renderer.domElement.style.filter = 'brightness(0)';
+      }
+      if (blink) {
+        if (want !== blinkWant) { blinkWant = want; blinkMoved = t; }
+        if (t - blinkAt > BLINK) {
+          if (Math.abs(gap) > 1) walked = Math.min(n - 1, Math.max(0, want - Math.sign(gap)));
+          walkVel = 0;
+          poseAt(walked);
+          camYaw = targetYaw;
+          camPitch = targetPitch;
+          yawVel = pitchVel = 0;
+          if (t - blinkMoved > 0.15) { blink = false; renderer.domElement.style.filter = ''; }
+        }
+      } else {
+        const steps = Math.ceil(dt / (1 / 120)), h = dt / steps;
+        for (let i = 0; i < steps; i++) {
+          walkVel += ((want - walked) * SPRING_POS * SPRING_POS - 2 * SPRING_POS * walkVel) * h;
+          walked += walkVel * h;
+        }
+      }
+    }
+    poseAt(walked);
+    if (still) {
       camYaw = targetYaw;
       camPitch = targetPitch;
-      camVel.set(0, 0, 0);
       yawVel = pitchVel = 0;
+      leanNow.copy(held !== null ? lean.set(0, 0, 0) : lean);
     } else {
+      // the view follows the walk's heading through a light spring of its
+      // own, which rounds off the turn in a doorway
       const steps = Math.ceil(dt / (1 / 120)), h = dt / steps;
       for (let i = 0; i < steps; i++) {
-        springAcc.subVectors(targetPos, camPos).multiplyScalar(SPRING_POS * SPRING_POS).addScaledVector(camVel, -2 * SPRING_POS);
-        camVel.addScaledVector(springAcc, h);
-        camPos.addScaledVector(camVel, h);
         yawVel += (wrap(targetYaw - camYaw) * SPRING_TURN * SPRING_TURN - 2 * SPRING_TURN * yawVel) * h;
         camYaw = wrap(camYaw + yawVel * h);
         pitchVel += ((targetPitch - camPitch) * SPRING_TURN * SPRING_TURN - 2 * SPRING_TURN * pitchVel) * h;
         camPitch += pitchVel * h;
       }
+      leanNow.lerp(lean, 1 - Math.exp(-dt * 3));
     }
+    camPos.copy(targetPos).add(leanNow);
     (scene.fog as THREE.Fog).color.lerp(fogTarget, k);
     fogNearFar.lerp(fogNearFarTarget, k);
     (scene.fog as THREE.Fog).near = fogNearFar.x;
@@ -1567,6 +1659,9 @@ export function createMuseum(host: HTMLElement, opts: Options): MuseumHandle {
   if (new URLSearchParams(window.location.search).has('bake')) {
     (window as unknown as { __museumBake?: unknown }).__museumBake = {
       scene, wallT: WALL_T, sun: SUN_DIR.toArray(),
+      hold: (at: number | null) => { held = at; },
+      cam: () => camera.position.toArray(),
+      walk: () => ({ pts: walkPts.map((p) => p.toArray()), len: walkLen, stops: stopLen, ids: stations.map((st) => st.id) }),
       spaces: { lobby: LOBBY, gallery: GALLERY, salon: roomBounds(0), ...Object.fromEntries(ROOM_SLUGS.map((slug, i) => [slug, roomBounds(i)])) },
     };
   }
@@ -1951,16 +2046,23 @@ const DRESS: Record<string, (k: Kit) => void | DoorControls> = {
   'buddy-cup'(k) {
     const C = COURSE;
     const door = buildCourse({ scene: k.scene, track: k.track, animators: k.animators, mobile: k.mobile, reduceMotion: k.reduceMotion, clickable: k.clickable });
-    // The iPhone app: entering a hole's scores, then the cup page (sample players)
-    const { phone, spot } = giantPhone(k, [C.phone.x, C.phone.z], C.phone.rotY, '/media/buddycup/phone.mp4', '/media/buddycup/phone.jpg',
+    // Two giant phones on the grass. By the flag, the cup standings moving as
+    // matches finish; beside the green, the iPhone app: entering a hole's
+    // scores, then the cup page (sample players)
+    const onGrass = (at: { x: number; z: number; rotY: number }, video: string, poster: string, label: [string, string, string, string]) => {
+      const { phone, spot } = giantPhone(k, [at.x, at.z], at.rotY, video, poster, label);
+      // Sit the plinth on the slope: its lowest corner just into the grass
+      const lowest = Math.min(...[[-1, -0.45], [1, -0.45], [-1, 0.5], [1, 0.5]].map(([dx, dz]) => {
+        const c = Math.cos(at.rotY), s = Math.sin(at.rotY);
+        return courseHeight(at.x + dx * c + dz * s, at.z - dx * s + dz * c);
+      }));
+      phone.position.y += lowest - 0.04;
+      spot.intensity = 0; // the sun lights it out here
+    };
+    onGrass(C.standings, '/media/buddycup/cup.mp4', '/media/buddycup/cup.jpg',
+      ['Cup standings', 'Buddy Cup', 'Every match moves the cup', 'Sample trip, invented players']);
+    onGrass(C.phone, '/media/buddycup/phone.mp4', '/media/buddycup/phone.jpg',
       ['The app', 'Buddy Cup', 'Score a hole, watch the cup move', 'Sample trip, invented players']);
-    // Sit the plinth on the slope: its lowest corner just into the grass
-    const lowest = Math.min(...[[-1, -0.45], [1, -0.45], [-1, 0.5], [1, 0.5]].map(([dx, dz]) => {
-      const c = Math.cos(C.phone.rotY), s = Math.sin(C.phone.rotY);
-      return courseHeight(C.phone.x + dx * c + dz * s, C.phone.z - dx * s + dz * c);
-    }));
-    phone.position.y += lowest - 0.04;
-    spot.intensity = 0; // the sun lights it out here
 
     // Beyond the bunker, out in the sun: a Daniel Arsham bronze bust on
     // its plinth, recreated in 3D (Meshy) from the user's photos of the piece

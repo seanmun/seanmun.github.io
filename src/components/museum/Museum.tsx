@@ -302,14 +302,11 @@ export default function Museum({ projects, ordinals, tours }: { projects: Museum
   const project = placard ? projects.find((p) => p.slug === placard) : null;
   const sheetPanel = station.panel !== undefined && station.slug ? tours[station.slug]?.[station.panel] : undefined;
   const loading = progress.loaded < progress.total;
-  // The last room's last card carries the four links too: the end of the
-  // walk is where a visitor decides what to do next
-  const lastPanel = panels.length ? panels[panels.length - 1].station : -1;
 
   return (
     <div className="bg-[#d9d5ce] text-[#1d1c1a]">
       <div ref={hostRef} className="fixed inset-0" />
-      {panels.map((p) => createPortal(<Hologram content={p.content} about={p.station === lastPanel ? openAbout : undefined} />, p.element, `holo-${p.station}`))}
+      {panels.map((p) => createPortal(<Hologram content={p.content} />, p.element, `holo-${p.station}`))}
 
       {/* Scroll track: STEP screens between stations */}
       <div style={{ height: `${((stations.length - 1) * STEP + 1) * 100}vh` }} />
@@ -367,7 +364,7 @@ export default function Museum({ projects, ordinals, tours }: { projects: Museum
       {narrow && sheetPanel && (
         <div ref={sheetRef} className="fixed bottom-0 inset-x-0 z-10 px-3 pb-3">
           <div key={station.id} className="holo-sheet">
-            <Hologram content={sheetPanel} about={active === lastPanel ? openAbout : undefined} />
+            <Hologram content={sheetPanel} />
           </div>
         </div>
       )}
@@ -490,7 +487,7 @@ function AboutLinks({ from, onOpen, className, linkClass }: { from: string; onOp
   );
 }
 
-function Hologram({ content: c, about }: { content: PanelContent; about?: (id: AboutId) => void }) {
+function Hologram({ content: c }: { content: PanelContent }) {
   // the kicker reads "PROJECT · 2 OF 4": its first part names the project
   const project = c.kicker.split('·')[0].trim();
   return (
@@ -529,7 +526,6 @@ function Hologram({ content: c, about }: { content: PanelContent; about?: (id: A
           ))}
         </div>
       )}
-      {about && <AboutLinks from="last card" onOpen={about} className="holo-about" linkClass="" />}
     </section>
   );
 }
@@ -616,10 +612,6 @@ const HOLO_CSS = `
 .holo-links a { font-size: 15px; padding: 8px 15px; border-radius: 999px; border: 1px solid rgba(140,225,255,0.6); color: #e4fbff; text-decoration: none; text-shadow: none; }
 .holo-links a:hover { background: rgba(120,220,255,0.18); }
 .holo-links a.primary { background: rgba(140,230,255,0.9); color: #04202e; border-color: transparent; font-weight: 600; }
-.holo-about { display: flex; flex-wrap: wrap; gap: 4px 18px; margin-top: 16px; padding-top: 12px; border-top: 1px solid rgba(140,225,255,0.3); }
-.holo-about a, .holo-about button { font: inherit; font-size: 14px; color: rgba(200,242,255,0.9); background: none; border: 0; padding: 2px 0; cursor: pointer; text-decoration: underline; text-underline-offset: 3px; text-shadow: none; }
-.holo-about a:hover, .holo-about button:hover { color: #fff; }
-.holo-sheet .holo-about { margin-top: 10px; padding-top: 8px; }
 .holo-figure-row { display: flex; gap: 22px; align-items: center; }
 .holo-figure-row .holo-body { flex: 1; }
 .watch { flex: none; margin: 0; display: flex; flex-direction: column; align-items: center; text-shadow: none; filter: drop-shadow(0 0 14px rgba(120,220,255,0.35)); }
