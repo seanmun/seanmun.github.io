@@ -1137,10 +1137,21 @@ export function createMuseum(host: HTMLElement, opts: Options): MuseumHandle {
   const view = (s: Station, narrow: boolean) => (narrow && s.narrow) || s;
   let P: THREE.Vector3[] = [];
   let path!: THREE.CatmullRomCurve3;
+  let at: number[] = [];
+  let pathSpan = 1;
   let heading: { yaw: number; pitch: number }[] = [];
   const buildRoute = (narrow: boolean) => {
     P = stations.map((s) => new THREE.Vector3(...view(s, narrow).pos));
-    path = new THREE.CatmullRomCurve3(P, false, 'centripetal', 0.5);
+    // The curve also threads the doorways some stops are reached through
+    // (via): at[i] is where stop i sits among the curve's points
+    const pts: THREE.Vector3[] = [];
+    at = stations.map((s, i) => {
+      if (s.via) pts.push(new THREE.Vector3(...s.via));
+      pts.push(P[i]);
+      return pts.length - 1;
+    });
+    pathSpan = pts.length - 1;
+    path = new THREE.CatmullRomCurve3(pts, false, 'centripetal', 0.5);
     heading = stations.map((s) => {
       const v = view(s, narrow);
       const d = new THREE.Vector3(...v.look).sub(new THREE.Vector3(...v.pos)).normalize();
@@ -1183,7 +1194,7 @@ export function createMuseum(host: HTMLElement, opts: Options): MuseumHandle {
     const f = clamped - i;
     // Rest at each stop for the first and last fifth of the scroll between them
     const e = smooth(0.2, 0.8, f);
-    path.getPoint((i + e) / (n - 1), targetPos);
+    path.getPoint((at[i] + e * (at[i + 1] - at[i])) / pathSpan, targetPos);
     const a = heading[i], b = heading[i + 1];
     targetYaw = a.yaw + wrap(b.yaw - a.yaw) * e;
     targetPitch = a.pitch + (b.pitch - a.pitch) * e;

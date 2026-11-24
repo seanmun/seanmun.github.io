@@ -29,6 +29,7 @@ export interface Station {
   pos: V3;
   look: V3;
   narrow?: { pos: V3; look: V3 }; // a different view on tall, narrow screens
+  via?: V3; // a doorway the walk passes through on the way to this stop
   fog?: string; // fog color and range here, when not the room's
   fogRange?: [number, number];
   knock?: boolean; // the classified door: the caption offers a knock
@@ -67,26 +68,27 @@ export type TourPanel = (
   | { kind: 'finale'; heading?: string; bullets?: string[]; link?: { label: string; href: string }; figure?: PanelFigure }
 ) & { line?: string; title?: string };
 
-// The narration, stop by stop, in each room's tour order: three stops a
-// room (arrive, the thing to see, the way out), so nobody tires. One sentence a
+// The narration, stop by stop, in each room's tour order. Three stops a
+// room, each in front of one of its displays and about the one thing that
+// display shows. One sentence a
 // stop, short enough to read in a few seconds (and the script for a voice
 // guide later). A stop's entry is its line, or [title, line] to rename its
 // panel too.
 const TOUR_LINES: Record<string, (string | [string, string])[]> = {
   'kinetic-email': [
-    'Most emails are static brochures. Kinetic.email builds interactive ones, and tracks how people use them in the inbox.',
+    'Most emails are static brochures. Describe one to Kinetic.email and it builds it interactive, twice, so every inbox gets the best version it can run.',
     ['Three ways in', 'Describe an email to the AI, watch the AMP build run live in Gmail, or bring an old email to life.'],
     ['Bolt', 'The ad is a game: Bolt is free in your browser, and every level teaches a real email idea.'],
   ],
   'money-never-sleeps': [
-    'MNS Fantasy began as one dynasty league with real NBA salary cap rules and a prize pool held in crypto.',
+    ['Real money problems', 'A dynasty league on real NBA salary cap rules: every player costs what his contract pays, and the prize pot is held in crypto.'],
     ['Bump', 'Bump is your AI general manager: tap the mic, ask out loud, and he answers with the facts on screen.'],
     ['One login. Every game.', "Five games now share one app: NBA and WNBA dynasty, NFL pick'em, PGA golf and March Madness."],
   ],
   outlooksucks: [
-    "Classic Outlook draws email with Microsoft Word's engine, so modern layouts break. This tool writes the old-style tables for you.",
-    ['Build it visually', 'Build the email from brand-approved blocks, or describe it and Claude drafts it from those same blocks.'],
-    ['A real Outlook template', 'What you download is a real Outlook template, made by a file writer I wrote byte by byte.'],
+    ['The problem', "Classic Outlook draws email with Microsoft Word's engine. The ticker runs through about 200 web features it breaks."],
+    ['Build it visually', 'Build the email from brand-approved blocks, click any text to edit it, and download a real Outlook template.'],
+    ['AI that edits', 'Describe the email or attach a design, and Claude drafts it from those same blocks. It never writes HTML.'],
   ],
   'rocket-pool-tour': [
     'The Rocket Pool Tour is a pro billiards league built around a new game, Rocket Run-Out, from Hall of Famer Rodney Morris.',
@@ -94,9 +96,9 @@ const TOUR_LINES: Record<string, (string | [string, string])[]> = {
     ['A deck for every partner', 'Every brand the league pitches gets its own deck, generated from one record and an industry template.'],
   ],
   'human-diet': [
-    'For nearly all of history we ate one broadly stable diet. Human Diet lets you walk through how that changed.',
-    ['300,000 years', 'Scroll, and three people walk from 300,000 years ago to today, on a road made of what we ate.'],
-    ['Modelled in Blender', "The walkers' bodies follow the evidence for each era, in a world of more than 80 objects modelled in Blender."],
+    ['300,000 years', 'We ate one broadly stable diet for nearly all of history. Scroll, and three people walk 300,000 years of how it changed.'],
+    ['Bodies that follow the data', "The walkers' height and weight follow the evidence for each era, down to what they wear."],
+    ['Modelled in Blender', 'Its world is more than 80 objects modelled in Blender, from the rigged walkers to the woolly mammoth.'],
   ],
   'buddy-cup': [
     'Buddy Cup runs a Ryder-Cup-style golf trip from one phone: players, tee times, matchups and a live leaderboard.',
@@ -113,6 +115,7 @@ export interface TourStop {
   look: V3;
   place: V3;
   narrow?: { pos: V3; look: V3 };
+  via?: V3; // walk through here on the way in (a room's first stop, when it isn't at the door)
 }
 
 export function roomTour(slug: string, index: number): TourStop[] | null {
@@ -146,13 +149,16 @@ function tourStops(slug: string, index: number): TourStop[] | null {
   const arrive = (look: V3, place: V3 = [-0.6, 0.12, 2.5]): TourStop => ({
     id: 'arrive', label: 'Arrive', panel: { kind: 'overview' }, pos: [ROOM.doorX, 1.75, r.z0 - 1.5], look, place,
   });
+  // A room whose first stop is already at a display still comes in by the door
+  const door: V3 = [ROOM.doorX, 1.75, r.z0];
   switch (slug) {
     case 'kinetic-email':
       return [
-        // in through the door, the French window and its curtains ahead and to
-        // the right, the lawn running down to the sea. Phones walk closer and
-        // look a little down, so the view clears the card
-        { ...arrive([7, 2.35, r.zc - 0.4]), narrow: { pos: [3.2, 1.75, r.zc + 1.6], look: [9, 1.5, r.zc - 0.4] } },
+        // straight to the film on the left wall, over the fireplace, the card
+        // floating to its right. It hangs high: phones step back across the room
+        { ...screen('Interactive email, without the hacks', 'The film'), id: 'arrive', panel: { kind: 'overview' }, via: door,
+          pos: [r.x0 + 7.8, 1.8, r.zc + 3.2], look: [r.x0, 2.5, r.zc - 0.5], // its screen is the widest: stand back to see it whole
+          narrow: { pos: [2.6, 1.75, r.zc + 0.4], look: [r.x0, 2.4, r.zc + 0.4] } },
         { id: 'atwork', label: 'The app at work', panel: { kind: 'section', heading: 'Interactive email, without the hacks', bullets: [
           'Describe it: the AI Playground turns a plain-English prompt into an interactive build',
           'Live in the inbox: the AMP version runs right in Gmail, carousels and forms included',
@@ -168,9 +174,11 @@ function tourStops(slug: string, index: number): TourStop[] | null {
       ];
     case 'outlooksucks':
       return [
-        arrive([3.6, 1.1, r.zc - 2.2]),
+        { id: 'crt', label: 'The cubicle', panel: { kind: 'section', heading: 'The problem, in one ticker' }, via: door, pos: [3.2, 1.5, r.zc + 0.6], look: [4.0, 1.0, r.zc - 2.1], place: [-0.55, 0.25, 2.2],
+          // phones: square on to the monitor, on the right of the desk
+          narrow: { pos: [4.25, 1.5, r.zc + 0.8], look: [4.45, 1.0, r.zc - 2.1] } },
         screen('Edit on the email itself'),
-        { ...finale('A real Outlook template, written byte by byte'), look: [3.0, 1.9, r.z1], place: [-0.75, -0.1, 2.5] },
+        { id: 'ai', label: 'The AI', panel: { kind: 'finale', heading: 'AI that edits, not generates' }, pos: [-1.2, 1.75, r.z1 + 5.6], look: [-3.9, 2.3, r.z1], place: [1.05, -0.05, 2.5] },
       ];
     case 'buddy-cup': {
       // Outdoors: out the back door onto the hole
@@ -193,13 +201,13 @@ function tourStops(slug: string, index: number): TourStop[] | null {
       ];
     case 'human-diet':
       return [
-        arrive([3.6, 1.0, r.zc - 1.2]),
-        screen('A walk through 300,000 years'),
+        { ...screen('A walk through 300,000 years'), via: door },
+        { id: 'diorama', label: 'The diorama', panel: { kind: 'section', heading: 'Bodies that follow the data' }, pos: [0.2, 1.7, r.zc + 2.6], look: [3.6, 0.9, r.zc - 1], place: [-0.6, 0.2, 2.4] },
         { id: 'finale', label: 'Before you go', panel: { kind: 'finale', heading: 'Next: a photorealistic world built in Blender' }, pos: [-1.2, 1.7, r.zc - 3.5], look: [3.6, 1.2, r.zc - 1.5], place: [-0.55, 0.0, 2.5] },
       ];
     case 'money-never-sleeps':
       return [
-        { id: 'arrive', label: 'Center court', panel: { kind: 'overview' }, pos: [ROOM.doorX, 1.75, r.z0 - 1.5], look: [-3, 2.3, r.zc - 4], place: [0.8, 0.0, 2.5] },
+        { id: 'ribbon', label: 'The ribbon board', panel: { kind: 'section', heading: 'A real league, with real money problems' }, via: door, pos: [1.4, 1.75, r.zc + 1.0], look: [r.x1, 2.7, r.zc - 1.9], place: [1.05, -0.15, 2.5] },
         { id: 'bump', label: 'Bump', panel: { kind: 'section', heading: 'Bump, your AI general manager' }, pos: [r.x0 + 4.8, 1.8, r.zc + 0.8], look: [r.x0, 2.35, r.zc + 0.4], place: [1.0, -0.05, 2.4] },
         { id: 'hoop', label: 'Every game', panel: { kind: 'finale', heading: 'One login. Every game.' }, pos: [-1.7, 1.7, r.z1 + 6.0], look: [-1.75, 2.45, r.z1 + 0.2], place: [1.1, -0.1, 2.5],
           narrow: { pos: [-3.5, 1.8, r.z1 + 8.8], look: [-3.5, 2.95, r.z1 + 0.2] } },
@@ -380,7 +388,7 @@ export function buildStations(projects: MuseumProject[], tours: Record<string, P
       tour.forEach((t, k) => {
         stations.push({
           id: `${slug}-${t.id}`, group: p.title, label: p.title, sub: t.label, slug,
-          pos: t.pos, look: t.look, panel: k, place: t.place, narrow: t.narrow,
+          pos: t.pos, look: t.look, panel: k, place: t.place, narrow: t.narrow, via: t.via,
         });
       });
       return;
