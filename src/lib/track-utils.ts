@@ -55,10 +55,17 @@ export function getDeviceType(): 'mobile' | 'tablet' | 'desktop' {
   return 'desktop';
 }
 
+// Only the live site records. Each address keeps its own visitor id, so
+// visits on localhost or a preview deployment can't be recognised as Sean's
+// and would be counted as visitors.
+function isLiveSite() {
+  return typeof window !== 'undefined' && /^(www\.)?seanmun\.com$/.test(window.location.hostname);
+}
+
 // keepalive lets the request outlive the page, so events sent while the
 // visitor is leaving still arrive
 function send(event: TrackEvent) {
-  if (typeof window === 'undefined') return;
+  if (!isLiveSite()) return;
 
   const payload = JSON.stringify({
     ...event,
@@ -83,7 +90,7 @@ function send(event: TrackEvent) {
 
 // Several events in one request — the click tracker buffers and flushes
 export function sendEvents(events: TrackEvent[]) {
-  if (typeof window === 'undefined' || events.length === 0) return;
+  if (!isLiveSite() || events.length === 0) return;
 
   const payload = JSON.stringify({
     events: events.map((event) => ({

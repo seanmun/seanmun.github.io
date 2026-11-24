@@ -23,6 +23,12 @@ const str = (value: unknown, max: number) =>
   typeof value === 'string' && value.trim() ? value.trim().slice(0, max) : null;
 
 export async function POST(request: Request) {
+  // Only the production deployment records: local dev and preview builds
+  // share this database, and their visits are Sean's own testing
+  if (process.env.VERCEL_ENV !== 'production') {
+    return NextResponse.json({ ok: true, recorded: 0 });
+  }
+
   let body: Record<string, unknown>;
   try {
     body = await request.json();
